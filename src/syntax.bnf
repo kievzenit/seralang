@@ -1,0 +1,70 @@
+<translation_unit> ::= <package_statement> (<func_prototype_decl_statement> | <func_decl_statement>)*
+
+
+<package_statement> ::= "package" <identifier> ("." <identifier>)* ";"
+
+<statement> ::= <return_statement>
+    | <func_decl_statement>
+    | <let_statement>
+    | <identifier_assingment_statement>
+
+<type_denotation> ::= ":" <type>
+
+<func_param> ::= <identifier> <type_denotation>
+<func_params> ::= "(" (<func_param> ("," <func_param>)*)? ")"
+<func_return> ::= <type>
+<func_decl> ::= "func" <identifier> <func_params> <func_return>
+
+<func_prototype_decl_statement> ::= "extern"? <func_decl> ";"
+<func_decl_statement> ::= <func_decl> <scope_statement>
+
+<assingment> ::= "="
+<let_statement> ::= "let" <identifier> <type_denotation>? <assingment> <expression> ";"
+
+<identifier_assingment_statement> ::= <identifier> <assingment> <expression> ";"
+
+<scope_statement> ::= "{" <statement> "}"
+
+<return_statement> ::= "return" <expression> ";"
+
+<expression> ::= <boolean_expression>
+	| <number_expression>
+    | <call_expression>
+
+<call_expression> ::= <identifier> <func_params>
+
+<number_expression> ::= <number>
+	| <complex_binary_number>
+    | <complex_octal_number>
+    | <complex_decimal_number>
+    | <complex_hexadecimal_number>
+
+<boolean_expression> ::= "true" | "false"
+
+
+<type> ::= "bool"
+	| "int1"
+    | "int8"
+    | "int16"
+    | "int32"
+    | "int64"
+    | "int"
+    | "void"
+
+
+<identifier> ::= (<letter> | "_") | <identifier> (<letter> | <decimal_digit> | "_")+
+
+<letter> ::= [a-z] | [A-Z]
+
+
+<complex_hexadecimal_number> ::= "0x" <hexadecimal_digit>+
+<complex_decimal_number> ::= "0d" <decimal_digit>+
+<complex_octal_number> ::= "0o" <octal_digit>+
+<complex_binary_number> ::= "0b" <binary_digit>+
+
+<number> ::= <decimal_digit>+
+
+<hexadecimal_digit> ::= <decimal_digit> | [a-f]
+<decimal_digit> ::= <octal_digit> | [8-9]
+<octal_digit> ::= <binary_digit> | [2-7]
+<binary_digit> ::= [0-1]
