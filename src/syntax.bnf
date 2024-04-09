@@ -32,9 +32,21 @@
 <return_statement> ::= "return" <expression> ";"
 
 <expression> ::= <boolean_expression>
+    | <binary_expression>
 	| <number_expression>
 	| <identifier_expression>
     | <call_expression>
+
+<binary_operator> ::= "+"
+    | "-"
+    | "*"
+    | "/"
+    | ">"
+    | "<"
+    | ">="
+    | "<="
+    | "=="
+<binary_expression> ::= <expression> <binary_operator> <expression>
 
 <call_expression> ::= <identifier> <func_params>
 
