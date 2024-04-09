@@ -6,7 +6,7 @@
 <statement> ::= <return_statement>
     | <func_decl_statement>
     | <let_statement>
-    | <identifier_assingment_statement>
+    | <identifier_assignment_statement>
 
 <type_denotation> ::= ":" <type>
 
@@ -18,14 +18,14 @@
 <func_prototype_decl_statement> ::= "extern"? <func_decl> ";"
 <func_decl_statement> ::= <func_decl> <scope_statement>
 
-<assingment> ::= "="
+<assignment> ::= "="
     | "+="
     | "-="
     | "*="
     | "/="
-<let_statement> ::= "let" <identifier> <type_denotation>? <assingment> <expression> ";"
+<let_statement> ::= "let" <identifier> <type_denotation>? <assignment> <expression> ";"
 
-<identifier_assingment_statement> ::= <identifier> <assingment> <expression> ";"
+<identifier_assignment_statement> ::= <identifier> <assignment> <expression> ";"
 
 <scope_statement> ::= "{" <statement> "}"
 
