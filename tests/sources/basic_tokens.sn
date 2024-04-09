@@ -1,0 +1,10 @@
+package test.test2;
+
+let a = 12;
+let b = 0d1231214;
+let c = 0xff;
+let d = 0o172561;
+let e = 0b100101011;
+
+let f = false;
+let g = true;
