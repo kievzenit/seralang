@@ -1,4 +1,4 @@
-<translation_unit> ::= <package_statement> (<func_prototype_decl_statement> | <func_decl_statement>)*
+<translation_unit> ::= <package_statement> (<func_prototype_decl_statement> | <func_decl_statement> | <let_statement>)*
 
 
 <package_statement> ::= "package" <identifier> ("." <identifier>)* ";"
