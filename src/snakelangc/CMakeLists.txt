@@ -3,7 +3,13 @@ project(snakelangc)
 
 set(CMAKE_CXX_STANDARD 23)
 
-set(SOURCE_FILES main.cpp)
+set(SOURCE_FILES main.cpp
+        lexer/token_type.h
+        lexer/token.h
+        lexer/lexer.cpp
+        lexer/lexer.h
+        utils/log_error.h
+        utils/log_error.cpp)
 
 find_package(LLVM REQUIRED CONFIG)
 
