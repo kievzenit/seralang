@@ -268,9 +268,9 @@ lexer::token lexer::lexer::process_punctuation() {
         }
     }
 
+    eat_current_char();
     switch (first_char) {
         case '+':
-            eat_current_char();
             return {
                     token_type::plus_assign,
                     "+=",
@@ -280,7 +280,6 @@ lexer::token lexer::lexer::process_punctuation() {
                     column_
             };
         case '-':
-            eat_current_char();
             return {
                     token_type::minus_assign,
                     "-=",
@@ -290,7 +289,6 @@ lexer::token lexer::lexer::process_punctuation() {
                     column_
             };
         case '*':
-            eat_current_char();
             return {
                     token_type::multiply_assign,
                     "*=",
@@ -300,7 +298,6 @@ lexer::token lexer::lexer::process_punctuation() {
                     column_
             };
         case '/':
-            eat_current_char();
             return {
                     token_type::divide_assign,
                     "/=",
@@ -310,7 +307,6 @@ lexer::token lexer::lexer::process_punctuation() {
                     column_
             };
         case '>':
-            eat_current_char();
             return {
                     token_type::greater_or_equal,
                     ">=",
@@ -320,7 +316,6 @@ lexer::token lexer::lexer::process_punctuation() {
                     column_
             };
         case '<':
-            eat_current_char();
             return {
                     token_type::less_or_equal,
                     "<=",
@@ -330,7 +325,6 @@ lexer::token lexer::lexer::process_punctuation() {
                     column_
             };
         case '=':
-            eat_current_char();
             return {
                     token_type::equals,
                     "==",
