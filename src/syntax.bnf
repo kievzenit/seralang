@@ -19,6 +19,10 @@
 <func_decl_statement> ::= <func_decl> <scope_statement>
 
 <assingment> ::= "="
+    | "+="
+    | "-="
+    | "*="
+    | "/="
 <let_statement> ::= "let" <identifier> <type_denotation>? <assingment> <expression> ";"
 
 <identifier_assingment_statement> ::= <identifier> <assingment> <expression> ";"
