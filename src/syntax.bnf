@@ -29,9 +29,12 @@
 
 <expression> ::= <boolean_expression>
 	| <number_expression>
+	| <identifier_expression>
     | <call_expression>
 
 <call_expression> ::= <identifier> <func_params>
+
+<identifier_expression> ::= <identifier>
 
 <number_expression> ::= <number>
 	| <complex_binary_number>
