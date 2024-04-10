@@ -16,9 +16,9 @@ namespace lexer {
               int column_start,
               int column_end) :
               type(type),
-                value(std::move(value)),
-                file_name(std::move(file_name)),
-                line(line), column_start(column_start), column_end(column_end) {}
+              value(std::move(value)),
+              file_name(std::move(file_name)),
+              line(line), column_start(column_start), column_end(column_end) {}
 
         explicit operator std::string() {
             return std::format(
