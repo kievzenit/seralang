@@ -23,7 +23,7 @@
     | "-="
     | "*="
     | "/="
-<let_statement> ::= "let" <identifier> <type_denotation>? <assignment> <expression> ";"
+<let_statement> ::= "let" <identifier> <type_denotation>? "=" <expression> ";"
 
 <identifier_assignment_statement> ::= <identifier> <assignment> <expression> ";"
 
