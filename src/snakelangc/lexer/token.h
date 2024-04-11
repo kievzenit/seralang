@@ -20,6 +20,8 @@ namespace lexer {
               file_name(std::move(file_name)),
               line(line), column_start(column_start), column_end(column_end) {}
 
+        token(nullptr_t pVoid) {}
+
         explicit operator std::string() {
             return std::format(
                     "token {{ value = {}, line = {}, column_start = {}, column_end = {} }}",
