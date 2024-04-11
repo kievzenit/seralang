@@ -6,7 +6,7 @@
 
 namespace utils {
 
-    void log_error(std::string &error);
+    void log_error(std::string error);
 
 }
 
