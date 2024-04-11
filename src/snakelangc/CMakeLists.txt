@@ -22,7 +22,16 @@ set(SOURCE_FILES main.cpp
         parser/ast/boolean_expr.h
         parser/ast/identifier_expr.h
         parser/ast/binary_operation.h
-        parser/ast/binary_expr.h)
+        parser/ast/binary_expr.h
+        emitter/ir/package_ir.h
+        emitter/ir/variable_ir.h
+        emitter/ir/type.h
+        emitter/ir/expr_ir.h
+        emitter/ir/integer_expr_ir.h
+        emitter/ir/boolean_expr_ir.h
+        emitter/ir/binary_expr_ir.h
+        emitter/emitter.cpp
+        emitter/emitter.h)
 
 find_package(LLVM REQUIRED CONFIG)
 
