@@ -2,6 +2,7 @@
 #define SNAKELANG_TRANSLATION_AST_H
 
 #include <utility>
+#include <memory>
 #include <vector>
 #include "ast_node.h"
 #include "package_stmt.h"
