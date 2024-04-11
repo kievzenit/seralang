@@ -9,7 +9,20 @@ set(SOURCE_FILES main.cpp
         lexer/lexer.cpp
         lexer/lexer.h
         utils/log_error.h
-        utils/log_error.cpp)
+        utils/log_error.cpp
+        parser/parser.cpp
+        parser/parser.h
+        parser/ast/ast_node.h
+        parser/ast/translation_ast.h
+        parser/ast/package_stmt.h
+        parser/ast/top_stmt.h
+        parser/ast/let_stmt.h
+        parser/ast/expr.h
+        parser/ast/integer_expr.h
+        parser/ast/boolean_expr.h
+        parser/ast/identifier_expr.h
+        parser/ast/binary_operation.h
+        parser/ast/binary_expr.h)
 
 find_package(LLVM REQUIRED CONFIG)
 
