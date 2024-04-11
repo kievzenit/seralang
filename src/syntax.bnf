@@ -11,11 +11,11 @@
     | <scope_statement>
     | <identifier_assignment_statement>
 
-<type_denotation> ::= ":" <return_type>
+<type_denotation> ::= ":" <basic_type>
 
 <func_param> ::= <identifier> <type_denotation>
 <func_params> ::= "(" (<func_param> ("," <func_param>)*)? ")"
-<func_return> ::= <return_type>
+<func_return> ::= <basic_type>
 <func_decl> ::= "func" <identifier> <func_params> <func_return>
 
 <func_prototype_decl_statement> ::= "extern"? <func_decl> ";"
@@ -36,19 +36,24 @@
 
 <expression> ::= <primary_expression> | <binary_expression>
 
-<binary_operator> ::= "+"
+<arithmetic_operator> ::= "+"
     | "-"
     | "*"
     | "/"
-    | ">"
+    | "%"
+    | "//"
+
+<binary_expression> ::= <expression> <arithmetic_operator> <expression>
+
+<relational_operator> ::= ">"
     | "<"
     | ">="
     | "<="
+    | "!="
     | "=="
-<binary_expression> ::= <expression> <binary_operator> <expression>
 
 <primary_expression> ::= <boolean_expression>
-    | <number_expression>
+    | <integer_expression>
     | <identifier_expression>
     | <call_expression>
 
@@ -56,36 +61,47 @@
 
 <identifier_expression> ::= <identifier>
 
-<number_expression> ::= <number>
-	| <complex_binary_number>
-    | <complex_octal_number>
-    | <complex_decimal_number>
-    | <complex_hexadecimal_number>
+<integer_expression> ::= <number>
 
 <boolean_expression> ::= "true" | "false"
 
 
-<return_type> ::= "bool"
-	| "int1"
+<basic_type> ::= "void"
+    | "bool"
+    | <integer_type>
+
+<integer_type> ::= "int1"
     | "int8"
     | "int16"
     | "int32"
-    | "int64"
     | "int"
-    | "void"
-
+    | "int64"
+    | "uint8"
+    | "uint16"
+    | "uint32"
+    | "uint"
+    | "uint64"
 
 <identifier> ::= (<letter> | "_") | <identifier> (<letter> | <decimal_digit> | "_")+
 
 <letter> ::= [a-z] | [A-Z]
 
+<int_type_denotation> ::= ":" <integer_type>
+
+<number> ::= <numbers> <int_type_denotation>?
+
+<numbers> ::= <decimal_number>
+    | <complex_hexadecimal_number>
+    | <complex_decimal_number>
+    | <complex_octal_number>
+    | <complex_binary_number>
 
 <complex_hexadecimal_number> ::= "0x" <hexadecimal_digit>+
 <complex_decimal_number> ::= "0d" <decimal_digit>+
 <complex_octal_number> ::= "0o" <octal_digit>+
 <complex_binary_number> ::= "0b" <binary_digit>+
 
-<number> ::= <decimal_digit>+
+<decimal_number> ::= <decimal_digit>+
 
 <hexadecimal_digit> ::= <decimal_digit> | [a-f]
 <decimal_digit> ::= <octal_digit> | [8-9]
