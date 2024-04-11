@@ -1,18 +1,21 @@
-<translation_unit> ::= <package_statement> (<func_prototype_decl_statement> | <func_decl_statement> | <let_statement>)*
+<translation_unit> ::= <package_statement> <top_statement>*
 
 
 <package_statement> ::= "package" <identifier> ("." <identifier>)* ";"
 
+<top_statement> ::= <func_prototype_decl_statement> | <func_decl_statement> | <let_statement>
+
 <statement> ::= <return_statement>
     | <func_decl_statement>
     | <let_statement>
+    | <scope_statement>
     | <identifier_assignment_statement>
 
-<type_denotation> ::= ":" <type>
+<type_denotation> ::= ":" <return_type>
 
 <func_param> ::= <identifier> <type_denotation>
 <func_params> ::= "(" (<func_param> ("," <func_param>)*)? ")"
-<func_return> ::= <type>
+<func_return> ::= <return_type>
 <func_decl> ::= "func" <identifier> <func_params> <func_return>
 
 <func_prototype_decl_statement> ::= "extern"? <func_decl> ";"
@@ -31,11 +34,7 @@
 
 <return_statement> ::= "return" <expression> ";"
 
-<expression> ::= <boolean_expression>
-    | <binary_expression>
-	| <number_expression>
-	| <identifier_expression>
-    | <call_expression>
+<expression> ::= <primary_expression> | <binary_expression>
 
 <binary_operator> ::= "+"
     | "-"
@@ -47,6 +46,11 @@
     | "<="
     | "=="
 <binary_expression> ::= <expression> <binary_operator> <expression>
+
+<primary_expression> ::= <boolean_expression>
+    | <number_expression>
+    | <identifier_expression>
+    | <call_expression>
 
 <call_expression> ::= <identifier> <func_params>
 
@@ -61,7 +65,7 @@
 <boolean_expression> ::= "true" | "false"
 
 
-<type> ::= "bool"
+<return_type> ::= "bool"
 	| "int1"
     | "int8"
     | "int16"
