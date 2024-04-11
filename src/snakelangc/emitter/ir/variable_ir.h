@@ -3,17 +3,17 @@
 
 #include <string>
 #include <utility>
-#include "basic_type.h"
+#include "type.h"
 #include "expr_ir.h"
 
 namespace emitter::ir {
 
     class variable_ir {
     public:
-        variable_ir(std::string name, std::unique_ptr<expr_ir> expr, basic_type type) :
-            name(std::move(name)), expr(std::move(expr)), type(std::move(type)) {}
+        variable_ir(std::string name, std::unique_ptr<expr_ir> expr, type type) :
+                name(std::move(name)), expr(std::move(expr)), variable_type(std::move(type)) {}
 
-        basic_type type;
+        type variable_type;
         std::string name;
         std::unique_ptr<expr_ir> expr;
     };
