@@ -1,17 +1,15 @@
 #include <filesystem>
 #include "lexer/lexer.h"
+#include "parser/parser.h"
 
 int main() {
-    std::cout << std::filesystem::current_path() << std::endl;
-    lexer::lexer lexer("../../../tests/sources/basic_tokens.sn");
-    lexer::token token = lexer.get_next_token();
+    const auto file_name = "../../../tests/sources/basic_tokens.sn";
+    parser::parser parser(file_name);
+    auto translation_ast = parser.parse();
 
-    do {
-        std::cout << (std::string)token << std::endl;
-        token = lexer.get_next_token();
-    } while (token.type != lexer::token_type::eof);
-
-    std::cout << (std::string)token << std::endl;
+    for (auto &stmt : translation_ast->stmts) {
+        auto let_stmt = dynamic_cast<parser::ast::let_stmt*>(stmt.get());
+    }
 
     return 0;
 }
