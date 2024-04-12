@@ -3,16 +3,23 @@
 
 #include "expr_ir.h"
 #include "../../parser/ast/binary_expr.h"
+#include "binary_operation_type.h"
 
 namespace emitter::ir {
 
     class binary_expr_ir : public expr_ir {
     public:
-        binary_expr_ir(std::unique_ptr<expr_ir> left, std::unique_ptr<expr_ir> right, type type) :
+        binary_expr_ir(
+                std::unique_ptr<expr_ir> left,
+                std::unique_ptr<expr_ir> right,
+                binary_operation_type operation_type,
+                type type) :
             left(std::move(left)), right(std::move(right)),
+            operation_type(operation_type),
             expr_ir(std::move(type)) {}
 
         std::unique_ptr<expr_ir> left, right;
+        binary_operation_type operation_type;
     };
 
 }
