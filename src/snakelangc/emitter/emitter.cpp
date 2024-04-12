@@ -45,8 +45,10 @@ std::unique_ptr<emitter::ir::expr_ir> emitter::emitter::emit_for_expr(std::uniqu
         return std::make_unique<ir::binary_expr_ir>(
                 std::move(left_expr_ir),
                 std::move(right_expr_ir),
+                (ir::binary_operation_type)binary_expr->operation,
                 left_expr_ir->expr_type);
     }
 
     utils::log_error("Unexpected expression expr_type, this should never happen!");
+    __builtin_unreachable();
 }
