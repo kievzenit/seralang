@@ -1,6 +1,6 @@
 package test.test2;
 
-let a = 12;
+let a = 12 + 10 / 5;
 let b = 0d1231214;
 let c = 0xff;
 let d = 0o172561;
