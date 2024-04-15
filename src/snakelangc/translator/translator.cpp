@@ -38,6 +38,7 @@ void translator::translator::create_basic_types() {
     using namespace llvm;
     using namespace emitter::ir;
 
+    types_[type::boolean().name] = Type::getInt1Ty(*context_);
     types_[type::int1().name] = Type::getInt1Ty(*context_);
     types_[type::int8().name] = Type::getInt8Ty(*context_);
     types_[type::int16().name] = Type::getInt16Ty(*context_);
