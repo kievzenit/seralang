@@ -15,7 +15,7 @@ std::vector<std::unique_ptr<emitter::ir::variable_ir>> emitter::emitter::find_al
 
             auto expr_ir = emit_for_expr(std::move(let_stmt->expression));
             auto variable_ir = std::make_unique<ir::variable_ir>(
-                    let_stmt->name, std::move(expr_ir), ir::type::int32());
+                    let_stmt->name, std::move(expr_ir), expr_ir->expr_type);
             global_variables.push_back(std::move(variable_ir));
         }
     }
