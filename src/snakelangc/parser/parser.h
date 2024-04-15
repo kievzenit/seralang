@@ -33,6 +33,8 @@ namespace parser {
                 {ast::binary_operation::divide, 20},
         };
 
+        bool has_tokens() const;
+
         void expect(lexer::token_type token_type);
         void unexpected_token_error();
         void eat();

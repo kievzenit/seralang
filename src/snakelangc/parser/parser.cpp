@@ -16,6 +16,10 @@ std::unique_ptr<parser::ast::translation_ast> parser::parser::parse() {
     return std::make_unique<ast::translation_ast>(std::move(package_stmt), std::move(stmts));
 }
 
+bool parser::parser::has_tokens() const {
+    return current_token_.type != lexer::token_type::eof;
+}
+
 void parser::parser::expect(lexer::token_type token_type) {
     if (current_token_.type != token_type) {
         unexpected_token_error();
@@ -78,7 +82,7 @@ std::unique_ptr<parser::ast::package_stmt> parser::parser::parse_package_stmt() 
         return std::make_unique<ast::package_stmt>(package_name);
     }
 
-    while (current_token_.type != lexer::token_type::eof) {
+    while (has_tokens()) {
         expect(lexer::token_type::dot);
         package_name += current_token_.value;
 
@@ -144,8 +148,7 @@ std::unique_ptr<parser::ast::scope_stmt> parser::parser::parse_scope_stmt() {
     std::vector<std::unique_ptr<ast::stmt>> inner_stmts;
 
     eat();
-    while (current_token_.type != lexer::token_type::r_curly_brace
-        && current_token_.type != lexer::token_type::eof) {
+    while (has_tokens() && current_token_.type != lexer::token_type::r_curly_brace) {
         putback_tokens_.push(current_token_);
         inner_stmts.push_back(parse_stmt());
         eat();
