@@ -32,7 +32,9 @@ set(SOURCE_FILES main.cpp
         emitter/ir/binary_expr_ir.h
         emitter/emitter.cpp
         emitter/emitter.h
-        emitter/ir/binary_operation_type.h)
+        emitter/ir/binary_operation_type.h
+        translator/translator.cpp
+        translator/translator.h)
 
 find_package(LLVM REQUIRED CONFIG)
 
