@@ -10,7 +10,7 @@ namespace emitter::ir {
     class integer_expr_ir : public expr_ir {
     public:
         integer_expr_ir(parser::ast::integer_expr *integer_expr) :
-                expr_ir(type::int32()), number(integer_expr->number) {}
+                expr_ir(type::int32(), true), number(integer_expr->number) {}
 
         int number;
     };

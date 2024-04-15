@@ -16,7 +16,7 @@ namespace emitter::ir {
                 type type) :
             left(std::move(left)), right(std::move(right)),
             operation_type(operation_type),
-            expr_ir(std::move(type)) {}
+            expr_ir(std::move(type), false) {}
 
         std::unique_ptr<expr_ir> left, right;
         binary_operation_type operation_type;

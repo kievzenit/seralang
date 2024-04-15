@@ -8,7 +8,8 @@ namespace emitter::ir {
 
     class boolean_expr_ir : public expr_ir {
     public:
-        boolean_expr_ir(parser::ast::boolean_expr *expr) : expr_ir(type::boolean()), value(expr->value) {}
+        boolean_expr_ir(parser::ast::boolean_expr *expr) :
+            expr_ir(type::boolean(), true), value(expr->value) {}
 
         bool value;
     };
