@@ -1,0 +1,8 @@
+package test_package;
+
+let a_glb = 0xff:int16 + 12 / 0b100;
+
+func main() int {
+    let a = 1;
+    return 12;
+}
