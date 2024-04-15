@@ -44,15 +44,31 @@ std::unique_ptr<emitter::ir::expr_ir> emitter::emitter::emit_for_expr(std::uniqu
         auto left_expr_ir = emit_for_expr(std::move(binary_expr->left));
         auto right_expr_ir = emit_for_expr(std::move(binary_expr->right));
 
-        if (left_expr_ir->expr_type != right_expr_ir->expr_type) {
-            utils::log_error("Left side of expression and right side are different types, so operation cannot be completed!");
+        if (left_expr_ir->expr_type == right_expr_ir->expr_type) {
+            return std::make_unique<ir::binary_expr_ir>(
+                    std::move(left_expr_ir),
+                    std::move(right_expr_ir),
+                    (ir::binary_operation_type)binary_expr->operation,
+                    left_expr_ir->expr_type);
         }
 
-        return std::make_unique<ir::binary_expr_ir>(
-                std::move(left_expr_ir),
-                std::move(right_expr_ir),
-                (ir::binary_operation_type)binary_expr->operation,
-                left_expr_ir->expr_type);
+        if (left_expr_ir->expr_type.can_be_explicitly_casted_to(right_expr_ir->expr_type)) {
+            return std::make_unique<ir::binary_expr_ir>(
+                    std::move(left_expr_ir),
+                    std::move(right_expr_ir),
+                    (ir::binary_operation_type)binary_expr->operation,
+                    right_expr_ir->expr_type);
+        }
+
+        if (right_expr_ir->expr_type.can_be_explicitly_casted_to(left_expr_ir->expr_type)) {
+            return std::make_unique<ir::binary_expr_ir>(
+                    std::move(left_expr_ir),
+                    std::move(right_expr_ir),
+                    (ir::binary_operation_type)binary_expr->operation,
+                    left_expr_ir->expr_type);
+        }
+
+        utils::log_error("Left and right side of expression cannot be explicitly casted to other side.");
     }
 
     utils::log_error("Unexpected expression expr_type, this should never happen!");
