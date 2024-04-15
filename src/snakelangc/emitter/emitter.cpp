@@ -25,7 +25,13 @@ std::vector<std::unique_ptr<emitter::ir::variable_ir>> emitter::emitter::find_al
 
 std::unique_ptr<emitter::ir::expr_ir> emitter::emitter::emit_for_expr(std::unique_ptr<parser::ast::expr> expr) {
     if (dynamic_cast<parser::ast::integer_expr*>(expr.get()) != nullptr) {
-        return std::make_unique<ir::integer_expr_ir>(dynamic_cast<parser::ast::integer_expr*>(expr.get()));
+        auto integer_expr = dynamic_cast<parser::ast::integer_expr*>(expr.get());
+        auto explicit_int_type = integer_expr->explicit_int_type;
+        if (explicit_int_type.empty()) {
+            return std::make_unique<ir::integer_expr_ir>(integer_expr);
+        }
+
+        return emit_for_specific_integer(integer_expr, explicit_int_type);
     }
 
     if (dynamic_cast<parser::ast::boolean_expr*>(expr.get()) != nullptr) {
@@ -50,5 +56,48 @@ std::unique_ptr<emitter::ir::expr_ir> emitter::emitter::emit_for_expr(std::uniqu
     }
 
     utils::log_error("Unexpected expression expr_type, this should never happen!");
+    __builtin_unreachable();
+}
+
+std::unique_ptr<emitter::ir::integer_expr_ir> emitter::emitter::emit_for_specific_integer(
+        parser::ast::integer_expr* integer_expr,
+        const std::string& explicit_int_type) {
+    if (explicit_int_type == "int1") {
+        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::type::int1());
+    }
+
+    if (explicit_int_type == "int8") {
+        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::type::int8());
+    }
+
+    if (explicit_int_type == "int16") {
+        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::type::int16());
+    }
+
+    if (explicit_int_type == "int32") {
+        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::type::int32());
+    }
+
+    if (explicit_int_type == "int64") {
+        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::type::int64());
+    }
+
+    if (explicit_int_type == "uint8") {
+        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::type::uint8());
+    }
+
+    if (explicit_int_type == "uint16") {
+        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::type::uint16());
+    }
+
+    if (explicit_int_type == "uint32") {
+        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::type::uint32());
+    }
+
+    if (explicit_int_type == "uint64") {
+        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::type::uint64());
+    }
+
+    utils::log_error(std::format("Expected int type, but got: {} instead.", explicit_int_type));
     __builtin_unreachable();
 }
