@@ -162,7 +162,18 @@ std::unique_ptr<parser::ast::expr> parser::parser::parse_binary_expr(
 }
 
 std::unique_ptr<parser::ast::integer_expr> parser::parser::parse_integer_expr() {
-    return std::make_unique<ast::integer_expr>(std::stoi(current_token_.value));
+    auto number = std::stoi(current_token_.value);
+
+    eat();
+    if (current_token_.type == lexer::token_type::colon) {
+        eat();
+        expect(lexer::token_type::identifier);
+
+        return std::make_unique<ast::integer_expr>(number, current_token_.value);
+    }
+    putback_tokens_.push(current_token_);
+
+    return std::make_unique<ast::integer_expr>(number);
 }
 
 std::unique_ptr<parser::ast::boolean_expr> parser::parser::parse_boolean_expr() {
