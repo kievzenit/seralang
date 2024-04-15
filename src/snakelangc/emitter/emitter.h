@@ -28,7 +28,7 @@ namespace emitter {
         std::vector<std::unique_ptr<ir::variable_ir>> find_all_global_variables();
 
         std::unique_ptr<ir::expr_ir> emit_for_expr(std::unique_ptr<parser::ast::expr> expr);
-        std::unique_ptr<ir::integer_expr_ir> emit_for_specific_integer(
+        static std::unique_ptr<ir::integer_expr_ir> emit_for_explicitly_typed_integer(
                 parser::ast::integer_expr* integer_expr,
                 const std::string& explicit_int_type);
     };

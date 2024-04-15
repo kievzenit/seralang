@@ -31,7 +31,7 @@ std::unique_ptr<emitter::ir::expr_ir> emitter::emitter::emit_for_expr(std::uniqu
             return std::make_unique<ir::integer_expr_ir>(integer_expr);
         }
 
-        return emit_for_specific_integer(integer_expr, explicit_int_type);
+        return emit_for_explicitly_typed_integer(integer_expr, explicit_int_type);
     }
 
     if (dynamic_cast<parser::ast::boolean_expr*>(expr.get()) != nullptr) {
@@ -59,7 +59,7 @@ std::unique_ptr<emitter::ir::expr_ir> emitter::emitter::emit_for_expr(std::uniqu
     __builtin_unreachable();
 }
 
-std::unique_ptr<emitter::ir::integer_expr_ir> emitter::emitter::emit_for_specific_integer(
+std::unique_ptr<emitter::ir::integer_expr_ir> emitter::emitter::emit_for_explicitly_typed_integer(
         parser::ast::integer_expr* integer_expr,
         const std::string& explicit_int_type) {
     if (explicit_int_type == "int1") {
