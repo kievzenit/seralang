@@ -1,10 +1,10 @@
 package test.test2;
 
 let a = 12 + 10 / 5;
-let b = 0d1231214;
-let c = 0xff;
-let d = 0o172561;
-let e = 0b100101011;
+let b = 0d12:int64 + 19:int1;
+let c = 0xff:int16;
+let d = 0o172561:int1;
+let e = 0b100101011:int8;
 
 let f = false;
 let g = true;
