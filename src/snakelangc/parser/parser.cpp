@@ -98,8 +98,62 @@ std::unique_ptr<parser::ast::package_stmt> parser::parser::parse_package_stmt() 
 std::unique_ptr<parser::ast::top_stmt> parser::parser::parse_top_stmt() {
     switch (current_token_.type) {
         case lexer::token_type::let: return parse_let_stmt();
-        default: unexpected_token_error();
+        case lexer::token_type::func: return parse_func_decl_stmt();
+        default:
+            unexpected_token_error();
+            __builtin_unreachable();
     }
+}
+
+std::unique_ptr<parser::ast::func_decl_stmt> parser::parser::parse_func_decl_stmt() {
+    eat();
+    expect(lexer::token_type::identifier);
+
+    auto function_name = current_token_.value;
+
+    eat();
+    expect(lexer::token_type::l_parenthesis);
+    eat();
+    expect(lexer::token_type::r_parenthesis);
+
+    eat();
+    expect(lexer::token_type::identifier);
+    auto return_type = current_token_.value;
+
+    auto scope_stmt = parse_scope_stmt();
+
+    return std::make_unique<ast::func_decl_stmt>(function_name, return_type, std::move(scope_stmt));
+}
+
+std::unique_ptr<parser::ast::stmt> parser::parser::parse_stmt() {
+    eat();
+
+    switch (current_token_.type) {
+        case lexer::token_type::let: return parse_let_stmt();
+        case lexer::token_type::ret: return parse_return_stmt();
+        default:
+            utils::log_error("Unexpected statement got, exiting with error.");
+            __builtin_unreachable();
+    }
+}
+
+std::unique_ptr<parser::ast::scope_stmt> parser::parser::parse_scope_stmt() {
+    eat();
+    expect(lexer::token_type::l_curly_brace);
+
+    std::vector<std::unique_ptr<ast::stmt>> inner_stmts;
+
+    eat();
+    while (current_token_.type != lexer::token_type::r_curly_brace
+        && current_token_.type != lexer::token_type::eof) {
+        putback_tokens_.push(current_token_);
+        inner_stmts.push_back(parse_stmt());
+        eat();
+    }
+
+    expect(lexer::token_type::r_curly_brace);
+
+    return std::make_unique<ast::scope_stmt>(std::move(inner_stmts));
 }
 
 std::unique_ptr<parser::ast::let_stmt> parser::parser::parse_let_stmt() {
@@ -118,6 +172,15 @@ std::unique_ptr<parser::ast::let_stmt> parser::parser::parse_let_stmt() {
     return std::make_unique<ast::let_stmt>(identifier_name, std::move(expression));
 }
 
+std::unique_ptr<parser::ast::return_stmt> parser::parser::parse_return_stmt() {
+    auto return_stmt = std::make_unique<ast::return_stmt>(parse_expr());
+
+    eat();
+    expect(lexer::token_type::semicolon);
+
+    return std::move(return_stmt);
+}
+
 std::unique_ptr<parser::ast::expr> parser::parser::parse_expr() {
     auto left = parse_primary_expr();
 
@@ -129,7 +192,9 @@ std::unique_ptr<parser::ast::expr> parser::parser::parse_primary_expr() {
     switch (current_token_.type) {
         case lexer::token_type::number: return parse_integer_expr();
         case lexer::token_type::boolean: return parse_boolean_expr();
-        default: unexpected_token_error();
+        default:
+            unexpected_token_error();
+            __builtin_unreachable();
     }
 }
 
