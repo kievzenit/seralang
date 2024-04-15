@@ -3,10 +3,11 @@
 
 #include <string>
 #include "expr.h"
+#include "stmt.h"
 
 namespace parser::ast {
 
-    class let_stmt : public top_stmt {
+    class let_stmt : public top_stmt, public stmt {
     public:
         let_stmt(std::string name, std::unique_ptr<expr> expression) :
             name(std::move(name)), expression(std::move(expression)) {}
