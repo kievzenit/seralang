@@ -13,6 +13,7 @@ namespace lexer {
 
         let,
         func,
+        ret,
         package,
 
         l_parenthesis,
