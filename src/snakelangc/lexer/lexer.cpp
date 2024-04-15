@@ -488,6 +488,17 @@ lexer::token lexer::lexer::process_identifier() {
         };
     }
 
+    if (identifier == "return") {
+        return {
+                token_type::ret,
+                identifier,
+                file_name_,
+                line_,
+                column_started,
+                column_
+        };
+    }
+
     if (identifier == "package") {
         return {
                 token_type::package,
