@@ -43,6 +43,10 @@ void translator::translator::create_basic_types() {
     types_[type::int16().name] = Type::getInt16Ty(*context_);
     types_[type::int32().name] = Type::getInt32Ty(*context_);
     types_[type::int64().name] = Type::getInt64Ty(*context_);
+    types_[type::uint8().name] = Type::getInt8Ty(*context_);
+    types_[type::uint16().name] = Type::getInt16Ty(*context_);
+    types_[type::uint32().name] = Type::getInt32Ty(*context_);
+    types_[type::uint64().name] = Type::getInt64Ty(*context_);
 }
 
 void translator::translator::translate_global_vars() {
