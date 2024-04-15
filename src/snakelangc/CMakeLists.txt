@@ -23,6 +23,10 @@ set(SOURCE_FILES main.cpp
         parser/ast/identifier_expr.h
         parser/ast/binary_operation.h
         parser/ast/binary_expr.h
+        parser/ast/func_decl_stmt.h
+        parser/ast/stmt.h
+        parser/ast/scope_stmt.h
+        parser/ast/return_stmt.h
         emitter/ir/package_ir.h
         emitter/ir/variable_ir.h
         emitter/ir/type.h
@@ -30,9 +34,9 @@ set(SOURCE_FILES main.cpp
         emitter/ir/integer_expr_ir.h
         emitter/ir/boolean_expr_ir.h
         emitter/ir/binary_expr_ir.h
+        emitter/ir/binary_operation_type.h
         emitter/emitter.cpp
         emitter/emitter.h
-        emitter/ir/binary_operation_type.h
         translator/translator.cpp
         translator/translator.h)
 
