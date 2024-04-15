@@ -30,7 +30,7 @@
 
 <identifier_assignment_statement> ::= <identifier> <assignment> <expression> ";"
 
-<scope_statement> ::= "{" <statement> "}"
+<scope_statement> ::= "{" <statement>* "}"
 
 <return_statement> ::= "return" <expression> ";"
 
