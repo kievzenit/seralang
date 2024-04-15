@@ -3,7 +3,7 @@
 #include "translator/translator.h"
 
 int main() {
-    const auto file_name = "../../../tests/sources/basic_tokens.sn";
+    const auto file_name = "../../../tests/sources/main.sn";
 
     parser::parser parser(file_name);
     auto translation_ast = parser.parse();
