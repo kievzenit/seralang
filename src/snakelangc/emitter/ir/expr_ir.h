@@ -11,10 +11,11 @@ namespace emitter::ir {
 
     class expr_ir {
     public:
-        expr_ir(type type) : expr_type(std::move(type)) {}
+        expr_ir(type type, bool is_const_expr) : expr_type(std::move(type)), is_const_expr(is_const_expr) {}
         virtual ~expr_ir() = default;
 
         type expr_type;
+        bool is_const_expr;
     };
 
 }
