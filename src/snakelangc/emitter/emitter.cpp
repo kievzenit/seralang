@@ -1,26 +1,134 @@
 #include "emitter.h"
 
 std::unique_ptr<emitter::ir::package_ir> emitter::emitter::emit() {
+    auto global_variables = find_all_global_variables();
+    auto func_declarations = find_all_func_declarations();
+
     return std::make_unique<ir::package_ir>(
             translation_ast_->package->package_name,
-            find_all_global_variables());
+            std::move(global_variables),
+            std::move(func_declarations));
+}
+
+bool emitter::emitter::is_global_variable_exists(const std::string& name) {
+    return std::find(global_variables_.begin(), global_variables_.end(), name) != global_variables_.end();
+}
+
+bool emitter::emitter::is_function_declared(const std::string& name) {
+    return std::find(functions_.begin(), functions_.end(), name) != functions_.end();
 }
 
 std::vector<std::unique_ptr<emitter::ir::variable_ir>> emitter::emitter::find_all_global_variables() {
     std::vector<std::unique_ptr<ir::variable_ir>> global_variables;
 
     for (auto &top_stmt : translation_ast_->stmts) {
-        if (dynamic_cast<parser::ast::let_stmt*>(top_stmt.get()) != nullptr) {
-            auto let_stmt = dynamic_cast<parser::ast::let_stmt*>(top_stmt.get());
-
-            auto expr_ir = emit_for_expr(std::move(let_stmt->expression));
-            auto variable_ir = std::make_unique<ir::variable_ir>(
-                    let_stmt->name, std::move(expr_ir), expr_ir->expr_type);
-            global_variables.push_back(std::move(variable_ir));
+        if (dynamic_cast<parser::ast::let_stmt*>(top_stmt.get()) == nullptr) {
+            continue;
         }
+
+        auto let_stmt = dynamic_cast<parser::ast::let_stmt*>(top_stmt.get());
+
+        if (is_global_variable_exists(let_stmt->name)) {
+            utils::log_error(
+                    std::format("Global variable with name: {} is already defined.", let_stmt->name));
+        }
+
+        auto expr_ir = emit_for_expr(std::move(let_stmt->expression));
+        auto variable_ir = std::make_unique<ir::variable_ir>(
+                let_stmt->name, std::move(expr_ir), expr_ir->expr_type);
+        global_variables.push_back(std::move(variable_ir));
     }
 
     return global_variables;
+}
+
+std::vector<std::unique_ptr<emitter::ir::func_decl_ir>> emitter::emitter::find_all_func_declarations() {
+    std::vector<std::unique_ptr<ir::func_decl_ir>> func_decls;
+
+    for (auto &top_stmt : translation_ast_->stmts) {
+        if (dynamic_cast<parser::ast::func_decl_stmt*>(top_stmt.get()) == nullptr) {
+            continue;
+        }
+
+        auto func_decl_stmt = dynamic_cast<parser::ast::func_decl_stmt*>(top_stmt.get());
+
+        if (is_function_declared(func_decl_stmt->name)) {
+            utils::log_error(
+                    std::format("Function with name: {} is already defined.", func_decl_stmt->name));
+        }
+
+        auto type = types_.find(func_decl_stmt->return_type);
+        if (type == types_.end()) {
+            utils::log_error(
+                    std::format(
+                            "Unknown type: {} specified for result type.",
+                            func_decl_stmt->return_type));
+        }
+
+        auto root_scope_stmt_ir = emit_for_scope_stmt(func_decl_stmt->func_scope.get());
+
+        auto last_stmt_ir = root_scope_stmt_ir->inner_stmts.back().get();
+        auto return_stmt_ir = dynamic_cast<ir::return_ir*>(last_stmt_ir);
+        if (return_stmt_ir == nullptr) {
+            utils::log_error("Expected return in the end of function, but got nothing instead.");
+            __builtin_unreachable();
+        }
+
+        auto func_decl_ir = std::make_unique<ir::func_decl_ir>(
+                func_decl_stmt->name,
+                type->second,
+                std::move(root_scope_stmt_ir));
+
+        if (return_stmt_ir->expr->expr_type == type->second) {
+            func_decls.push_back(std::move(func_decl_ir));
+            continue;
+        }
+
+        if (!return_stmt_ir->expr->expr_type.can_be_explicitly_casted_to(type->second)) {
+            utils::log_error("Incompatible return expression type with function return type.");
+        }
+
+        func_decls.push_back(std::move(func_decl_ir));
+    }
+
+    return func_decls;
+}
+
+std::unique_ptr<emitter::ir::scope_stmt_ir> emitter::emitter::emit_for_scope_stmt(parser::ast::scope_stmt* scope_stmt) {
+    std::vector<std::unique_ptr<ir::stmt_ir>> stmts;
+
+    for (auto &stmt : scope_stmt->inner_stmts) {
+        auto stmt_ir = emit_for_stmt(std::move(stmt));
+        stmts.push_back(std::move(stmt_ir));
+    }
+
+    return std::make_unique<ir::scope_stmt_ir>(std::move(stmts));
+}
+
+std::unique_ptr<emitter::ir::stmt_ir> emitter::emitter::emit_for_stmt(std::unique_ptr<parser::ast::stmt> stmt) {
+    if (dynamic_cast<parser::ast::scope_stmt*>(stmt.get()) != nullptr) {
+        return emit_for_scope_stmt(dynamic_cast<parser::ast::scope_stmt*>(stmt.get()));
+    }
+
+    if (dynamic_cast<parser::ast::let_stmt*>(stmt.get()) != nullptr) {
+        auto let_stmt = dynamic_cast<parser::ast::let_stmt*>(stmt.get());
+
+        auto expr_ir = emit_for_expr(std::move(let_stmt->expression));
+        auto var_ir = std::make_unique<ir::variable_ir>(
+                let_stmt->name,
+                std::move(expr_ir),
+                expr_ir->expr_type);
+
+        return std::move(var_ir);
+    }
+
+    if (dynamic_cast<parser::ast::return_stmt*>(stmt.get()) != nullptr) {
+        auto return_stmt = dynamic_cast<parser::ast::return_stmt*>(stmt.get());
+        return std::make_unique<ir::return_ir>(emit_for_expr(std::move(return_stmt->return_expr)));
+    }
+
+    utils::log_error("Unsupported statement encountered, this should never happen!");
+    __builtin_unreachable();
 }
 
 std::unique_ptr<emitter::ir::expr_ir> emitter::emitter::emit_for_expr(std::unique_ptr<parser::ast::expr> expr) {
