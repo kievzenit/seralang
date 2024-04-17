@@ -35,6 +35,11 @@ set(SOURCE_FILES main.cpp
         emitter/ir/boolean_expr_ir.h
         emitter/ir/binary_expr_ir.h
         emitter/ir/binary_operation_type.h
+        emitter/ir/func_decl_ir.h
+        emitter/ir/return_ir.h
+        emitter/ir/stmt_ir.h
+        emitter/ir/top_stmt_ir.h
+        emitter/ir/scope_stmt_ir.h
         emitter/emitter.cpp
         emitter/emitter.h
         translator/translator.cpp
