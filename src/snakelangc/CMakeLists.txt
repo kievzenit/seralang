@@ -38,7 +38,6 @@ set(SOURCE_FILES main.cpp
         emitter/ir/func_decl_ir.h
         emitter/ir/return_ir.h
         emitter/ir/stmt_ir.h
-        emitter/ir/top_stmt_ir.h
         emitter/ir/scope_stmt_ir.h
         emitter/emitter.cpp
         emitter/emitter.h
