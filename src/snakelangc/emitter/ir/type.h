@@ -7,10 +7,11 @@ namespace emitter::ir {
 
     class type {
     public:
-        type(std::string name, bool is_basic = false) : name(std::move(name)), is_basic(is_basic) {}
+        type(std::string name, int size, bool is_basic = false) : name(std::move(name)), size(size), is_basic(is_basic) {}
 
-        std::string name;
         bool is_basic;
+        std::string name;
+        int size;
 
         [[nodiscard]] bool can_be_explicitly_casted_to(const type& other) const {
             if (*this == int1()) {
@@ -43,23 +44,23 @@ namespace emitter::ir {
         }
 
         bool operator==(const type &other) const {
-            return is_basic == other.is_basic && name == other.name;
+            return is_basic == other.is_basic && size == other.size && name == other.name;
         }
 
         bool operator!=(const type &other) const {
-            return is_basic != other.is_basic || name != other.name;
+            return is_basic != other.is_basic || size != other.size || name != other.name;
         }
 
-        static type boolean() { return {"bool", true}; }
-        static type int1() { return {"int1", true}; }
-        static type int8() { return {"int8", true}; }
-        static type int16() { return {"int16", true}; }
-        static type int32() { return {"int32", true}; }
-        static type int64() { return {"int64", true}; }
-        static type uint8() { return {"uint8", true}; }
-        static type uint16() { return {"uint16", true}; }
-        static type uint32() { return {"uint32", true}; }
-        static type uint64() { return {"uint64", true}; }
+        static type boolean() { return {"bool", 1, true}; }
+        static type int1() { return {"int1", 1, true}; }
+        static type int8() { return {"int8", 1, true}; }
+        static type int16() { return {"int16", 2, true}; }
+        static type int32() { return {"int32", 4, true}; }
+        static type int64() { return {"int64", 8, true}; }
+        static type uint8() { return {"uint8", 1, true}; }
+        static type uint16() { return {"uint16", 2, true}; }
+        static type uint32() { return {"uint32", 4, true}; }
+        static type uint64() { return {"uint64", 8, true}; }
     };
 
 }
