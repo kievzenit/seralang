@@ -12,6 +12,7 @@
 #include "../emitter/ir/binary_expr_ir.h"
 
 #include "../utils/log_error.h"
+#include "../emitter/ir/return_ir.h"
 
 namespace translator {
 
@@ -32,17 +33,25 @@ namespace translator {
         std::unique_ptr<llvm::Module> module_;
         std::unique_ptr<llvm::IRBuilder<>> builder_;
 
-        std::map<std::string, llvm::Constant*> global_variables_;
         std::map<std::string, llvm::Type*> types_;
 
-        llvm::FunctionType* init_globals_func_type_;
-        llvm::Function* init_globals_func_;
+        llvm::BasicBlock* current_allocation_block_;
+        llvm::BasicBlock* current_block_;
 
         void create_types();
         void create_basic_types();
 
         void translate_global_vars();
         void translate_global_var(std::unique_ptr<emitter::ir::variable_ir> variable_ir, bool &generate_br);
+
+        void translate_function_declarations();
+        void translate_main_function(std::unique_ptr<emitter::ir::func_decl_ir> main_decl_ir);
+        llvm::Function* translate_function(std::unique_ptr<emitter::ir::func_decl_ir> func_decl_ir);
+
+        void translate_stmt(std::unique_ptr<emitter::ir::stmt_ir> stmt_ir);
+        void translate_var_stmt(emitter::ir::variable_ir* variable_ir);
+        void translate_return_stmt(emitter::ir::return_ir* return_ir);
+
         llvm::Value* translate_expr(emitter::ir::expr_ir* expr);
         llvm::Constant* translate_int_expr(emitter::ir::integer_expr_ir* integer_expr);
         llvm::Constant* translate_boolean_expr(emitter::ir::boolean_expr_ir* boolean_expr);
