@@ -165,6 +165,8 @@ std::unique_ptr<emitter::ir::expr_ir> emitter::emitter::emit_for_expr(std::uniqu
                     std::move(left_expr_ir),
                     std::move(right_expr_ir),
                     (ir::binary_operation_type)binary_expr->operation,
+                    true,
+                    false,
                     right_expr_ir->expr_type);
         }
 
@@ -173,6 +175,8 @@ std::unique_ptr<emitter::ir::expr_ir> emitter::emitter::emit_for_expr(std::uniqu
                     std::move(left_expr_ir),
                     std::move(right_expr_ir),
                     (ir::binary_operation_type)binary_expr->operation,
+                    false,
+                    true,
                     left_expr_ir->expr_type);
         }
 
