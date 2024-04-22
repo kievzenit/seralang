@@ -13,6 +13,8 @@
 #include "ast/binary_operation.h"
 #include "ast/func_decl_stmt.h"
 #include "ast/return_stmt.h"
+#include "ast/call_stmt.h"
+#include "ast/identifier_expr.h"
 
 namespace parser {
 
@@ -48,11 +50,14 @@ namespace parser {
         std::unique_ptr<ast::stmt> parse_stmt();
         std::unique_ptr<ast::scope_stmt> parse_scope_stmt();
         std::unique_ptr<ast::let_stmt> parse_let_stmt();
+        std::unique_ptr<ast::call_stmt> parse_call_stmt();
         std::unique_ptr<ast::return_stmt> parse_return_stmt();
 
         std::unique_ptr<ast::expr> parse_expr();
         std::unique_ptr<ast::expr> parse_primary_expr();
         std::unique_ptr<ast::expr> parse_binary_expr(std::unique_ptr<ast::expr> left, int precedence = 0);
+        std::unique_ptr<ast::call_expr> parse_call_expr();
+        std::unique_ptr<ast::expr> parse_identifier_expr();
         std::unique_ptr<ast::integer_expr> parse_integer_expr();
         std::unique_ptr<ast::boolean_expr> parse_boolean_expr();
     };

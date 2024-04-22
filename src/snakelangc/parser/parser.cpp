@@ -7,7 +7,7 @@ std::unique_ptr<parser::ast::translation_ast> parser::parser::parse() {
     auto package_stmt = parse_package_stmt();
 
     eat();
-    while (current_token_.type != lexer::token_type::eof) {
+    while (has_tokens()) {
         auto top_stmt = parse_top_stmt();
         stmts.push_back(std::move(top_stmt));
         eat();
@@ -132,9 +132,17 @@ std::unique_ptr<parser::ast::func_decl_stmt> parser::parser::parse_func_decl_stm
 std::unique_ptr<parser::ast::stmt> parser::parser::parse_stmt() {
     eat();
 
+    auto priv_token = current_token_;
     switch (current_token_.type) {
         case lexer::token_type::let: return parse_let_stmt();
         case lexer::token_type::ret: return parse_return_stmt();
+        case lexer::token_type::identifier:
+            eat();
+            if (current_token_.type == lexer::token_type::l_parenthesis) {
+                putback_tokens_.push(current_token_);
+                putback_tokens_.push(priv_token);
+                return parse_call_stmt();
+            }
         default:
             utils::log_error("Unexpected statement got, exiting with error.");
             __builtin_unreachable();
@@ -175,6 +183,15 @@ std::unique_ptr<parser::ast::let_stmt> parser::parser::parse_let_stmt() {
     return std::make_unique<ast::let_stmt>(identifier_name, std::move(expression));
 }
 
+std::unique_ptr<parser::ast::call_stmt> parser::parser::parse_call_stmt() {
+    auto expr = parse_call_expr();
+
+    eat();
+    expect(lexer::token_type::semicolon);
+
+    return std::make_unique<ast::call_stmt>(std::move(expr));
+}
+
 std::unique_ptr<parser::ast::return_stmt> parser::parser::parse_return_stmt() {
     auto return_stmt = std::make_unique<ast::return_stmt>(parse_expr());
 
@@ -195,6 +212,7 @@ std::unique_ptr<parser::ast::expr> parser::parser::parse_primary_expr() {
     switch (current_token_.type) {
         case lexer::token_type::number: return parse_integer_expr();
         case lexer::token_type::boolean: return parse_boolean_expr();
+        case lexer::token_type::identifier: return parse_identifier_expr();
         default:
             unexpected_token_error();
             __builtin_unreachable();
@@ -227,6 +245,36 @@ std::unique_ptr<parser::ast::expr> parser::parser::parse_binary_expr(
 
         left = std::make_unique<ast::binary_expr>(std::move(left), std::move(right), binary_operator);
     }
+}
+
+std::unique_ptr<parser::ast::call_expr> parser::parser::parse_call_expr() {
+    eat();
+    expect(lexer::token_type::identifier);
+
+    auto identifier = current_token_.value;
+
+    eat();
+    expect(lexer::token_type::l_parenthesis);
+
+    eat();
+    expect(lexer::token_type::r_parenthesis);
+
+    return std::make_unique<ast::call_expr>(identifier);
+}
+
+std::unique_ptr<parser::ast::expr> parser::parser::parse_identifier_expr() {
+    auto identifier_token = current_token_;
+    auto identifier = identifier_token.value;
+
+    eat();
+    if (current_token_.type == lexer::token_type::l_parenthesis) {
+        putback_tokens_.push(current_token_);
+        putback_tokens_.push(identifier_token);
+        return parse_call_expr();
+    }
+    putback_tokens_.push(current_token_);
+
+    return std::make_unique<ast::identifier_expr>(identifier);
 }
 
 std::unique_ptr<parser::ast::integer_expr> parser::parser::parse_integer_expr() {
