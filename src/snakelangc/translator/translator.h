@@ -18,7 +18,7 @@ namespace translator {
 
     class translator {
     public:
-        translator(std::unique_ptr<emitter::ir::package_ir> package_ir) :
+        explicit translator(std::unique_ptr<emitter::ir::package_ir> package_ir) :
             package_ir_(std::move(package_ir)),
             context_(std::make_unique<llvm::LLVMContext>()),
             module_(std::make_unique<llvm::Module>(package_ir_->name, *context_)),

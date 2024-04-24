@@ -19,16 +19,16 @@ void translator::translator::create_basic_types() {
     using namespace llvm;
     using namespace emitter::ir;
 
-    types_[type::boolean().name] = Type::getInt1Ty(*context_);
-    types_[type::int1().name] = Type::getInt1Ty(*context_);
-    types_[type::int8().name] = Type::getInt8Ty(*context_);
-    types_[type::int16().name] = Type::getInt16Ty(*context_);
-    types_[type::int32().name] = Type::getInt32Ty(*context_);
-    types_[type::int64().name] = Type::getInt64Ty(*context_);
-    types_[type::uint8().name] = Type::getInt8Ty(*context_);
-    types_[type::uint16().name] = Type::getInt16Ty(*context_);
-    types_[type::uint32().name] = Type::getInt32Ty(*context_);
-    types_[type::uint64().name] = Type::getInt64Ty(*context_);
+    types_[type::boolean()->name] = Type::getInt1Ty(*context_);
+    types_[type::int1()->name] = Type::getInt1Ty(*context_);
+    types_[type::int8()->name] = Type::getInt8Ty(*context_);
+    types_[type::int16()->name] = Type::getInt16Ty(*context_);
+    types_[type::int32()->name] = Type::getInt32Ty(*context_);
+    types_[type::int64()->name] = Type::getInt64Ty(*context_);
+    types_[type::uint8()->name] = Type::getInt8Ty(*context_);
+    types_[type::uint16()->name] = Type::getInt16Ty(*context_);
+    types_[type::uint32()->name] = Type::getInt32Ty(*context_);
+    types_[type::uint64()->name] = Type::getInt64Ty(*context_);
 }
 
 void translator::translator::translate_global_vars() {
@@ -98,7 +98,7 @@ void translator::translator::translate_global_var(
         bool &generate_br) {
     using namespace llvm;
 
-    auto var_type = types_[variable_ir->variable_type.name];
+    auto var_type = types_[variable_ir->variable_type->name];
 
     auto initializer = variable_ir->expr->is_const_expr ?
                        (Constant*)translate_expr(variable_ir->expr.get()) :
@@ -112,7 +112,7 @@ void translator::translator::translate_global_var(
             initializer,
             variable_ir->name);
 
-    variable->setAlignment(Align(variable_ir->variable_type.size)); // TODO: redo this
+    variable->setAlignment(Align(variable_ir->variable_type->size)); // TODO: redo this
 
     if (variable_ir->expr->is_const_expr) {
         return;
@@ -189,7 +189,7 @@ void translator::translator::translate_main_function(std::unique_ptr<emitter::ir
 llvm::Function* translator::translator::translate_function(std::unique_ptr<emitter::ir::func_decl_ir> func_decl_ir) {
     using namespace llvm;
 
-    auto func_type = FunctionType::get(types_[func_decl_ir->return_type.name], false);
+    auto func_type = FunctionType::get(types_[func_decl_ir->return_type->name], false);
     auto func = Function::Create(
             func_type, GlobalValue::LinkageTypes::ExternalLinkage, func_decl_ir->name, *module_);
 
@@ -234,7 +234,7 @@ void translator::translator::translate_stmt(std::unique_ptr<emitter::ir::stmt_ir
 void translator::translator::translate_var_stmt(emitter::ir::variable_ir* variable_ir) {
     builder_->SetInsertPoint(current_allocation_block_);
     auto allocated_var = builder_->CreateAlloca(
-            types_[variable_ir->variable_type.name], nullptr, variable_ir->name);
+            types_[variable_ir->variable_type->name], nullptr, variable_ir->name);
     builder_->ClearInsertionPoint();
 
     builder_->SetInsertPoint(current_block_);
@@ -274,11 +274,11 @@ llvm::Value *translator::translator::translate_expr(emitter::ir::expr_ir* expr) 
 }
 
 llvm::Constant *translator::translator::translate_int_expr(emitter::ir::integer_expr_ir* integer_expr) {
-    return llvm::ConstantInt::get(types_[integer_expr->expr_type.name], integer_expr->number);
+    return llvm::ConstantInt::get(types_[integer_expr->expr_type->name], integer_expr->number);
 }
 
 llvm::Constant *translator::translator::translate_boolean_expr(emitter::ir::boolean_expr_ir* boolean_expr) {
-    return llvm::ConstantInt::get(types_[boolean_expr->expr_type.name], (int)boolean_expr->value);
+    return llvm::ConstantInt::get(types_[boolean_expr->expr_type->name], (int)boolean_expr->value);
 }
 
 llvm::Value *translator::translator::translate_binary_expr(emitter::ir::binary_expr_ir* binary_expr) {
@@ -291,9 +291,9 @@ llvm::Value *translator::translator::translate_binary_expr(emitter::ir::binary_e
     auto right = translate_expr(right_expr);
 
     if (binary_expr->left_should_be_upcasted) {
-        left = builder_->CreateSExt(left, types_[right_expr->expr_type.name]);
+        left = builder_->CreateSExt(left, types_[right_expr->expr_type->name]);
     } else if (binary_expr->right_should_be_upcasted) {
-        right = builder_->CreateSExt(right, types_[left_expr->expr_type.name]);
+        right = builder_->CreateSExt(right, types_[left_expr->expr_type->name]);
     }
 
     switch (binary_expr->operation_type) {
