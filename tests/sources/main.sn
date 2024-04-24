@@ -1,8 +1,16 @@
 package test_package;
 
-let a_glb = 0xff:int16 + 12 / 0b100;
+let a_glb = 0xff:int16 + 12 / 0b110;
+let b_glb = 0b01:int16;
 
 func main() int {
-    let a = 1;
-    return 12;
+    foo();
+    let a = foo();
+    foo();
+    return a;
+}
+
+func foo() int16 {
+    let result = 12:int16 / 4:int8 + b_glb;
+    return result;
 }
