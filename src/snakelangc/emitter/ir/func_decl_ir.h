@@ -11,13 +11,13 @@ namespace emitter::ir {
 
     class func_decl_ir {
     public:
-        func_decl_ir(std::string name, type return_type, std::unique_ptr<scope_stmt_ir> root_scope_stmt) :
+        func_decl_ir(std::string name, type* return_type, std::unique_ptr<scope_stmt_ir> root_scope_stmt) :
             name(std::move(name)),
-            return_type(std::move(return_type)),
+            return_type(return_type),
             root_scope_stmt(std::move(root_scope_stmt)) {}
 
         std::string name;
-        type return_type;
+        type* return_type;
         std::unique_ptr<scope_stmt_ir> root_scope_stmt;
     };
 
