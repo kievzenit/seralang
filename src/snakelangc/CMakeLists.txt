@@ -27,6 +27,9 @@ set(SOURCE_FILES main.cpp
         parser/ast/stmt.h
         parser/ast/scope_stmt.h
         parser/ast/return_stmt.h
+        parser/ast/identifier_expr.h
+        parser/ast/call_expr.h
+        parser/ast/call_stmt.h
         emitter/ir/package_ir.h
         emitter/ir/variable_ir.h
         emitter/ir/type.h
@@ -41,6 +44,10 @@ set(SOURCE_FILES main.cpp
         emitter/ir/scope_stmt_ir.h
         emitter/emitter.cpp
         emitter/emitter.h
+        emitter/ir/call_expr_ir.h
+        emitter/ir/identifier_expr_ir.h
+        emitter/ir/call_stmt_ir.h
+        emitter/ir/type.cpp
         translator/translator.cpp
         translator/translator.h)
 
