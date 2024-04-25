@@ -9,10 +9,11 @@ namespace emitter::ir {
 
     class identifier_expr_ir : public expr_ir {
     public:
-        identifier_expr_ir(std::string name, type* identifier_type) :
-            expr_ir(identifier_type, false), name(std::move(name)) {}
+        identifier_expr_ir(std::string name, bool is_global, type* identifier_type) :
+            expr_ir(identifier_type, false), is_global(is_global), name(std::move(name)) {}
 
         std::string name;
+        bool is_global;
     };
 
 }
