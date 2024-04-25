@@ -5,10 +5,60 @@ void translator::translator::translate() {
 
     create_types();
 
+    declare_functions();
+
     translate_global_vars();
     translate_function_declarations();
 
+#ifdef DEBUG
     module_->dump();
+#endif
+
+    InitializeAllTargetInfos();
+    InitializeAllTargets();
+    InitializeAllTargetMCs();
+    InitializeAllAsmParsers();
+    InitializeAllAsmPrinters();
+
+    auto target_triple = sys::getDefaultTargetTriple();
+    module_->setTargetTriple(target_triple);
+
+    std::string error;
+    auto target = TargetRegistry::lookupTarget(target_triple, error);
+
+    if (!target) {
+        utils::log_error(error);
+        __builtin_unreachable();
+    }
+
+    auto cpu = "generic";
+    auto features = "";
+    auto options = TargetOptions();
+
+    auto target_machine = target->createTargetMachine(
+            target_triple,
+            cpu,
+            features,
+            options,
+            Reloc::PIC_);
+
+    auto output_file_name = package_ir_->name + ".o";
+    std::error_code error_code;
+    raw_fd_ostream dest(output_file_name, error_code, sys::fs::OF_None);
+
+    if (error_code) {
+        utils::log_error("Cannot open file: " + output_file_name);
+    }
+
+    legacy::PassManager pass;
+    auto file_type = CodeGenFileType::CGFT_ObjectFile;
+
+    if (target_machine->addPassesToEmitFile(pass, dest, nullptr, file_type)) {
+        utils::log_error("Target machine cannot emit file of this type.");
+    }
+
+    pass.run(*module_);
+    dest.flush();
 }
 
 void translator::translator::create_types() {
@@ -29,6 +79,19 @@ void translator::translator::create_basic_types() {
     types_[type::uint16()->name] = Type::getInt16Ty(*context_);
     types_[type::uint32()->name] = Type::getInt32Ty(*context_);
     types_[type::uint64()->name] = Type::getInt64Ty(*context_);
+}
+
+void translator::translator::declare_functions() {
+    using namespace llvm;
+
+    for (auto &func_decl : package_ir_->func_declarations) {
+        auto func_type = FunctionType::get(types_[func_decl->return_type->name], false);
+        Function::Create(
+                func_type,
+                GlobalValue::LinkageTypes::ExternalLinkage,
+                func_decl->name,
+                *module_);
+    }
 }
 
 void translator::translator::translate_global_vars() {
@@ -189,9 +252,7 @@ void translator::translator::translate_main_function(std::unique_ptr<emitter::ir
 llvm::Function* translator::translator::translate_function(std::unique_ptr<emitter::ir::func_decl_ir> func_decl_ir) {
     using namespace llvm;
 
-    auto func_type = FunctionType::get(types_[func_decl_ir->return_type->name], false);
-    auto func = Function::Create(
-            func_type, GlobalValue::LinkageTypes::ExternalLinkage, func_decl_ir->name, *module_);
+    auto func = module_->getFunction(func_decl_ir->name);
 
     current_allocation_block_ = BasicBlock::Create(*context_, "allocation", func);
 
@@ -202,9 +263,9 @@ llvm::Function* translator::translator::translate_function(std::unique_ptr<emitt
     auto entry_block = BasicBlock::Create(*context_, "entry", func);
     current_block_ = entry_block;
 
-    for (auto &stmt : func_decl_ir->root_scope_stmt->inner_stmts) {
-        translate_stmt(std::move(stmt));
-    }
+    translate_scope_stmt(func_decl_ir->root_scope_stmt.get());
+
+    local_variables_.clear();
 
     builder_->SetInsertPoint(current_allocation_block_);
     builder_->CreateStore(ConstantInt::get(Type::getInt32Ty(*context_), 0), first_alloc);
@@ -218,8 +279,18 @@ llvm::Function* translator::translator::translate_function(std::unique_ptr<emitt
 }
 
 void translator::translator::translate_stmt(std::unique_ptr<emitter::ir::stmt_ir> stmt_ir) {
+    if (dynamic_cast<emitter::ir::scope_stmt_ir*>(stmt_ir.get()) != nullptr) {
+        translate_scope_stmt(dynamic_cast<emitter::ir::scope_stmt_ir*>(stmt_ir.get()));
+        return;
+    }
+
     if (dynamic_cast<emitter::ir::variable_ir*>(stmt_ir.get()) != nullptr) {
         translate_var_stmt(dynamic_cast<emitter::ir::variable_ir*>(stmt_ir.get()));
+        return;
+    }
+
+    if (dynamic_cast<emitter::ir::call_stmt_ir*>(stmt_ir.get()) != nullptr) {
+        translate_call_stmt(dynamic_cast<emitter::ir::call_stmt_ir*>(stmt_ir.get()));
         return;
     }
 
@@ -231,10 +302,19 @@ void translator::translator::translate_stmt(std::unique_ptr<emitter::ir::stmt_ir
     utils::log_error("Unsupported statement type encountered, this should never happen!");
 }
 
+void translator::translator::translate_scope_stmt(emitter::ir::scope_stmt_ir *scope_ir) {
+    current_scope_ = scope_ir;
+    for (auto &stmt : scope_ir->inner_stmts) {
+        translate_stmt(std::move(stmt));
+    }
+    current_scope_ = nullptr;
+}
+
 void translator::translator::translate_var_stmt(emitter::ir::variable_ir* variable_ir) {
     builder_->SetInsertPoint(current_allocation_block_);
     auto allocated_var = builder_->CreateAlloca(
             types_[variable_ir->variable_type->name], nullptr, variable_ir->name);
+    local_variables_[variable_ir->name] = allocated_var;
     builder_->ClearInsertionPoint();
 
     builder_->SetInsertPoint(current_block_);
@@ -242,6 +322,14 @@ void translator::translator::translate_var_stmt(emitter::ir::variable_ir* variab
     auto expr_result = translate_expr(variable_ir->expr.get());
     builder_->CreateStore(expr_result, allocated_var);
 
+    builder_->ClearInsertionPoint();
+}
+
+void translator::translator::translate_call_stmt(emitter::ir::call_stmt_ir *call_stmt) {
+    using namespace llvm;
+
+    builder_->SetInsertPoint(current_block_);
+    translate_call_expr(call_stmt->call_expr.get());
     builder_->ClearInsertionPoint();
 }
 
@@ -267,6 +355,15 @@ llvm::Value *translator::translator::translate_expr(emitter::ir::expr_ir* expr) 
 
     if (dynamic_cast<binary_expr_ir*>(expr) != nullptr) {
         return translate_binary_expr(dynamic_cast<binary_expr_ir*>(expr));
+    }
+
+    if (dynamic_cast<call_expr_ir*>(expr) != nullptr) {
+        return translate_call_expr(dynamic_cast<call_expr_ir*>(expr));
+    }
+
+
+    if (dynamic_cast<identifier_expr_ir*>(expr) != nullptr) {
+        return translate_identifier_expr(dynamic_cast<identifier_expr_ir*>(expr));
     }
 
     utils::log_error("Unsupported expression found, exiting.");
@@ -309,4 +406,24 @@ llvm::Value *translator::translator::translate_binary_expr(emitter::ir::binary_e
             utils::log_error("Unsupported binary operation encountered, exiting with error.");
             __builtin_unreachable();
     }
+}
+
+llvm::Value *translator::translator::translate_call_expr(emitter::ir::call_expr_ir *call_expr) {
+    using namespace llvm;
+
+    auto func = module_->getFunction(call_expr->function_name);
+    auto result = builder_->CreateCall(FunctionCallee(func->getFunctionType(), func));
+    return result;
+}
+
+llvm::Value *translator::translator::translate_identifier_expr(emitter::ir::identifier_expr_ir *identifier_expr) {
+    auto type = types_[identifier_expr->expr_type->name];
+
+    if (identifier_expr->is_global) {
+
+        auto global_var = module_->getNamedGlobal(llvm::StringRef(identifier_expr->name));
+        return builder_->CreateLoad(type, global_var);
+    }
+
+    return builder_->CreateLoad(type, local_variables_[identifier_expr->name]);
 }

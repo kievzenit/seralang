@@ -4,6 +4,13 @@
 #include <utility>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Constants.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/TargetParser/Host.h>
+#include <llvm/MC/TargetRegistry.h>
+#include <llvm/Target/TargetMachine.h>
+#include <llvm/Target/TargetOptions.h>
+#include <llvm/Support/FileSystem.h>
+#include <llvm/IR/LegacyPassManager.h>
 #include <map>
 
 #include "../emitter/ir/package_ir.h"
@@ -13,6 +20,9 @@
 
 #include "../utils/log_error.h"
 #include "../emitter/ir/return_ir.h"
+#include "../emitter/ir/call_expr_ir.h"
+#include "../emitter/ir/call_stmt_ir.h"
+#include "../emitter/ir/identifier_expr_ir.h"
 
 namespace translator {
 
@@ -38,8 +48,13 @@ namespace translator {
         llvm::BasicBlock* current_allocation_block_;
         llvm::BasicBlock* current_block_;
 
+        emitter::ir::scope_stmt_ir* current_scope_;
+        std::map<std::string, llvm::Value*> local_variables_;
+
         void create_types();
         void create_basic_types();
+
+        void declare_functions();
 
         void translate_global_vars();
         void translate_global_var(std::unique_ptr<emitter::ir::variable_ir> variable_ir, bool &generate_br);
@@ -49,13 +64,17 @@ namespace translator {
         llvm::Function* translate_function(std::unique_ptr<emitter::ir::func_decl_ir> func_decl_ir);
 
         void translate_stmt(std::unique_ptr<emitter::ir::stmt_ir> stmt_ir);
+        void translate_scope_stmt(emitter::ir::scope_stmt_ir* scope_ir);
         void translate_var_stmt(emitter::ir::variable_ir* variable_ir);
+        void translate_call_stmt(emitter::ir::call_stmt_ir* call_stmt);
         void translate_return_stmt(emitter::ir::return_ir* return_ir);
 
         llvm::Value* translate_expr(emitter::ir::expr_ir* expr);
         llvm::Constant* translate_int_expr(emitter::ir::integer_expr_ir* integer_expr);
         llvm::Constant* translate_boolean_expr(emitter::ir::boolean_expr_ir* boolean_expr);
         llvm::Value* translate_binary_expr(emitter::ir::binary_expr_ir* binary_expr);
+        llvm::Value* translate_call_expr(emitter::ir::call_expr_ir* call_expr);
+        llvm::Value* translate_identifier_expr(emitter::ir::identifier_expr_ir* identifier_expr);
     };
 
 }
