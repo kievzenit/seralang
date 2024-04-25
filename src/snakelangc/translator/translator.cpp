@@ -240,6 +240,14 @@ void translator::translator::translate_main_function(std::unique_ptr<emitter::ir
     main_func->addFnAttr("stack-protector-buffer-size", "8");
 
     if (!generate_empty_main) {
+        builder_->SetInsertPoint(current_allocation_block_, current_allocation_block_->begin());
+        auto first_alloc = builder_->CreateAlloca(Type::getInt32Ty(*context_));
+        builder_->ClearInsertionPoint();
+
+        builder_->SetInsertPoint(current_allocation_block_, --current_allocation_block_->end());
+        builder_->CreateStore(ConstantInt::get(Type::getInt32Ty(*context_), 0), first_alloc);
+        builder_->ClearInsertionPoint();
+
         return;
     }
 
@@ -256,10 +264,6 @@ llvm::Function* translator::translator::translate_function(std::unique_ptr<emitt
 
     current_allocation_block_ = BasicBlock::Create(*context_, "allocation", func);
 
-    builder_->SetInsertPoint(current_allocation_block_);
-    auto first_alloc = builder_->CreateAlloca(Type::getInt32Ty(*context_));
-    builder_->ClearInsertionPoint();
-
     auto entry_block = BasicBlock::Create(*context_, "entry", func);
     current_block_ = entry_block;
 
@@ -268,12 +272,12 @@ llvm::Function* translator::translator::translate_function(std::unique_ptr<emitt
     local_variables_.clear();
 
     builder_->SetInsertPoint(current_allocation_block_);
-    builder_->CreateStore(ConstantInt::get(Type::getInt32Ty(*context_), 0), first_alloc);
     builder_->CreateBr(entry_block);
     builder_->ClearInsertionPoint();
 
     func->addFnAttr("frame-pointer", "all");
     func->addFnAttr("stack-protector-buffer-size", "8");
+    func->addFnAttr("no-trapping-math", "true");
 
     return func;
 }
@@ -361,9 +365,12 @@ llvm::Value *translator::translator::translate_expr(emitter::ir::expr_ir* expr) 
         return translate_call_expr(dynamic_cast<call_expr_ir*>(expr));
     }
 
-
     if (dynamic_cast<identifier_expr_ir*>(expr) != nullptr) {
         return translate_identifier_expr(dynamic_cast<identifier_expr_ir*>(expr));
+    }
+
+    if (dynamic_cast<cast_expr_ir*>(expr) != nullptr) {
+        return translate_cast_expr(dynamic_cast<cast_expr_ir*>(expr));
     }
 
     utils::log_error("Unsupported expression found, exiting.");
@@ -386,12 +393,7 @@ llvm::Value *translator::translator::translate_binary_expr(emitter::ir::binary_e
 
     auto left = translate_expr(left_expr);
     auto right = translate_expr(right_expr);
-
-    if (binary_expr->left_should_be_upcasted) {
-        left = builder_->CreateSExt(left, types_[right_expr->expr_type->name]);
-    } else if (binary_expr->right_should_be_upcasted) {
-        right = builder_->CreateSExt(right, types_[left_expr->expr_type->name]);
-    }
+    right = builder_->CreateSExt(right, types_["int32"], "casted");
 
     switch (binary_expr->operation_type) {
         case emitter::ir::addition:
@@ -426,4 +428,45 @@ llvm::Value *translator::translator::translate_identifier_expr(emitter::ir::iden
     }
 
     return builder_->CreateLoad(type, local_variables_[identifier_expr->name]);
+}
+
+llvm::Value *translator::translator::translate_cast_expr(emitter::ir::cast_expr_ir *cast_expr) {
+    if (dynamic_cast<emitter::ir::upcast_expr_ir*>(cast_expr) != nullptr) {
+        return translate_upcast_expr(dynamic_cast<emitter::ir::upcast_expr_ir*>(cast_expr));
+    }
+
+    if (dynamic_cast<emitter::ir::downcast_expr_ir*>(cast_expr) != nullptr) {
+        return translate_downcast_expr(dynamic_cast<emitter::ir::downcast_expr_ir*>(cast_expr));
+    }
+
+    utils::log_error("Unsupported cast.");
+    __builtin_unreachable();
+}
+
+llvm::Value *translator::translator::translate_upcast_expr(emitter::ir::upcast_expr_ir *upcast_expr) {
+    if (upcast_expr->expr_type->is_basic && upcast_expr->inner_expr->expr_type->is_basic) {
+        auto dest_type = types_[upcast_expr->expr_type->name];
+        auto expr = translate_expr(upcast_expr->inner_expr.get());
+
+        if (upcast_expr->expr_type->is_unsigned) {
+            return builder_->CreateZExt(expr, dest_type, "upcasted");
+       } else {
+            return builder_->CreateSExt(expr, dest_type, "upcasted");
+       }
+    }
+
+    utils::log_error("Upcasting non-basic types is not supported for now.");
+    __builtin_unreachable();
+}
+
+llvm::Value *translator::translator::translate_downcast_expr(emitter::ir::downcast_expr_ir *downcast_expr) {
+    if (downcast_expr->expr_type->is_basic && downcast_expr->inner_expr->expr_type->is_basic) {
+        auto dest_type = types_[downcast_expr->expr_type->name];
+        auto expr = translate_expr(downcast_expr->inner_expr.get());
+
+        return builder_->CreateTrunc(expr, dest_type, "downcasted");
+    }
+
+     utils::log_error("Downcasting non-basic types is not supported for now.");
+    __builtin_unreachable();
 }
