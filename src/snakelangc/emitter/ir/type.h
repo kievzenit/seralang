@@ -8,11 +8,12 @@ namespace emitter::ir {
     class type {
     public:
         type(std::string name, int size, bool is_basic = false) :
-            name(std::move(name)), size(size), is_basic(is_basic) {}
+            name(std::move(name)), size(size), is_basic(is_basic), is_unsigned(false) {}
 
         bool is_basic;
         std::string name;
         int size;
+        bool is_unsigned;
 
         [[nodiscard]] bool can_be_explicitly_casted_to(type* other) const;
 
@@ -28,6 +29,9 @@ namespace emitter::ir {
         static type* uint64();
 
     private:
+        type(std::string name, int size, bool is_basic, bool is_unsigned) :
+            name(std::move(name)), size(size), is_basic(is_basic), is_unsigned(is_unsigned) {}
+
         static type* boolean_;
         static type* int1_;
         static type* int8_;

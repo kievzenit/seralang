@@ -91,7 +91,7 @@ emitter::ir::type* emitter::ir::type::int64() {
 
 emitter::ir::type* emitter::ir::type::uint8() {
     if (!uint8_) {
-        uint8_ = new type("uint8", 1, true);
+        uint8_ = new type("uint8", 1, true, true);
     }
 
     return uint8_;
@@ -99,7 +99,7 @@ emitter::ir::type* emitter::ir::type::uint8() {
 
 emitter::ir::type* emitter::ir::type::uint16() {
     if (!uint16_) {
-        uint16_ = new type("uint16", 2, true);
+        uint16_ = new type("uint16", 2, true, true);
     }
 
     return uint16_;
@@ -107,7 +107,7 @@ emitter::ir::type* emitter::ir::type::uint16() {
 
 emitter::ir::type* emitter::ir::type::uint32() {
     if (!uint32_) {
-        uint32_ = new type("uint32", 4, true);
+        uint32_ = new type("uint32", 4, true, true);
     }
 
     return uint32_;
@@ -115,7 +115,7 @@ emitter::ir::type* emitter::ir::type::uint32() {
 
 emitter::ir::type* emitter::ir::type::uint64() {
     if (!uint64_) {
-        uint64_ = new type("uint64", 8, true);
+        uint64_ = new type("uint64", 8, true, true);
     }
 
     return uint64_;
