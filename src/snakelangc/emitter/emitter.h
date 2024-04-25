@@ -9,6 +9,7 @@
 #include "../utils/log_error.h"
 #include "../parser/ast/translation_ast.h"
 #include "../parser/ast/let_stmt.h"
+#include "../parser/ast/call_stmt.h"
 #include "../parser/ast/return_stmt.h"
 #include "../parser/ast/func_decl_stmt.h"
 #include "../parser/ast/binary_expr.h"
@@ -23,6 +24,10 @@
 #include "ir/call_expr_ir.h"
 #include "ir/integer_expr_ir.h"
 #include "ir/boolean_expr_ir.h"
+#include "ir/cast_expr_ir.h"
+#include "ir/upcast_expr_ir.h"
+#include "ir/downcast_expr_ir.h"
+#include "../parser/ast/call_stmt.h"
 
 namespace emitter {
 
@@ -53,24 +58,42 @@ namespace emitter {
                 {"uint8", ir::type::uint8()},
                 {"uint16", ir::type::uint16()},
                 {"uint32", ir::type::uint32()},
+                {"uint", ir::type::uint32()},
                 {"uint64", ir::type::uint64()}
         };
 
-        ir::scope_stmt_ir* current_scope_ = nullptr;
+        ir::scope_stmt_ir* current_scope_;
+        ir::type* expected_function_return_type_;
 
         void find_globals();
 
         std::vector<std::unique_ptr<ir::variable_ir>> emit_all_global_variables();
         std::vector<std::unique_ptr<ir::func_decl_ir>> emit_all_func_declarations();
+        std::unique_ptr<ir::func_decl_ir> emit_for_func(parser::ast::func_decl_stmt* func_stmt);
 
-        std::unique_ptr<ir::scope_stmt_ir> emit_for_scope_stmt(parser::ast::scope_stmt* scope_stmt);
         std::unique_ptr<ir::stmt_ir> emit_for_stmt(std::unique_ptr<parser::ast::stmt> stmt);
+        std::unique_ptr<ir::scope_stmt_ir> emit_for_scope_stmt(parser::ast::scope_stmt* scope_stmt);
+        std::unique_ptr<ir::variable_ir> emit_for_let_stmt(parser::ast::let_stmt* let_stmt);
+        std::unique_ptr<ir::call_stmt_ir> emit_for_call_stmt(parser::ast::call_stmt* call_stmt);
+        std::unique_ptr<ir::return_ir> emit_for_return_stmt(parser::ast::return_stmt* return_stmt);
 
         std::unique_ptr<ir::expr_ir> emit_for_expr(std::unique_ptr<parser::ast::expr> expr);
+
+        static std::unique_ptr<ir::expr_ir> emit_for_cast(std::unique_ptr<ir::expr_ir> expr, ir::type* cast_to);
+        static std::tuple<std::unique_ptr<ir::expr_ir>, std::unique_ptr<ir::expr_ir>, ir::type*>
+        emit_for_cast(std::unique_ptr<ir::expr_ir> left, std::unique_ptr<ir::expr_ir> right);
+        static std::unique_ptr<ir::upcast_expr_ir>
+        emit_for_upcast(std::unique_ptr<ir::expr_ir> inner_expr, ir::type* cast_to_type);
+        static std::unique_ptr<ir::downcast_expr_ir>
+        emit_for_downcast(std::unique_ptr<ir::expr_ir> inner_expr, ir::type* cast_to_type);
+
+        std::unique_ptr<ir::integer_expr_ir> emit_for_integer_expr(parser::ast::integer_expr* integer_expr);
+        static std::unique_ptr<ir::integer_expr_ir>
+        emit_for_explicitly_typed_integer(parser::ast::integer_expr* integer_expr, const std::string& explicit_int_type);
+        std::unique_ptr<ir::boolean_expr_ir> emit_for_boolean_expr(parser::ast::boolean_expr* boolean_expr);
+        std::unique_ptr<ir::identifier_expr_ir> emit_for_identifier_expr(parser::ast::identifier_expr* identifier_expr);
+        std::unique_ptr<ir::binary_expr_ir> emit_for_binary_expr(parser::ast::binary_expr* binary_expr);
         std::unique_ptr<ir::call_expr_ir> emit_for_call_expr(parser::ast::call_expr* call_expr);
-        static std::unique_ptr<ir::integer_expr_ir> emit_for_explicitly_typed_integer(
-                parser::ast::integer_expr* integer_expr,
-                const std::string& explicit_int_type);
     };
 
 }
