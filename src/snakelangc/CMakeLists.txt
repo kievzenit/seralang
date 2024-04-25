@@ -48,6 +48,9 @@ set(SOURCE_FILES main.cpp
         emitter/ir/identifier_expr_ir.h
         emitter/ir/call_stmt_ir.h
         emitter/ir/type.cpp
+        emitter/ir/cast_expr_ir.h
+        emitter/ir/upcast_expr_ir.h
+        emitter/ir/downcast_expr_ir.h
         translator/translator.cpp
         translator/translator.h)
 
