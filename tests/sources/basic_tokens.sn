@@ -1,10 +1,10 @@
 package test.test2;
 
-let a = 12 + 10 / 5;
-let b = 0d12:int64 + 19:int1;
-let c = 0xff:int16;
-let d = 0o172561:int1;
-let e = 0b100101011:int8;
+static let a = 12 + 10 / 5;
+static let b = 0d12:int64 + 19:int1;
+static let c = 0xff:int16;
+static let d = 0o172561:int1;
+static let e = 0b100101011:int8;
 
-let f = false;
-let g = true;
+static let f = false;
+static let g = true;
