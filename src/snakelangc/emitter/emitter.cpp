@@ -55,6 +55,10 @@ std::vector<std::unique_ptr<emitter::ir::variable_ir>> emitter::emitter::emit_al
 
         auto let_stmt = dynamic_cast<parser::ast::let_stmt *>(top_stmt.get());
 
+        if (!let_stmt->is_static) {
+            utils::log_error("Top let statement must be static.");
+        }
+
         auto expr_ir = emit_for_expr(std::move(let_stmt->expression));
         global_variables_types_[let_stmt->name] = expr_ir->expr_type;
         auto variable_ir = std::make_unique<ir::variable_ir>(
