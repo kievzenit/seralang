@@ -3,13 +3,13 @@ package test_package;
 static let a_glb = 0x000f:int16;
 static let b_glb = 0b1:int8;
 
-func bar() int32 {
-    return a_glb * 100 - b_glb * 20 * foo();
+func bar(input: int) int32 {
+    return a_glb * 100 - b_glb * 20 * foo() - input;
 }
 
 func main() int {
     foo();
-    let a = bar() - foo();
+    let a = bar(b_glb) - foo();
     foo();
     return a;
 }
