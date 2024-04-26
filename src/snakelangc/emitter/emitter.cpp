@@ -7,13 +7,13 @@ std::unique_ptr<emitter::ir::package_ir> emitter::emitter::emit() {
     auto func_declarations = emit_all_func_declarations();
 
     return std::make_unique<ir::package_ir>(
-            translation_ast_->package->package_name,
+            translation_asts_[0]->package->package_name,
             std::move(global_variables),
             std::move(func_declarations));
 }
 
 void emitter::emitter::find_globals() {
-    for (auto &top_stmt : translation_ast_->stmts) {
+    for (auto &top_stmt : translation_asts_[0]->stmts) {
         if (dynamic_cast<parser::ast::let_stmt *>(top_stmt.get()) != nullptr) {
             auto let_stmt = dynamic_cast<parser::ast::let_stmt *>(top_stmt.get());
 
@@ -48,7 +48,7 @@ void emitter::emitter::find_globals() {
 std::vector<std::unique_ptr<emitter::ir::variable_ir>> emitter::emitter::emit_all_global_variables() {
     std::vector<std::unique_ptr<ir::variable_ir>> global_variables;
 
-    for (auto &top_stmt : translation_ast_->stmts) {
+    for (auto &top_stmt : translation_asts_[0]->stmts) {
         if (dynamic_cast<parser::ast::let_stmt *>(top_stmt.get()) == nullptr) {
             continue;
         }
@@ -69,7 +69,7 @@ std::vector<std::unique_ptr<emitter::ir::variable_ir>> emitter::emitter::emit_al
 std::vector<std::unique_ptr<emitter::ir::func_decl_ir>> emitter::emitter::emit_all_func_declarations() {
     std::vector<std::unique_ptr<ir::func_decl_ir>> func_decls;
 
-    for (auto &top_stmt : translation_ast_->stmts) {
+    for (auto &top_stmt : translation_asts_[0]->stmts) {
         if (dynamic_cast<parser::ast::func_decl_stmt*>(top_stmt.get()) == nullptr) {
             continue;
         }
