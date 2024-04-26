@@ -213,6 +213,7 @@ emitter::emitter::emit_for_cast(std::unique_ptr<ir::expr_ir> expr, ir::type *cas
     }
 
     utils::log_error(std::format("Expression cannot be explicitly casted to type: {}.", cast_to->name));
+    __builtin_unreachable();
 }
 
 std::tuple<std::unique_ptr<emitter::ir::expr_ir>, std::unique_ptr<emitter::ir::expr_ir>, emitter::ir::type*>
@@ -242,6 +243,7 @@ emitter::emitter::emit_for_cast(std::unique_ptr<ir::expr_ir> left, std::unique_p
     }
 
     utils::log_error("Left and right side of expression cannot be explicitly casted to other side.");
+    __builtin_unreachable();
 }
 
 std::unique_ptr<emitter::ir::upcast_expr_ir>
@@ -328,6 +330,7 @@ emitter::emitter::emit_for_identifier_expr(parser::ast::identifier_expr *identif
     }
 
     utils::log_error(std::format("Undefined identifier: {}.", identifier_expr->name));
+    __builtin_unreachable();
 }
 
 std::unique_ptr<emitter::ir::binary_expr_ir>
