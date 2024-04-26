@@ -1,6 +1,6 @@
 #include "translator.h"
 
-void translator::translator::translate() {
+std::unique_ptr<llvm::Module> translator::translator::translate() {
     using namespace llvm;
 
     create_types();
@@ -10,55 +10,7 @@ void translator::translator::translate() {
     translate_global_vars();
     translate_function_declarations();
 
-#ifdef DEBUG
-    module_->dump();
-#endif
-
-    InitializeAllTargetInfos();
-    InitializeAllTargets();
-    InitializeAllTargetMCs();
-    InitializeAllAsmParsers();
-    InitializeAllAsmPrinters();
-
-    auto target_triple = sys::getDefaultTargetTriple();
-    module_->setTargetTriple(target_triple);
-
-    std::string error;
-    auto target = TargetRegistry::lookupTarget(target_triple, error);
-
-    if (!target) {
-        utils::log_error(error);
-        __builtin_unreachable();
-    }
-
-    auto cpu = "generic";
-    auto features = "";
-    auto options = TargetOptions();
-
-    auto target_machine = target->createTargetMachine(
-            target_triple,
-            cpu,
-            features,
-            options,
-            Reloc::PIC_);
-
-    auto output_file_name = package_ir_->name + ".o";
-    std::error_code error_code;
-    raw_fd_ostream dest(output_file_name, error_code, sys::fs::OF_None);
-
-    if (error_code) {
-        utils::log_error("Cannot open file: " + output_file_name);
-    }
-
-    legacy::PassManager pass;
-    auto file_type = CodeGenFileType::CGFT_ObjectFile;
-
-    if (target_machine->addPassesToEmitFile(pass, dest, nullptr, file_type)) {
-        utils::log_error("Target machine cannot emit file of this type.");
-    }
-
-    pass.run(*module_);
-    dest.flush();
+    return std::move(module_);
 }
 
 void translator::translator::create_types() {

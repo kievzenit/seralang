@@ -4,13 +4,6 @@
 #include <utility>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Constants.h>
-#include <llvm/Support/TargetSelect.h>
-#include <llvm/TargetParser/Host.h>
-#include <llvm/MC/TargetRegistry.h>
-#include <llvm/Target/TargetMachine.h>
-#include <llvm/Target/TargetOptions.h>
-#include <llvm/Support/FileSystem.h>
-#include <llvm/IR/LegacyPassManager.h>
 #include <map>
 
 #include "../emitter/ir/package_ir.h"
@@ -37,7 +30,7 @@ namespace translator {
             module_(std::make_unique<llvm::Module>(package_ir_->name, *context_)),
             builder_(std::make_unique<llvm::IRBuilder<>>(*context_)) {}
 
-        void translate();
+        std::unique_ptr<llvm::Module> translate();
 
     private:
         std::unique_ptr<emitter::ir::package_ir> package_ir_;
