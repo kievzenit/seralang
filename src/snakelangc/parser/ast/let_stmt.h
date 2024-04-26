@@ -9,11 +9,12 @@ namespace parser::ast {
 
     class let_stmt : public top_stmt, public stmt {
     public:
-        let_stmt(std::string name, std::unique_ptr<expr> expression) :
-            name(std::move(name)), expression(std::move(expression)) {}
+        let_stmt(std::string name, std::unique_ptr<expr> expression, bool is_static) :
+            name(std::move(name)), expression(std::move(expression)), is_static(is_static) {}
 
         std::string name;
         std::unique_ptr<expr> expression;
+        bool is_static;
     };
 
 }
