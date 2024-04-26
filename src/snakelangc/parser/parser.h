@@ -20,7 +20,7 @@ namespace parser {
 
     class parser {
     public:
-        parser(std::string file_name) : lexer_(std::move(file_name)) {}
+        explicit parser(lexer::lexer lexer) : lexer_(lexer) {}
 
         std::unique_ptr<ast::translation_ast> parse();
     private:
