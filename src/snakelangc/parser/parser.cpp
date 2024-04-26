@@ -116,10 +116,7 @@ std::unique_ptr<parser::ast::func_decl_stmt> parser::parser::parse_func_decl_stm
 
     auto function_name = current_token_.value;
 
-    eat();
-    expect(lexer::token_type::l_parenthesis);
-    eat();
-    expect(lexer::token_type::r_parenthesis);
+    auto params = parse_func_params();
 
     eat();
     expect(lexer::token_type::identifier);
@@ -127,7 +124,47 @@ std::unique_ptr<parser::ast::func_decl_stmt> parser::parser::parse_func_decl_stm
 
     auto scope_stmt = parse_scope_stmt();
 
-    return std::make_unique<ast::func_decl_stmt>(function_name, return_type, std::move(scope_stmt));
+    return std::make_unique<ast::func_decl_stmt>(
+            function_name, params, return_type, std::move(scope_stmt));
+}
+
+std::vector<parser::ast::func_param> parser::parser::parse_func_params() {
+    std::vector<ast::func_param> params;
+
+    eat();
+    expect(lexer::token_type::l_parenthesis);
+
+    eat();
+    do {
+        if (current_token_.type == lexer::token_type::r_parenthesis) {
+            break;
+        }
+
+        putback_tokens_.push(current_token_);
+        params.push_back(parse_func_param());
+
+        eat();
+        if (current_token_.type == lexer::token_type::coma) {
+            eat();
+        }
+    } while (has_tokens());
+
+    return params;
+}
+
+parser::ast::func_param parser::parser::parse_func_param() {
+    eat();
+    expect(lexer::token_type::identifier);
+    auto param_name = current_token_.value;
+
+    eat();
+    expect(lexer::token_type::colon);
+
+    eat();
+    expect(lexer::token_type::identifier);
+    auto param_type = current_token_.value;
+
+    return {param_name, param_type};
 }
 
 std::unique_ptr<parser::ast::stmt> parser::parser::parse_stmt() {
@@ -254,16 +291,35 @@ std::unique_ptr<parser::ast::expr> parser::parser::parse_binary_expr(
 std::unique_ptr<parser::ast::call_expr> parser::parser::parse_call_expr() {
     eat();
     expect(lexer::token_type::identifier);
-
     auto identifier = current_token_.value;
+
+    auto arguments = parse_call_arguments();
+
+    return std::make_unique<ast::call_expr>(identifier, std::move(arguments));
+}
+
+std::vector<std::unique_ptr<parser::ast::expr>> parser::parser::parse_call_arguments() {
+    std::vector<std::unique_ptr<ast::expr>> arguments;
 
     eat();
     expect(lexer::token_type::l_parenthesis);
 
     eat();
-    expect(lexer::token_type::r_parenthesis);
+    do {
+        if (current_token_.type == lexer::token_type::r_parenthesis) {
+            break;
+        }
 
-    return std::make_unique<ast::call_expr>(identifier);
+        putback_tokens_.push(current_token_);
+        arguments.push_back(parse_expr());
+
+        eat();
+        if (current_token_.type == lexer::token_type::coma) {
+            eat();
+        }
+    } while (has_tokens());
+
+    return arguments;
 }
 
 std::unique_ptr<parser::ast::expr> parser::parser::parse_identifier_expr() {

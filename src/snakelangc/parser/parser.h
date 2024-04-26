@@ -47,6 +47,8 @@ namespace parser {
         std::unique_ptr<ast::package_stmt> parse_package_stmt();
         std::unique_ptr<ast::top_stmt> parse_top_stmt();
         std::unique_ptr<ast::func_decl_stmt> parse_func_decl_stmt();
+        std::vector<ast::func_param> parse_func_params();
+        ast::func_param parse_func_param();
         std::unique_ptr<ast::stmt> parse_stmt();
         std::unique_ptr<ast::scope_stmt> parse_scope_stmt();
         std::unique_ptr<ast::let_stmt> parse_let_stmt(bool is_static);
@@ -57,6 +59,7 @@ namespace parser {
         std::unique_ptr<ast::expr> parse_primary_expr();
         std::unique_ptr<ast::expr> parse_binary_expr(std::unique_ptr<ast::expr> left, int precedence = 0);
         std::unique_ptr<ast::call_expr> parse_call_expr();
+        std::vector<std::unique_ptr<ast::expr>> parse_call_arguments();
         std::unique_ptr<ast::expr> parse_identifier_expr();
         std::unique_ptr<ast::integer_expr> parse_integer_expr();
         std::unique_ptr<ast::boolean_expr> parse_boolean_expr();
