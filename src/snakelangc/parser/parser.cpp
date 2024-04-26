@@ -101,7 +101,8 @@ std::unique_ptr<parser::ast::package_stmt> parser::parser::parse_package_stmt() 
 
 std::unique_ptr<parser::ast::top_stmt> parser::parser::parse_top_stmt() {
     switch (current_token_.type) {
-        case lexer::token_type::let: return parse_let_stmt();
+        case lexer::token_type::static_: eat(); return parse_let_stmt(true);
+        case lexer::token_type::let: return parse_let_stmt(false);
         case lexer::token_type::func: return parse_func_decl_stmt();
         default:
             unexpected_token_error();
@@ -134,7 +135,7 @@ std::unique_ptr<parser::ast::stmt> parser::parser::parse_stmt() {
 
     auto priv_token = current_token_;
     switch (current_token_.type) {
-        case lexer::token_type::let: return parse_let_stmt();
+        case lexer::token_type::let: return parse_let_stmt(false);
         case lexer::token_type::ret: return parse_return_stmt();
         case lexer::token_type::identifier:
             eat();
@@ -167,7 +168,7 @@ std::unique_ptr<parser::ast::scope_stmt> parser::parser::parse_scope_stmt() {
     return std::make_unique<ast::scope_stmt>(std::move(inner_stmts));
 }
 
-std::unique_ptr<parser::ast::let_stmt> parser::parser::parse_let_stmt() {
+std::unique_ptr<parser::ast::let_stmt> parser::parser::parse_let_stmt(bool is_static) {
     eat();
     expect(lexer::token_type::identifier);
     auto identifier_name = current_token_.value;
@@ -180,7 +181,7 @@ std::unique_ptr<parser::ast::let_stmt> parser::parser::parse_let_stmt() {
     eat();
     expect(lexer::token_type::semicolon);
 
-    return std::make_unique<ast::let_stmt>(identifier_name, std::move(expression));
+    return std::make_unique<ast::let_stmt>(identifier_name, std::move(expression), is_static);
 }
 
 std::unique_ptr<parser::ast::call_stmt> parser::parser::parse_call_stmt() {

@@ -49,7 +49,7 @@ namespace parser {
         std::unique_ptr<ast::func_decl_stmt> parse_func_decl_stmt();
         std::unique_ptr<ast::stmt> parse_stmt();
         std::unique_ptr<ast::scope_stmt> parse_scope_stmt();
-        std::unique_ptr<ast::let_stmt> parse_let_stmt();
+        std::unique_ptr<ast::let_stmt> parse_let_stmt(bool is_static);
         std::unique_ptr<ast::call_stmt> parse_call_stmt();
         std::unique_ptr<ast::return_stmt> parse_return_stmt();
 
