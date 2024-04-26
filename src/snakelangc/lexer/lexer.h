@@ -10,7 +10,15 @@ namespace lexer {
 
     class lexer {
     public:
-        lexer(std::string file_name) : file_name_(std::move(file_name)) {
+        lexer(lexer& lexer) {
+            file_name_ = lexer.file_name_;
+            file_.swap(lexer.file_);
+            line_ = lexer.line_;
+            column_ = lexer.column_;
+            current_character_ = lexer.current_character_;
+        }
+
+        explicit lexer(std::string file_name) : file_name_(std::move(file_name)) {
             file_ = std::ifstream(file_name_);
 
             if (!file_.is_open()) {
@@ -29,7 +37,7 @@ namespace lexer {
         int line_ = 1;
         int column_ = 0;
 
-        char current_character_;
+        char current_character_ = 0;
 
         void eat_current_char();
         void read_current_char();
