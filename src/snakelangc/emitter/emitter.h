@@ -33,13 +33,13 @@ namespace emitter {
 
     class emitter {
     public:
-        emitter(std::unique_ptr<parser::ast::translation_ast> translation_ast) :
-            translation_ast_(std::move(translation_ast)) {}
+        explicit emitter(std::vector<std::unique_ptr<parser::ast::translation_ast>> translation_asts) :
+            translation_asts_(std::move(translation_asts)) {}
 
             std::unique_ptr<ir::package_ir> emit();
 
     private:
-        std::unique_ptr<parser::ast::translation_ast> translation_ast_;
+        std::vector<std::unique_ptr<parser::ast::translation_ast>> translation_asts_;
 
         std::unordered_set<std::string> declared_functions_;
         std::unordered_set<std::string> declared_global_variables_;
@@ -87,10 +87,10 @@ namespace emitter {
         static std::unique_ptr<ir::downcast_expr_ir>
         emit_for_downcast(std::unique_ptr<ir::expr_ir> inner_expr, ir::type* cast_to_type);
 
-        std::unique_ptr<ir::integer_expr_ir> emit_for_integer_expr(parser::ast::integer_expr* integer_expr);
+        static std::unique_ptr<ir::integer_expr_ir> emit_for_integer_expr(parser::ast::integer_expr* integer_expr);
         static std::unique_ptr<ir::integer_expr_ir>
         emit_for_explicitly_typed_integer(parser::ast::integer_expr* integer_expr, const std::string& explicit_int_type);
-        std::unique_ptr<ir::boolean_expr_ir> emit_for_boolean_expr(parser::ast::boolean_expr* boolean_expr);
+        static std::unique_ptr<ir::boolean_expr_ir> emit_for_boolean_expr(parser::ast::boolean_expr* boolean_expr);
         std::unique_ptr<ir::identifier_expr_ir> emit_for_identifier_expr(parser::ast::identifier_expr* identifier_expr);
         std::unique_ptr<ir::binary_expr_ir> emit_for_binary_expr(parser::ast::binary_expr* binary_expr);
         std::unique_ptr<ir::call_expr_ir> emit_for_call_expr(parser::ast::call_expr* call_expr);
