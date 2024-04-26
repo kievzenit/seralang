@@ -62,8 +62,8 @@ namespace emitter {
                 {"uint64", ir::type::uint64()}
         };
 
-        ir::scope_stmt_ir* current_scope_;
-        ir::type* expected_function_return_type_;
+        ir::scope_stmt_ir* current_scope_ = nullptr;
+        ir::type* expected_function_return_type_ = nullptr;
 
         void find_globals();
 

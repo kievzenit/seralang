@@ -62,7 +62,7 @@ std::vector<std::unique_ptr<emitter::ir::variable_ir>> emitter::emitter::emit_al
         auto expr_ir = emit_for_expr(std::move(let_stmt->expression));
         global_variables_types_[let_stmt->name] = expr_ir->expr_type;
         auto variable_ir = std::make_unique<ir::variable_ir>(
-                let_stmt->name, std::move(expr_ir), expr_ir->expr_type);
+                let_stmt->name, std::move(expr_ir), expr_ir->expr_type, true);
 
         global_variables.push_back(std::move(variable_ir));
     }
@@ -162,7 +162,8 @@ std::unique_ptr<emitter::ir::variable_ir> emitter::emitter::emit_for_let_stmt(pa
     return std::make_unique<ir::variable_ir>(
             let_stmt->name,
             std::move(expr_ir),
-            expr_ir->expr_type);
+            expr_ir->expr_type,
+            false);
 }
 
 std::unique_ptr<emitter::ir::call_stmt_ir> emitter::emitter::emit_for_call_stmt(parser::ast::call_stmt *call_stmt) {
