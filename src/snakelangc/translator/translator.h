@@ -41,10 +41,10 @@ namespace translator {
 
         std::map<std::string, llvm::Type*> types_;
 
-        llvm::BasicBlock* current_allocation_block_;
-        llvm::BasicBlock* current_block_;
+        llvm::BasicBlock* current_allocation_block_ = nullptr;
+        llvm::BasicBlock* current_block_ = nullptr;
 
-        emitter::ir::scope_stmt_ir* current_scope_;
+        emitter::ir::scope_stmt_ir* current_scope_ = nullptr;
         std::map<std::string, llvm::Value*> local_variables_;
 
         void create_types();
