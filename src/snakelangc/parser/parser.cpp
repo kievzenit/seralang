@@ -137,6 +137,9 @@ std::unique_ptr<parser::ast::stmt> parser::parser::parse_stmt() {
     switch (current_token_.type) {
         case lexer::token_type::let: return parse_let_stmt(false);
         case lexer::token_type::ret: return parse_return_stmt();
+        case lexer::token_type::static_:
+            eat();
+            return parse_let_stmt(true);
         case lexer::token_type::identifier:
             eat();
             if (current_token_.type == lexer::token_type::l_parenthesis) {
