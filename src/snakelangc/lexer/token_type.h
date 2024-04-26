@@ -15,6 +15,7 @@ namespace lexer {
         func,
         ret,
         package,
+        static_,
 
         l_parenthesis,
         r_parenthesis,

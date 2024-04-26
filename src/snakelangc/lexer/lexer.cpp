@@ -510,6 +510,17 @@ lexer::token lexer::lexer::process_identifier() {
         };
     }
 
+    if (identifier == "static") {
+        return {
+            token_type::static_,
+            identifier,
+            file_name_,
+            line_,
+            column_started,
+            column_
+        };
+    }
+
     if (identifier == "true") {
         return {
                 token_type::boolean,
