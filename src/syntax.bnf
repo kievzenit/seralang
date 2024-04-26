@@ -57,7 +57,7 @@
     | <identifier_expression>
     | <call_expression>
 
-<call_expression> ::= <identifier> <func_params>
+<call_expression> ::= <identifier> "(" (<expression> ("," <expression>)*)? ")"
 
 <identifier_expression> ::= <identifier>
 
