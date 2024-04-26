@@ -52,7 +52,11 @@ set(SOURCE_FILES main.cpp
         emitter/ir/upcast_expr_ir.h
         emitter/ir/downcast_expr_ir.h
         translator/translator.cpp
-        translator/translator.h)
+        translator/translator.h
+        compiler/compiler.cpp
+        compiler/compiler.h
+        compiler/compile_options.h
+        compiler/emit_type.h)
 
 find_package(LLVM REQUIRED CONFIG)
 
