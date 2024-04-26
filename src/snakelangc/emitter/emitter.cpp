@@ -313,18 +313,18 @@ emitter::emitter::emit_for_boolean_expr(parser::ast::boolean_expr *boolean_expr)
 
 std::unique_ptr<emitter::ir::identifier_expr_ir>
 emitter::emitter::emit_for_identifier_expr(parser::ast::identifier_expr *identifier_expr) {
-    if (declared_global_variables_.contains(identifier_expr->name)) {
-        return std::make_unique<ir::identifier_expr_ir>(
-                identifier_expr->name,
-                true,
-                global_variables_types_[identifier_expr->name]);
-    }
-
     if (current_scope_->is_var_exists(identifier_expr->name)) {
         return std::make_unique<ir::identifier_expr_ir>(
                 identifier_expr->name,
                 false,
                 current_scope_->get_type_for_variable(identifier_expr->name));
+    }
+
+    if (declared_global_variables_.contains(identifier_expr->name)) {
+        return std::make_unique<ir::identifier_expr_ir>(
+                identifier_expr->name,
+                true,
+                global_variables_types_[identifier_expr->name]);
     }
 
     utils::log_error(std::format("Undefined identifier: {}.", identifier_expr->name));
