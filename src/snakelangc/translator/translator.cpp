@@ -365,7 +365,13 @@ llvm::Value *translator::translator::translate_binary_expr(emitter::ir::binary_e
         case emitter::ir::multiplication:
             return builder_->CreateMul(left, right);
         case emitter::ir::division:
-            return builder_->CreateSDiv(left, right);
+            return left_expr->expr_type->is_unsigned ?
+                builder_->CreateUDiv(left, right) :
+                builder_->CreateSDiv(left, right);
+        case emitter::ir::binary_operation_type::modulus:
+            return left_expr->expr_type->is_unsigned ?
+                builder_->CreateURem(left, right) :
+                builder_->CreateSRem(left, right);
         default:
             utils::log_error("Unsupported binary operation encountered, exiting with error.");
             __builtin_unreachable();
