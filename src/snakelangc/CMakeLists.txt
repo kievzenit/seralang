@@ -31,6 +31,7 @@ set(SOURCE_FILES main.cpp
         parser/ast/call_expr.h
         parser/ast/call_stmt.h
         parser/ast/func_param.h
+        parser/ast/assignment_stmt.h
         emitter/ir/package_ir.h
         emitter/ir/variable_ir.h
         emitter/ir/type.h
