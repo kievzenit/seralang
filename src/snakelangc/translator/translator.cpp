@@ -256,6 +256,11 @@ void translator::translator::translate_stmt(std::unique_ptr<emitter::ir::stmt_ir
         return;
     }
 
+    if (dynamic_cast<emitter::ir::assignment_stmt_ir*>(stmt_ir.get()) != nullptr) {
+        translate_assignment_stmt(dynamic_cast<emitter::ir::assignment_stmt_ir*>(stmt_ir.get()));
+        return;
+    }
+
     if (dynamic_cast<emitter::ir::call_stmt_ir*>(stmt_ir.get()) != nullptr) {
         translate_call_stmt(dynamic_cast<emitter::ir::call_stmt_ir*>(stmt_ir.get()));
         return;
@@ -288,6 +293,23 @@ void translator::translator::translate_var_stmt(emitter::ir::variable_ir* variab
 
     auto expr_result = translate_expr(variable_ir->expr.get());
     builder_->CreateStore(expr_result, allocated_var);
+
+    builder_->ClearInsertionPoint();
+}
+
+void translator::translator::translate_assignment_stmt(emitter::ir::assignment_stmt_ir *assignment_stmt) {
+    using namespace llvm;
+
+    builder_->SetInsertPoint(current_block_);
+
+    auto expr_result = translate_expr(assignment_stmt->assignment_expr.get());
+
+    if (assignment_stmt->is_global) {
+        auto global_var = module_->getNamedGlobal(assignment_stmt->identifier_name);
+        builder_->CreateStore(expr_result, global_var);
+    } else {
+        builder_->CreateStore(expr_result, local_variables_[assignment_stmt->identifier_name]);
+    }
 
     builder_->ClearInsertionPoint();
 }
@@ -401,7 +423,6 @@ llvm::Value *translator::translator::translate_identifier_expr(emitter::ir::iden
     auto type = types_[identifier_expr->expr_type->name];
 
     if (identifier_expr->is_global) {
-
         auto global_var = module_->getNamedGlobal(llvm::StringRef(identifier_expr->name));
         return builder_->CreateLoad(type, global_var);
     }
