@@ -16,11 +16,13 @@
 #include "../parser/ast/call_expr.h"
 #include "../parser/ast/identifier_expr.h"
 #include "ir/package_ir.h"
+#include "ir/func_type.h"
 #include "ir/call_stmt_ir.h"
 #include "ir/binary_expr_ir.h"
 #include "ir/variable_ir.h"
 #include "ir/return_ir.h"
 #include "ir/identifier_expr_ir.h"
+#include "ir/argument_expr_ir.h"
 #include "ir/call_expr_ir.h"
 #include "ir/integer_expr_ir.h"
 #include "ir/boolean_expr_ir.h"
@@ -44,7 +46,7 @@ namespace emitter {
         std::unordered_set<std::string> declared_functions_;
         std::unordered_set<std::string> declared_global_variables_;
 
-        std::map<std::string, ir::type*> functions_types_;
+        std::map<std::string, ir::func_type*> functions_types_;
         std::map<std::string, ir::type*> global_variables_types_;
 
         std::map<std::string, ir::type*> types_ = {
@@ -63,13 +65,18 @@ namespace emitter {
         };
 
         ir::scope_stmt_ir* current_scope_ = nullptr;
-        ir::type* expected_function_return_type_ = nullptr;
+        ir::func_type* current_function_ = nullptr;
 
         void find_globals();
+
+        bool is_identifier_is_func_argument(const std::string& name);
+        std::tuple<ir::type*, int> get_type_for_func_argument(const std::string& name);
 
         std::vector<std::unique_ptr<ir::variable_ir>> emit_all_global_variables();
         std::vector<std::unique_ptr<ir::func_decl_ir>> emit_all_func_declarations();
         std::unique_ptr<ir::func_decl_ir> emit_for_func(parser::ast::func_decl_stmt* func_stmt);
+        std::vector<ir::func_param_ir> emit_func_params(parser::ast::func_decl_stmt* func_stmt);
+        ir::func_param_ir emit_for_func_param(const parser::ast::func_param& func_param);
 
         std::unique_ptr<ir::stmt_ir> emit_for_stmt(std::unique_ptr<parser::ast::stmt> stmt);
         std::unique_ptr<ir::scope_stmt_ir> emit_for_scope_stmt(parser::ast::scope_stmt* scope_stmt);

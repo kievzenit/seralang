@@ -35,14 +35,38 @@ void emitter::emitter::find_globals() {
                         std::format("Function with name: {} is already defined.", func_stmt->name));
             }
 
-            if (!types_.contains(func_stmt->return_type)) {
+            auto params = emit_func_params(func_stmt);
+
+            auto return_type = types_[func_stmt->return_type];
+            if (return_type == nullptr) {
                 utils::log_error(std::format("Undefined type: {}.", func_stmt->return_type));
             }
-            functions_types_[func_stmt->name] = types_[func_stmt->return_type];
+            functions_types_[func_stmt->name] = new ir::func_type(func_stmt->name, params, return_type);
 
             continue;
         }
     }
+}
+
+bool emitter::emitter::is_identifier_is_func_argument(const std::string &name) {
+    for (auto& param : current_function_->params) {
+        if (param.name == name) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+std::tuple<emitter::ir::type*, int> emitter::emitter::get_type_for_func_argument(const std::string &name) {
+    for (int i = 0; i < current_function_->params.size(); i++) {
+        auto param = current_function_->params[i];
+        if (param.name == name) {
+            return {param.param_type, i};
+        }
+    }
+
+    return {nullptr, -1};
 }
 
 std::vector<std::unique_ptr<emitter::ir::variable_ir>> emitter::emitter::emit_all_global_variables() {
@@ -78,36 +102,48 @@ std::vector<std::unique_ptr<emitter::ir::func_decl_ir>> emitter::emitter::emit_a
             continue;
         }
 
-        func_decls.push_back(emit_for_func(dynamic_cast<parser::ast::func_decl_stmt*>(top_stmt.get())));
+        auto func_decl_stmt =dynamic_cast<parser::ast::func_decl_stmt*>(top_stmt.get());
+        current_function_ = functions_types_[func_decl_stmt->name];
+        func_decls.push_back(emit_for_func(func_decl_stmt));
+        current_function_ = nullptr;
     }
 
     return func_decls;
 }
 
 std::unique_ptr<emitter::ir::func_decl_ir> emitter::emitter::emit_for_func(parser::ast::func_decl_stmt *func_stmt) {
-    auto type_result = types_.find(func_stmt->return_type);
-    if (type_result == types_.end()) {
-        utils::log_error(
-                std::format(
-                        "Unknown type_result: {} specified for result type_result.",
-                        func_stmt->return_type));
-    }
-    expected_function_return_type_ = type_result->second;
-
     auto root_scope_stmt_ir = emit_for_scope_stmt(func_stmt->func_scope.get());
-
     auto last_stmt_ir = root_scope_stmt_ir->inner_stmts.back().get();
     if (dynamic_cast<ir::return_ir*>(last_stmt_ir) == nullptr) {
         utils::log_error("Expected return in the end of function, but got nothing instead.");
         __builtin_unreachable();
     }
 
-    expected_function_return_type_ = nullptr;
-
     return std::make_unique<ir::func_decl_ir>(
             func_stmt->name,
-            type_result->second,
+            current_function_->params,
+            current_function_->return_type,
             std::move(root_scope_stmt_ir));
+}
+
+std::vector<emitter::ir::func_param_ir> emitter::emitter::emit_func_params(parser::ast::func_decl_stmt *func_stmt) {
+    std::vector<ir::func_param_ir> params;
+
+    for (const auto& param : func_stmt->params) {
+        auto func_param = emit_for_func_param(param);
+        params.push_back(func_param);
+    }
+
+    return params;
+}
+
+emitter::ir::func_param_ir emitter::emitter::emit_for_func_param(const parser::ast::func_param& func_param) {
+    auto type = types_[func_param.type];
+    if (type == nullptr) {
+        utils::log_error(std::format("Undefined type: {}.", func_param.type));
+    }
+
+    return {func_param.name, type};
 }
 
 std::unique_ptr<emitter::ir::stmt_ir> emitter::emitter::emit_for_stmt(std::unique_ptr<parser::ast::stmt> stmt) {
@@ -149,6 +185,13 @@ emitter::emitter::emit_for_scope_stmt(parser::ast::scope_stmt* scope_stmt) {
 }
 
 std::unique_ptr<emitter::ir::variable_ir> emitter::emitter::emit_for_let_stmt(parser::ast::let_stmt *let_stmt) {
+    if (is_identifier_is_func_argument(let_stmt->name)) {
+        utils::log_error(
+                std::format(
+                        "Variable with name: {}, is already defined as function parameter.",
+                        let_stmt->name));
+    }
+
     if (current_scope_->variables.contains(let_stmt->name)) {
         utils::log_error(
                 std::format(
@@ -173,7 +216,7 @@ std::unique_ptr<emitter::ir::call_stmt_ir> emitter::emitter::emit_for_call_stmt(
 std::unique_ptr<emitter::ir::return_ir> emitter::emitter::emit_for_return_stmt(parser::ast::return_stmt *return_stmt) {
     auto return_expr = emit_for_expr(std::move(return_stmt->return_expr));
     auto cast_result = emit_for_cast(
-            std::move(return_expr), expected_function_return_type_);
+            std::move(return_expr), current_function_->return_type);
 
     return std::make_unique<ir::return_ir>(std::move(cast_result));
 }
@@ -209,7 +252,7 @@ emitter::emitter::emit_for_cast(std::unique_ptr<ir::expr_ir> expr, ir::type *cas
         return expr;
     }
 
-    if (expr->expr_type->can_be_explicitly_casted_to(cast_to)) {
+    if (expr->expr_type->can_be_implicitly_casted_to(cast_to)) {
         if (!expr->expr_type->is_basic) {
             utils::log_error("Casting non-basic type is not supported for now.");
         }
@@ -227,7 +270,7 @@ emitter::emitter::emit_for_cast(std::unique_ptr<ir::expr_ir> left, std::unique_p
         return {std::move(left), std::move(right), left->expr_type};
     }
 
-    if (left->expr_type->can_be_explicitly_casted_to(right->expr_type)) {
+    if (left->expr_type->can_be_implicitly_casted_to(right->expr_type)) {
         if (!left->expr_type->is_basic) {
             utils::log_error("Casting non-basic type is not supported for now.");
         }
@@ -237,7 +280,7 @@ emitter::emitter::emit_for_cast(std::unique_ptr<ir::expr_ir> left, std::unique_p
         return {std::move(upcast_expr), std::move(right), right->expr_type};
     }
 
-    if (right->expr_type->can_be_explicitly_casted_to(left->expr_type)) {
+    if (right->expr_type->can_be_implicitly_casted_to(left->expr_type)) {
         if (!right->expr_type->is_basic) {
             utils::log_error("Casting non-basic type is not supported for now.");
         }
@@ -320,6 +363,14 @@ emitter::emitter::emit_for_boolean_expr(parser::ast::boolean_expr *boolean_expr)
 
 std::unique_ptr<emitter::ir::identifier_expr_ir>
 emitter::emitter::emit_for_identifier_expr(parser::ast::identifier_expr *identifier_expr) {
+    auto argument_result = get_type_for_func_argument(identifier_expr->name);
+    if (std::get<0>(argument_result) != nullptr) {
+        return std::make_unique<ir::argument_exp_ir>(
+                identifier_expr->name,
+                std::get<0>(argument_result),
+                std::get<1>(argument_result));
+    }
+
     if (current_scope_->is_var_exists(identifier_expr->name)) {
         return std::make_unique<ir::identifier_expr_ir>(
                 identifier_expr->name,
@@ -357,5 +408,24 @@ std::unique_ptr<emitter::ir::call_expr_ir> emitter::emitter::emit_for_call_expr(
         utils::log_error(std::format("Attempted to call undefined function: {}.", call_expr->name));
     }
 
-    return std::make_unique<ir::call_expr_ir>(call_expr->name, functions_types_[call_expr->name]);
+    auto func_type = functions_types_[call_expr->name];
+    if (call_expr->arguments.size() != func_type->params.size()) {
+        utils::log_error(std::format(
+                "{} arguments was given, but function declaration has: {}.",
+                call_expr->arguments.size(),
+                func_type->params.size()));
+    }
+
+    std::vector<std::unique_ptr<ir::expr_ir>> arguments;
+    for (int i = 0; i < call_expr->arguments.size(); i++) {
+        auto argument_expr = emit_for_expr(std::move(call_expr->arguments[i]));
+        auto param = func_type->params[i];
+
+        arguments.push_back(emit_for_cast(std::move(argument_expr), param.param_type));
+    }
+
+    return std::make_unique<ir::call_expr_ir>(
+            call_expr->name,
+            std::move(arguments),
+            functions_types_[call_expr->name]->return_type);
 }
