@@ -9,7 +9,7 @@
     | <func_decl_statement>
     | <let_statement>
     | <scope_statement>
-    | <identifier_assignment_statement>
+    | <assignment_statement>
 
 <type_denotation> ::= ":" <basic_type>
 
@@ -29,7 +29,7 @@
     | "%="
 <let_statement> ::= "static"? "let" <identifier> <type_denotation>? "=" <expression> ";"
 
-<identifier_assignment_statement> ::= <identifier> <assignment> <expression> ";"
+<assignment_statement> ::= <identifier> <assignment> <expression> ";"
 
 <scope_statement> ::= "{" <statement>* "}"
 
