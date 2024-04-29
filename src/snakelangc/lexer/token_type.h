@@ -27,6 +27,7 @@ namespace lexer {
         plus,
         minus,
         asterisk,
+        percent,
         slash,
         colon,
         semicolon,
@@ -38,6 +39,7 @@ namespace lexer {
         minus_assign,
         multiply_assign,
         divide_assign,
+        modulus_assign,
 
         equals,
         less_than,

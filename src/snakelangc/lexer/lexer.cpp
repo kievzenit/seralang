@@ -46,6 +46,7 @@ bool lexer::lexer::is_current_char_punctuation() {
         || current_character_ == '-'
         || current_character_ == '*'
         || current_character_ == '/'
+        || current_character_ == '%'
         || current_character_ == ':'
         || current_character_ == ';'
         || current_character_ == '.'
@@ -189,6 +190,7 @@ lexer::token lexer::lexer::process_punctuation() {
         case '-':
         case '*':
         case '/':
+        case '%':
         case '>':
         case '<':
         case '=':
@@ -232,6 +234,15 @@ lexer::token lexer::lexer::process_punctuation() {
                 return {
                         token_type::slash,
                         "/",
+                        file_name_,
+                        line_,
+                        column_,
+                        column_
+                };
+            case '%':
+                return {
+                        token_type::percent,
+                        "%",
                         file_name_,
                         line_,
                         column_,
@@ -305,6 +316,15 @@ lexer::token lexer::lexer::process_punctuation() {
                     line_,
                     column_started,
                     column_
+            };
+        case '%':
+            return {
+                token_type::modulus_assign,
+                "%=",
+                file_name_,
+                line_,
+                column_started,
+                column_
             };
         case '>':
             return {
