@@ -33,6 +33,7 @@ namespace parser {
                 {ast::binary_operation::minus, 10},
                 {ast::binary_operation::multiply, 20},
                 {ast::binary_operation::divide, 20},
+                {ast::binary_operation::modulus, 20},
         };
 
         bool has_tokens() const;

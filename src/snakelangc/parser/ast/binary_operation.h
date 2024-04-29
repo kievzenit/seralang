@@ -7,7 +7,8 @@ namespace parser::ast {
         plus,
         minus,
         multiply,
-        divide
+        divide,
+        modulus
     };
 
 }

@@ -63,6 +63,7 @@ parser::ast::binary_operation parser::parser::current_token_type_to_binary_opera
         case lexer::token_type::minus: return ast::binary_operation::minus;
         case lexer::token_type::asterisk: return ast::binary_operation::multiply;
         case lexer::token_type::slash: return ast::binary_operation::divide;
+        case lexer::token_type::percent: return ast::binary_operation::modulus;
         default: return (ast::binary_operation)-1;
     }
 }
