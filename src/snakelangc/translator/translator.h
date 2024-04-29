@@ -16,6 +16,7 @@
 #include "../emitter/ir/call_expr_ir.h"
 #include "../emitter/ir/call_stmt_ir.h"
 #include "../emitter/ir/identifier_expr_ir.h"
+#include "../emitter/ir/argument_expr_ir.h"
 #include "../emitter/ir/cast_expr_ir.h"
 #include "../emitter/ir/upcast_expr_ir.h"
 #include "../emitter/ir/downcast_expr_ir.h"
@@ -43,6 +44,7 @@ namespace translator {
 
         llvm::BasicBlock* current_allocation_block_ = nullptr;
         llvm::BasicBlock* current_block_ = nullptr;
+        llvm::Function* current_function_ = nullptr;
 
         emitter::ir::scope_stmt_ir* current_scope_ = nullptr;
         std::map<std::string, llvm::Value*> local_variables_;
@@ -71,6 +73,7 @@ namespace translator {
         llvm::Value* translate_binary_expr(emitter::ir::binary_expr_ir* binary_expr);
         llvm::Value* translate_call_expr(emitter::ir::call_expr_ir* call_expr);
         llvm::Value* translate_identifier_expr(emitter::ir::identifier_expr_ir* identifier_expr);
+        llvm::Value* translate_argument_expr(emitter::ir::argument_exp_ir* argument_expr);
         llvm::Value* translate_cast_expr(emitter::ir::cast_expr_ir* cast_expr);
         llvm::Value* translate_upcast_expr(emitter::ir::upcast_expr_ir* upcast_expr);
         llvm::Value* translate_downcast_expr(emitter::ir::downcast_expr_ir* downcast_expr);

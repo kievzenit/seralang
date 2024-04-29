@@ -37,7 +37,16 @@ void translator::translator::declare_functions() {
     using namespace llvm;
 
     for (auto &func_decl : package_ir_->func_declarations) {
-        auto func_type = FunctionType::get(types_[func_decl->return_type->name], false);
+        std::vector<Type*> params;
+        for (const auto& param : func_decl->params) {
+            params.push_back(types_[param.param_type->name]);
+        }
+
+        auto func_type = FunctionType::get(
+                types_[func_decl->return_type->name],
+                ArrayRef<Type*>(params),
+                false);
+
         Function::Create(
                 func_type,
                 GlobalValue::LinkageTypes::ExternalLinkage,
@@ -214,6 +223,7 @@ llvm::Function* translator::translator::translate_function(std::unique_ptr<emitt
 
     auto func = module_->getFunction(func_decl_ir->name);
 
+    current_function_ = func;
     current_allocation_block_ = BasicBlock::Create(*context_, "allocation", func);
 
     auto entry_block = BasicBlock::Create(*context_, "entry", func);
@@ -222,6 +232,7 @@ llvm::Function* translator::translator::translate_function(std::unique_ptr<emitt
     translate_scope_stmt(func_decl_ir->root_scope_stmt.get());
 
     local_variables_.clear();
+    current_function_ = nullptr;
 
     builder_->SetInsertPoint(current_allocation_block_);
     builder_->CreateBr(entry_block);
@@ -345,7 +356,6 @@ llvm::Value *translator::translator::translate_binary_expr(emitter::ir::binary_e
 
     auto left = translate_expr(left_expr);
     auto right = translate_expr(right_expr);
-    right = builder_->CreateSExt(right, types_["int32"], "casted");
 
     switch (binary_expr->operation_type) {
         case emitter::ir::addition:
@@ -366,11 +376,22 @@ llvm::Value *translator::translator::translate_call_expr(emitter::ir::call_expr_
     using namespace llvm;
 
     auto func = module_->getFunction(call_expr->function_name);
-    auto result = builder_->CreateCall(FunctionCallee(func->getFunctionType(), func));
-    return result;
+
+    std::vector<Value*> arguments_exprs;
+    for (auto& argument : call_expr->arguments) {
+        arguments_exprs.push_back(translate_expr(argument.get()));
+    }
+
+    return builder_->CreateCall(
+            FunctionCallee(func->getFunctionType(), func),
+            ArrayRef<Value*>(arguments_exprs));
 }
 
 llvm::Value *translator::translator::translate_identifier_expr(emitter::ir::identifier_expr_ir *identifier_expr) {
+    if (dynamic_cast<emitter::ir::argument_exp_ir*>(identifier_expr) != nullptr) {
+        return translate_argument_expr(dynamic_cast<emitter::ir::argument_exp_ir*>(identifier_expr));
+    }
+
     auto type = types_[identifier_expr->expr_type->name];
 
     if (identifier_expr->is_global) {
@@ -380,6 +401,10 @@ llvm::Value *translator::translator::translate_identifier_expr(emitter::ir::iden
     }
 
     return builder_->CreateLoad(type, local_variables_[identifier_expr->name]);
+}
+
+llvm::Value *translator::translator::translate_argument_expr(emitter::ir::argument_exp_ir *argument_expr) {
+    return current_function_->getArg(argument_expr->position);
 }
 
 llvm::Value *translator::translator::translate_cast_expr(emitter::ir::cast_expr_ir *cast_expr) {
