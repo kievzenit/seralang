@@ -26,6 +26,7 @@
     | "-="
     | "*="
     | "/="
+    | "%="
 <let_statement> ::= "static"? "let" <identifier> <type_denotation>? "=" <expression> ";"
 
 <identifier_assignment_statement> ::= <identifier> <assignment> <expression> ";"
@@ -41,7 +42,6 @@
     | "*"
     | "/"
     | "%"
-    | "//"
 
 <binary_expression> ::= <expression> <arithmetic_operator> <expression>
 
