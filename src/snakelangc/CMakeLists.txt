@@ -34,6 +34,8 @@ set(SOURCE_FILES main.cpp
         emitter/ir/package_ir.h
         emitter/ir/variable_ir.h
         emitter/ir/type.h
+        emitter/ir/func_param_ir.h
+        emitter/ir/func_type.h
         emitter/ir/expr_ir.h
         emitter/ir/integer_expr_ir.h
         emitter/ir/boolean_expr_ir.h
@@ -47,6 +49,7 @@ set(SOURCE_FILES main.cpp
         emitter/emitter.h
         emitter/ir/call_expr_ir.h
         emitter/ir/identifier_expr_ir.h
+        emitter/ir/argument_expr_ir.h
         emitter/ir/call_stmt_ir.h
         emitter/ir/type.cpp
         emitter/ir/cast_expr_ir.h
