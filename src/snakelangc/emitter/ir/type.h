@@ -15,7 +15,7 @@ namespace emitter::ir {
         int size;
         bool is_unsigned;
 
-        [[nodiscard]] bool can_be_explicitly_casted_to(type* other) const;
+        [[nodiscard]] bool can_be_implicitly_casted_to(type* other) const;
 
         static type* boolean();
         static type* int1();

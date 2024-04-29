@@ -1,6 +1,6 @@
 #include "type.h"
 
-bool emitter::ir::type::can_be_explicitly_casted_to(type* other) const {
+bool emitter::ir::type::can_be_implicitly_casted_to(type* other) const {
     if (this == int1()) {
         return other == int8()
                || other == uint16()
