@@ -67,6 +67,13 @@ parser::ast::binary_operation parser::parser::token_type_to_binary_operation(lex
         case lexer::token_type::asterisk: return ast::binary_operation::multiply;
         case lexer::token_type::slash: return ast::binary_operation::divide;
         case lexer::token_type::percent: return ast::binary_operation::modulus;
+        case lexer::token_type::plus_assign: return ast::binary_operation::plus;
+        // TODO: rethink this
+        case lexer::token_type::minus_assign: return ast::binary_operation::minus;
+        case lexer::token_type::multiply_assign: return ast::binary_operation::multiply;
+        case lexer::token_type::divide_assign: return ast::binary_operation::divide;
+        case lexer::token_type::modulus_assign: return ast::binary_operation::modulus;
+        // ---------
         default: return (ast::binary_operation)-1;
     }
 }
@@ -190,6 +197,7 @@ std::unique_ptr<parser::ast::stmt> parser::parser::parse_stmt() {
             }
 
             putback_tokens_.push(current_token_);
+            putback_tokens_.push(priv_token);
             return parse_assignment_stmt();
         default:
             utils::log_error("Unexpected statement got, exiting with error.");
@@ -252,6 +260,9 @@ std::unique_ptr<parser::ast::assignment_stmt> parser::parser::parse_assignment_s
     }
 
     auto expr = parse_expr();
+
+    eat();
+    expect(lexer::token_type::semicolon);
 
     if (assign_token_type != lexer::token_type::assign) {
         expr = std::make_unique<ast::binary_expr>(
