@@ -7,7 +7,8 @@ namespace emitter::ir {
         addition,
         subtraction,
         multiplication,
-        division
+        division,
+        modulus
     };
 
 }
