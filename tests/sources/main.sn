@@ -14,6 +14,8 @@ func foobar(i1: int16, i2: int8) int {
 func main() int {
     foo();
     let a = bar() - foo() % 4 + foobar(2:int16, 3:int8);
+    b_glb = 0xf:int1;
+    a += foobar(a_glb, b_glb + 0xa:int8);
     foo();
     return a;
 }
