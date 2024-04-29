@@ -18,7 +18,7 @@
 <func_return> ::= <basic_type>
 <func_decl> ::= "func" <identifier> <func_params> <func_return>
 
-<func_prototype_decl_statement> ::= "extern"? <func_decl> ";"
+<func_prototype_decl_statement> ::= "extern" <func_decl> ";"
 <func_decl_statement> ::= <func_decl> <scope_statement>
 
 <assignment> ::= "="
@@ -26,7 +26,7 @@
     | "-="
     | "*="
     | "/="
-<let_statement> ::= "let" <identifier> <type_denotation>? "=" <expression> ";"
+<let_statement> ::= "static"? "let" <identifier> <type_denotation>? "=" <expression> ";"
 
 <identifier_assignment_statement> ::= <identifier> <assignment> <expression> ";"
 
