@@ -2,6 +2,7 @@
 #define SNAKELANG_PARSER_H
 
 #include <string>
+#include <memory>
 #include <utility>
 #include <stack>
 #include "../lexer/lexer.h"
@@ -15,6 +16,7 @@
 #include "ast/return_stmt.h"
 #include "ast/call_stmt.h"
 #include "ast/identifier_expr.h"
+#include "ast/assignment_stmt.h"
 
 namespace parser {
 
@@ -44,6 +46,7 @@ namespace parser {
 
         int get_current_token_precedence();
         ast::binary_operation current_token_type_to_binary_operation();
+        ast::binary_operation token_type_to_binary_operation(lexer::token_type token_type);
 
         std::unique_ptr<ast::package_stmt> parse_package_stmt();
         std::unique_ptr<ast::top_stmt> parse_top_stmt();
@@ -53,6 +56,7 @@ namespace parser {
         std::unique_ptr<ast::stmt> parse_stmt();
         std::unique_ptr<ast::scope_stmt> parse_scope_stmt();
         std::unique_ptr<ast::let_stmt> parse_let_stmt(bool is_static);
+        std::unique_ptr<ast::assignment_stmt> parse_assignment_stmt();
         std::unique_ptr<ast::call_stmt> parse_call_stmt();
         std::unique_ptr<ast::return_stmt> parse_return_stmt();
 

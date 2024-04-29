@@ -1,4 +1,3 @@
-#include <memory>
 #include "parser.h"
 
 std::unique_ptr<parser::ast::translation_ast> parser::parser::parse() {
@@ -58,7 +57,11 @@ int parser::parser::get_current_token_precedence() {
 }
 
 parser::ast::binary_operation parser::parser::current_token_type_to_binary_operation() {
-    switch (current_token_.type) {
+    return token_type_to_binary_operation(current_token_.type);
+}
+
+parser::ast::binary_operation parser::parser::token_type_to_binary_operation(lexer::token_type token_type) {
+    switch (token_type) {
         case lexer::token_type::plus: return ast::binary_operation::plus;
         case lexer::token_type::minus: return ast::binary_operation::minus;
         case lexer::token_type::asterisk: return ast::binary_operation::multiply;
@@ -185,6 +188,9 @@ std::unique_ptr<parser::ast::stmt> parser::parser::parse_stmt() {
                 putback_tokens_.push(priv_token);
                 return parse_call_stmt();
             }
+
+            putback_tokens_.push(current_token_);
+            return parse_assignment_stmt();
         default:
             utils::log_error("Unexpected statement got, exiting with error.");
             __builtin_unreachable();
@@ -223,6 +229,38 @@ std::unique_ptr<parser::ast::let_stmt> parser::parser::parse_let_stmt(bool is_st
     expect(lexer::token_type::semicolon);
 
     return std::make_unique<ast::let_stmt>(identifier_name, std::move(expression), is_static);
+}
+
+std::unique_ptr<parser::ast::assignment_stmt> parser::parser::parse_assignment_stmt() {
+    eat();
+    expect(lexer::token_type::identifier);
+    auto identifier_name = current_token_.value;
+
+    eat();
+    auto assign_token_type = current_token_.type;
+    switch (current_token_.type) {
+        case lexer::token_type::assign:
+        case lexer::token_type::plus_assign:
+        case lexer::token_type::minus_assign:
+        case lexer::token_type::multiply_assign:
+        case lexer::token_type::divide_assign:
+        case lexer::token_type::modulus_assign:
+            break;
+        default:
+            unexpected_token_error();
+            __builtin_unreachable();
+    }
+
+    auto expr = parse_expr();
+
+    if (assign_token_type != lexer::token_type::assign) {
+        expr = std::make_unique<ast::binary_expr>(
+                std::make_unique<ast::identifier_expr>(identifier_name),
+                        std::move(expr),
+                        token_type_to_binary_operation(assign_token_type));
+    }
+
+    return std::make_unique<ast::assignment_stmt>(identifier_name, std::move(expr));
 }
 
 std::unique_ptr<parser::ast::call_stmt> parser::parser::parse_call_stmt() {
