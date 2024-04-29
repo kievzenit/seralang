@@ -155,6 +155,10 @@ std::unique_ptr<emitter::ir::stmt_ir> emitter::emitter::emit_for_stmt(std::uniqu
         return emit_for_let_stmt(dynamic_cast<parser::ast::let_stmt*>(stmt.get()));
     }
 
+    if (dynamic_cast<parser::ast::assignment_stmt*>(stmt.get()) != nullptr) {
+        return emit_for_assignment_stmt(dynamic_cast<parser::ast::assignment_stmt*>(stmt.get()));
+    }
+
     if (dynamic_cast<parser::ast::call_stmt*>(stmt.get()) != nullptr) {
         return emit_for_call_stmt(dynamic_cast<parser::ast::call_stmt*>(stmt.get()));
     }
@@ -207,6 +211,32 @@ std::unique_ptr<emitter::ir::variable_ir> emitter::emitter::emit_for_let_stmt(pa
             std::move(expr_ir),
             expr_ir->expr_type,
             false);
+}
+
+std::unique_ptr<emitter::ir::assignment_stmt_ir>
+emitter::emitter::emit_for_assignment_stmt(parser::ast::assignment_stmt *assignment_stmt) {
+    if (current_scope_->is_var_exists(assignment_stmt->name)) {
+        auto identifier_type = current_scope_->variables[assignment_stmt->name];
+        auto assignment_expr = emit_for_expr(std::move(assignment_stmt->assignment_expr));
+
+        return std::make_unique<ir::assignment_stmt_ir>(
+                assignment_stmt->name,
+                false,
+                emit_for_cast(std::move(assignment_expr), identifier_type));
+    }
+
+    if (declared_global_variables_.contains(assignment_stmt->name)) {
+        auto global_var_type = global_variables_types_[assignment_stmt->name];
+        auto assignment_expr = emit_for_expr(std::move(assignment_stmt->assignment_expr));
+
+        return std::make_unique<ir::assignment_stmt_ir>(
+                assignment_stmt->name,
+                true,
+                emit_for_cast(std::move(assignment_expr), global_var_type));
+    }
+
+    utils::log_error(std::format("Undefined identifier: {}.", assignment_stmt->name));
+    __builtin_unreachable();
 }
 
 std::unique_ptr<emitter::ir::call_stmt_ir> emitter::emitter::emit_for_call_stmt(parser::ast::call_stmt *call_stmt) {

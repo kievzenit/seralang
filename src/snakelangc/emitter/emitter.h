@@ -30,6 +30,8 @@
 #include "ir/upcast_expr_ir.h"
 #include "ir/downcast_expr_ir.h"
 #include "../parser/ast/call_stmt.h"
+#include "../parser/ast/assignment_stmt.h"
+#include "ir/assignment_stmt_ir.h"
 
 namespace emitter {
 
@@ -81,6 +83,7 @@ namespace emitter {
         std::unique_ptr<ir::stmt_ir> emit_for_stmt(std::unique_ptr<parser::ast::stmt> stmt);
         std::unique_ptr<ir::scope_stmt_ir> emit_for_scope_stmt(parser::ast::scope_stmt* scope_stmt);
         std::unique_ptr<ir::variable_ir> emit_for_let_stmt(parser::ast::let_stmt* let_stmt);
+        std::unique_ptr<ir::assignment_stmt_ir> emit_for_assignment_stmt(parser::ast::assignment_stmt* assignment_stmt);
         std::unique_ptr<ir::call_stmt_ir> emit_for_call_stmt(parser::ast::call_stmt* call_stmt);
         std::unique_ptr<ir::return_ir> emit_for_return_stmt(parser::ast::return_stmt* return_stmt);
 
