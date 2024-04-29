@@ -7,11 +7,13 @@ namespace emitter::ir {
 
     class call_expr_ir : public expr_ir {
     public:
-        call_expr_ir(std::string function_name, type* return_type) :
+        call_expr_ir(std::string function_name, std::vector<std::unique_ptr<expr_ir>> arguments, type* return_type) :
             expr_ir(return_type, false),
-            function_name(std::move(function_name)) {}
+            function_name(std::move(function_name)),
+            arguments(std::move(arguments)) {}
 
         std::string function_name;
+        std::vector<std::unique_ptr<expr_ir>> arguments;
     };
 
 }
