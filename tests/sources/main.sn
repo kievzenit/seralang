@@ -2,11 +2,6 @@ package test_package;
 
 static let a_glb = 0x000f:int16;
 static let b_glb = 0b1:int8;
-static let d = init_d();
-
-func init_d() int {
-    return d;
-}
 
 func bar() int32 {
     return a_glb * 100 - b_glb * 20 * foo(); // 1400
