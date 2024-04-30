@@ -3,7 +3,7 @@
 
 #include <utility>
 
-#include "ast_node.h"
+#include "../ast_node.h"
 
 namespace parser::ast {
 

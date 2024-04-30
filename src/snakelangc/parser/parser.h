@@ -7,16 +7,16 @@
 #include <stack>
 #include "../lexer/lexer.h"
 #include "ast/translation_ast.h"
-#include "ast/let_stmt.h"
-#include "ast/integer_expr.h"
-#include "ast/boolean_expr.h"
-#include "ast/binary_expr.h"
-#include "ast/binary_operation.h"
-#include "ast/func_decl_stmt.h"
-#include "ast/return_stmt.h"
-#include "ast/call_stmt.h"
-#include "ast/identifier_expr.h"
-#include "ast/assignment_stmt.h"
+#include "ast/stmts/let_stmt.h"
+#include "ast/exprs/integer_expr.h"
+#include "ast/exprs/boolean_expr.h"
+#include "ast/exprs/binary_expr.h"
+#include "ast/common/binary_operation.h"
+#include "ast/stmts/func_decl_stmt.h"
+#include "ast/stmts/return_stmt.h"
+#include "ast/stmts/call_stmt.h"
+#include "ast/exprs/identifier_expr.h"
+#include "ast/stmts/assignment_stmt.h"
 
 namespace parser {
 

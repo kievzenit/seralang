@@ -2,7 +2,7 @@
 #define SNAKELANG_LET_STMT_H
 
 #include <string>
-#include "expr.h"
+#include "../exprs/expr.h"
 #include "stmt.h"
 
 namespace parser::ast {

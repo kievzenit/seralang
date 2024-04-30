@@ -1,7 +1,7 @@
 #ifndef SNAKELANG_INTEGER_EXPR_IR_H
 #define SNAKELANG_INTEGER_EXPR_IR_H
 
-#include "../../../parser/ast/integer_expr.h"
+#include "../../../parser/ast/exprs/integer_expr.h"
 #include "../types/type.h"
 #include "expr_ir.h"
 

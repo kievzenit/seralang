@@ -2,7 +2,7 @@
 #define SNAKELANG_PACKAGE_STMT_H
 
 #include <string>
-#include "ast_node.h"
+#include "../ast_node.h"
 
 namespace parser::ast {
 

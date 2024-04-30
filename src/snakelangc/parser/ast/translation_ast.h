@@ -5,8 +5,8 @@
 #include <memory>
 #include <vector>
 #include "ast_node.h"
-#include "package_stmt.h"
-#include "top_stmt.h"
+#include "stmts/package_stmt.h"
+#include "stmts/top_stmt.h"
 
 namespace parser::ast {
 

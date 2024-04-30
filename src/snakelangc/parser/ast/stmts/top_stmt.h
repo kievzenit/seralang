@@ -1,7 +1,7 @@
 #ifndef SNAKELANG_TOP_STMT_H
 #define SNAKELANG_TOP_STMT_H
 
-#include "ast_node.h"
+#include "../ast_node.h"
 
 namespace parser::ast {
 

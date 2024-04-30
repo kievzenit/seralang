@@ -14,24 +14,24 @@ set(SOURCE_FILES main.cpp
         parser/parser.h
         parser/ast/ast_node.h
         parser/ast/translation_ast.h
-        parser/ast/package_stmt.h
-        parser/ast/top_stmt.h
-        parser/ast/let_stmt.h
-        parser/ast/expr.h
-        parser/ast/integer_expr.h
-        parser/ast/boolean_expr.h
-        parser/ast/identifier_expr.h
-        parser/ast/binary_operation.h
-        parser/ast/binary_expr.h
-        parser/ast/func_decl_stmt.h
-        parser/ast/stmt.h
-        parser/ast/scope_stmt.h
-        parser/ast/return_stmt.h
-        parser/ast/identifier_expr.h
-        parser/ast/call_expr.h
-        parser/ast/call_stmt.h
-        parser/ast/func_param.h
-        parser/ast/assignment_stmt.h
+        parser/ast/stmts/package_stmt.h
+        parser/ast/stmts/top_stmt.h
+        parser/ast/stmts/let_stmt.h
+        parser/ast/exprs/expr.h
+        parser/ast/exprs/integer_expr.h
+        parser/ast/exprs/boolean_expr.h
+        parser/ast/exprs/identifier_expr.h
+        parser/ast/common/binary_operation.h
+        parser/ast/exprs/binary_expr.h
+        parser/ast/stmts/func_decl_stmt.h
+        parser/ast/stmts/stmt.h
+        parser/ast/stmts/scope_stmt.h
+        parser/ast/stmts/return_stmt.h
+        parser/ast/exprs/identifier_expr.h
+        parser/ast/exprs/call_expr.h
+        parser/ast/stmts/call_stmt.h
+        parser/ast/common/func_param.h
+        parser/ast/stmts/assignment_stmt.h
         emitter/ir/package_ir.h
         emitter/variable_ir.h
         emitter/ir/stmts/assignment_stmt_ir.h

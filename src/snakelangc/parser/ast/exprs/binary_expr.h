@@ -3,7 +3,7 @@
 
 #include <memory>
 #include "expr.h"
-#include "binary_operation.h"
+#include "../common/binary_operation.h"
 
 namespace parser::ast {
 

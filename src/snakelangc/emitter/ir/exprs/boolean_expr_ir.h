@@ -2,7 +2,7 @@
 #define SNAKELANG_BOOLEAN_EXPR_IR_H
 
 #include "expr_ir.h"
-#include "../../../parser/ast/boolean_expr.h"
+#include "../../../parser/ast/exprs/boolean_expr.h"
 
 namespace emitter::ir {
 

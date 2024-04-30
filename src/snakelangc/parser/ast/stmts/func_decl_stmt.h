@@ -6,7 +6,7 @@
 #include <utility>
 #include "top_stmt.h"
 #include "scope_stmt.h"
-#include "func_param.h"
+#include "../common/func_param.h"
 
 namespace parser::ast {
 
