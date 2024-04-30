@@ -59,6 +59,10 @@ void emitter::emitter::emit_for_let_stmt(parser::ast::let_stmt *let_stmt) {
                         let_stmt->name));
     }
 
+    if (let_stmt->is_static && !let_stmt->expression->is_const) {
+        utils::log_error("Static variables could only be instantiated with const expressions.");
+    }
+
     auto expr_ir = emit_for_expr(std::move(let_stmt->expression));
 
     if (let_stmt->is_static) {

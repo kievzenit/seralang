@@ -12,6 +12,10 @@ void emitter::emitter::emit_all_global_variables() {
             utils::log_error("Top let statement must be static.");
         }
 
+        if (!let_stmt->expression->is_const) {
+            utils::log_error("Static global variables can only be instantiated with const expressions.");
+        }
+
         auto expr_ir = emit_for_expr(std::move(let_stmt->expression));
         global_variables_types_[let_stmt->name] = expr_ir->expr_type;
         auto variable_ir = std::make_unique<ir::variable_ir>(
