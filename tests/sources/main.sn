@@ -4,7 +4,7 @@ static let a_glb = 0x000f:int16;
 static let b_glb = 0b1:int8;
 
 func bar() int32 {
-    return a_glb * 100 - b_glb * 20 * foo();
+    return a_glb * 100 - b_glb * 20 * foo(); // 1400
 }
 
 func foobar(i1: int16, i2: int8) int {
@@ -12,15 +12,16 @@ func foobar(i1: int16, i2: int8) int {
 }
 
 func main() int {
-    foo();
-    let a = bar() - foo() % 4 + foobar(2:int16, 3:int8);
+    foo(); // foo::s = 3
+    let a = bar() + foobar(2:int16, 3:int8); // 1406
     b_glb = 0xf:int1;
-    a += foobar(a_glb, b_glb + 0xa:int8);
-    foo();
-    return a;
+    a += foobar(a_glb, b_glb + 0xa:int8); // 1541 = 605
+    return a; // 05 = 5
 }
 
 func foo() int16 {
-    let result = 12:int16 / 4:int8 + b_glb;
-    return result;
+    static let s = 4:int8;
+    let result = 12:int16 / s + b_glb;
+    s -= 1:int8;
+    return result; // first = 4, second = 5
 }
