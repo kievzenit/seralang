@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <format>
+#include <stack>
 #include "token.h"
 #include "../utils/log_error.h"
 
@@ -37,6 +38,7 @@ namespace lexer {
         int line_ = 1;
         int column_ = 0;
 
+        std::stack<char> putback_characters_;
         char current_character_ = 0;
 
         void eat_current_char();
@@ -54,6 +56,7 @@ namespace lexer {
         bool is_current_char_letter();
 
         void process_skippable();
+        void process_comment();
         token process_punctuation();
         token process_number();
         std::string process_complex_number();

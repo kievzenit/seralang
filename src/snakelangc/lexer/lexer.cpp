@@ -3,29 +3,57 @@
 lexer::token lexer::lexer::get_next_token() {
     while (can_read()) {
         eat_current_char();
+
         if (is_current_char_skippable()) {
             process_skippable();
             continue;
         }
-        if (is_current_char_punctuation()) return process_punctuation();
-        if (is_current_char_decimal_digit()) return process_number();
-        if (is_current_char_letter() || current_character_ == '_') return process_identifier();
+
+        if (current_character_ == '/') {
+            process_comment();
+            eat_current_char();
+        }
+
+        if (is_current_char_punctuation()) {
+            return process_punctuation();
+        }
+
+        if (is_current_char_decimal_digit()) {
+            return process_number();
+        }
+
+        if (is_current_char_letter() || current_character_ == '_') {
+            return process_identifier();
+        }
     }
 
     return {token_type::eof, "eof", file_name_, ++line_, 0, 0};
 }
 
 void lexer::lexer::eat_current_char() {
-    current_character_ = file_.get();
     column_++;
+
+    if (putback_characters_.empty()) {
+        current_character_ = file_.get();
+        return;
+    }
+
+    current_character_ = putback_characters_.top();
+    putback_characters_.pop();
 }
 
 void lexer::lexer::read_current_char() {
-    current_character_ = file_.peek();
+    if (putback_characters_.empty()) {
+        current_character_ = file_.peek();
+        return;
+    }
+
+    current_character_ = putback_characters_.top();
+    putback_characters_.pop();
 }
 
 bool lexer::lexer::can_read() {
-    return file_.good() && !file_.eof();
+    return (file_.good() && !file_.eof()) || !putback_characters_.empty();
 }
 
 bool lexer::lexer::is_current_char_skippable() {
@@ -88,6 +116,44 @@ void lexer::lexer::process_skippable() {
     if (current_character_ == '\n') {
         line_++;
         column_ = 0;
+    }
+}
+
+void lexer::lexer::process_comment() {
+    auto priv_char = current_character_;
+    read_current_char();
+    if (current_character_ != '/' && current_character_ != '*') {
+        putback_characters_.push(current_character_);
+        putback_characters_.push(priv_char);
+        column_ -= 2;
+        return;
+    }
+
+    if (current_character_ == '/') {
+        while (can_read()) {
+            eat_current_char();
+            if (current_character_ == '\n') {
+                line_++;
+                column_ = 0;
+                return;
+            }
+        }
+    }
+
+    while (can_read()) {
+        eat_current_char();
+        if (current_character_ == '\n') {
+            line_++;
+            column_ = 0;
+            continue;
+        }
+
+        if (current_character_ == '*') {
+            eat_current_char();
+            if (current_character_ == '/') {
+                return;
+            }
+        }
     }
 }
 
