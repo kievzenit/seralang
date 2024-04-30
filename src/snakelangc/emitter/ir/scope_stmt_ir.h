@@ -12,12 +12,17 @@ namespace emitter::ir {
         explicit scope_stmt_ir(scope_stmt_ir* parent_scope) : parent_scope(parent_scope) {}
 
         std::vector<std::unique_ptr<stmt_ir>> inner_stmts;
+
         scope_stmt_ir *parent_scope;
-        std::map<std::string, type *> variables;
+
+        std::map<std::string, type *> variables_types;
+        std::map<std::string, type*> static_variables_types;
+
+        std::vector<ir::variable_ir> static_variables;
 
         type* get_type_for_variable(const std::string& name) {
-            if (variables.contains(name)) {
-                return variables[name];
+            if (variables_types.contains(name)) {
+                return variables_types[name];
             }
 
             if (parent_scope == nullptr) {
@@ -28,7 +33,7 @@ namespace emitter::ir {
         }
 
         [[nodiscard]] bool is_var_exists(const std::string& name) const {
-            if (variables.contains(name)) {
+            if (variables_types.contains(name)) {
                 return true;
             }
 
