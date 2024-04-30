@@ -3,9 +3,9 @@
 
 #include <string>
 #include <utility>
-#include "ir/types/type.h"
-#include "ir/exprs/expr_ir.h"
-#include "ir/stmts/stmt_ir.h"
+#include "types/type.h"
+#include "exprs/expr_ir.h"
+#include "stmts/stmt_ir.h"
 
 namespace emitter::ir {
 

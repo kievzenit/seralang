@@ -3,7 +3,7 @@
 
 #include <utility>
 #include <vector>
-#include "../variable_ir.h"
+#include "variable_ir.h"
 #include "func_decl_ir.h"
 
 namespace emitter::ir {

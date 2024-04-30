@@ -33,7 +33,7 @@ set(SOURCE_FILES main.cpp
         parser/ast/common/func_param.h
         parser/ast/stmts/assignment_stmt.h
         emitter/ir/package_ir.h
-        emitter/variable_ir.h
+        emitter/ir/variable_ir.h
         emitter/ir/stmts/assignment_stmt_ir.h
         emitter/ir/types/type.h
         emitter/ir/types/func_param_ir.h

@@ -19,7 +19,7 @@
 #include "ir/types/func_type.h"
 #include "ir/stmts/call_stmt_ir.h"
 #include "ir/exprs/binary_expr_ir.h"
-#include "variable_ir.h"
+#include "ir/variable_ir.h"
 #include "ir/stmts/return_stmt_ir.h"
 #include "ir/exprs/identifier_expr_ir.h"
 #include "ir/exprs/argument_expr_ir.h"
