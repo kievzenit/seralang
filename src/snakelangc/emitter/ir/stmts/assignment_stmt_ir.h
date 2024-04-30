@@ -5,7 +5,7 @@
 #include <memory>
 #include <utility>
 #include "stmt_ir.h"
-#include "expr_ir.h"
+#include "../exprs/expr_ir.h"
 
 namespace emitter::ir {
 

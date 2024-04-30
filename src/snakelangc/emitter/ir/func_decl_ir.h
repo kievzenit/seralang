@@ -4,9 +4,9 @@
 #include <string>
 #include <memory>
 #include <utility>
-#include "type.h"
-#include "scope_stmt_ir.h"
-#include "func_param_ir.h"
+#include "types/type.h"
+#include "stmts/scope_stmt_ir.h"
+#include "types/func_param_ir.h"
 
 namespace emitter::ir {
 

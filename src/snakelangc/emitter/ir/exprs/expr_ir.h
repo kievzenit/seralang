@@ -3,9 +3,9 @@
 
 #include <memory>
 #include <utility>
-#include "../../parser/ast/expr.h"
-#include "../../parser/ast/integer_expr.h"
-#include "type.h"
+#include "../../../parser/ast/expr.h"
+#include "../../../parser/ast/integer_expr.h"
+#include "../types/type.h"
 
 namespace emitter::ir {
 

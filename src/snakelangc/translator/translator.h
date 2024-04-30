@@ -7,20 +7,20 @@
 #include <map>
 
 #include "../emitter/ir/package_ir.h"
-#include "../emitter/ir/integer_expr_ir.h"
-#include "../emitter/ir/boolean_expr_ir.h"
-#include "../emitter/ir/binary_expr_ir.h"
+#include "../emitter/ir/exprs/integer_expr_ir.h"
+#include "../emitter/ir/exprs/boolean_expr_ir.h"
+#include "../emitter/ir/exprs/binary_expr_ir.h"
 
 #include "../utils/log_error.h"
-#include "../emitter/ir/return_ir.h"
-#include "../emitter/ir/call_expr_ir.h"
-#include "../emitter/ir/call_stmt_ir.h"
-#include "../emitter/ir/identifier_expr_ir.h"
-#include "../emitter/ir/argument_expr_ir.h"
-#include "../emitter/ir/cast_expr_ir.h"
-#include "../emitter/ir/upcast_expr_ir.h"
-#include "../emitter/ir/downcast_expr_ir.h"
-#include "../emitter/ir/assignment_stmt_ir.h"
+#include "../emitter/ir/stmts/return_stmt_ir.h"
+#include "../emitter/ir/exprs/call_expr_ir.h"
+#include "../emitter/ir/stmts/call_stmt_ir.h"
+#include "../emitter/ir/exprs/identifier_expr_ir.h"
+#include "../emitter/ir/exprs/argument_expr_ir.h"
+#include "../emitter/ir/exprs/cast_expr_ir.h"
+#include "../emitter/ir/exprs/upcast_expr_ir.h"
+#include "../emitter/ir/exprs/downcast_expr_ir.h"
+#include "../emitter/ir/stmts/assignment_stmt_ir.h"
 
 namespace translator {
 
@@ -67,7 +67,7 @@ namespace translator {
         void translate_var_stmt(emitter::ir::variable_ir* variable_ir);
         void translate_assignment_stmt(emitter::ir::assignment_stmt_ir* assignment_stmt);
         void translate_call_stmt(emitter::ir::call_stmt_ir* call_stmt);
-        void translate_return_stmt(emitter::ir::return_ir* return_ir);
+        void translate_return_stmt(emitter::ir::return_stmt_ir* return_ir);
 
         llvm::Value* translate_expr(emitter::ir::expr_ir* expr);
         llvm::Constant* translate_int_expr(emitter::ir::integer_expr_ir* integer_expr);

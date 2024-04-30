@@ -33,36 +33,40 @@ set(SOURCE_FILES main.cpp
         parser/ast/func_param.h
         parser/ast/assignment_stmt.h
         emitter/ir/package_ir.h
-        emitter/ir/variable_ir.h
-        emitter/ir/assignment_stmt_ir.h
-        emitter/ir/type.h
-        emitter/ir/func_param_ir.h
-        emitter/ir/func_type.h
-        emitter/ir/expr_ir.h
-        emitter/ir/integer_expr_ir.h
-        emitter/ir/boolean_expr_ir.h
-        emitter/ir/binary_expr_ir.h
-        emitter/ir/binary_operation_type.h
+        emitter/variable_ir.h
+        emitter/ir/stmts/assignment_stmt_ir.h
+        emitter/ir/types/type.h
+        emitter/ir/types/func_param_ir.h
+        emitter/ir/types/func_type.h
+        emitter/ir/exprs/expr_ir.h
+        emitter/ir/exprs/integer_expr_ir.h
+        emitter/ir/exprs/boolean_expr_ir.h
+        emitter/ir/exprs/binary_expr_ir.h
+        emitter/ir/types/binary_operation_type.h
         emitter/ir/func_decl_ir.h
-        emitter/ir/return_ir.h
-        emitter/ir/stmt_ir.h
-        emitter/ir/scope_stmt_ir.h
+        emitter/ir/stmts/return_stmt_ir.h
+        emitter/ir/stmts/stmt_ir.h
+        emitter/ir/stmts/scope_stmt_ir.h
         emitter/emitter.cpp
         emitter/emitter.h
-        emitter/ir/call_expr_ir.h
-        emitter/ir/identifier_expr_ir.h
-        emitter/ir/argument_expr_ir.h
-        emitter/ir/call_stmt_ir.h
-        emitter/ir/type.cpp
-        emitter/ir/cast_expr_ir.h
-        emitter/ir/upcast_expr_ir.h
-        emitter/ir/downcast_expr_ir.h
+        emitter/ir/exprs/call_expr_ir.h
+        emitter/ir/exprs/identifier_expr_ir.h
+        emitter/ir/exprs/argument_expr_ir.h
+        emitter/ir/stmts/call_stmt_ir.h
+        emitter/ir/types/type.cpp
+        emitter/ir/exprs/cast_expr_ir.h
+        emitter/ir/exprs/upcast_expr_ir.h
+        emitter/ir/exprs/downcast_expr_ir.h
         translator/translator.cpp
         translator/translator.h
         compiler/compiler.cpp
         compiler/compiler.h
         compiler/compile_options.h
-        compiler/emit_type.h)
+        compiler/emit_type.h
+        emitter/emitter.exprs.cpp
+        emitter/emitter.stmts.cpp
+        emitter/emitter.globals.cpp
+        emitter/emitter.funcs.cpp)
 
 find_package(LLVM REQUIRED CONFIG)
 

@@ -2,8 +2,8 @@
 #define SNAKELANG_BINARY_EXPR_IR_H
 
 #include "expr_ir.h"
-#include "../../parser/ast/binary_expr.h"
-#include "binary_operation_type.h"
+#include "../../../parser/ast/binary_expr.h"
+#include "../types/binary_operation_type.h"
 
 namespace emitter::ir {
 

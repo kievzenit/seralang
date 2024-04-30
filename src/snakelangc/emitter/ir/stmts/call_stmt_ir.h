@@ -3,7 +3,7 @@
 
 #include <memory>
 #include "stmt_ir.h"
-#include "call_expr_ir.h"
+#include "../exprs/call_expr_ir.h"
 
 namespace emitter::ir {
 

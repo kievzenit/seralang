@@ -267,8 +267,8 @@ void translator::translator::translate_stmt(std::unique_ptr<emitter::ir::stmt_ir
         return;
     }
 
-    if (dynamic_cast<emitter::ir::return_ir*>(stmt_ir.get()) != nullptr) {
-        translate_return_stmt(dynamic_cast<emitter::ir::return_ir*>(stmt_ir.get()));
+    if (dynamic_cast<emitter::ir::return_stmt_ir*>(stmt_ir.get()) != nullptr) {
+        translate_return_stmt(dynamic_cast<emitter::ir::return_stmt_ir*>(stmt_ir.get()));
         return;
     }
 
@@ -323,7 +323,7 @@ void translator::translator::translate_call_stmt(emitter::ir::call_stmt_ir *call
     builder_->ClearInsertionPoint();
 }
 
-void translator::translator::translate_return_stmt(emitter::ir::return_ir* return_ir) {
+void translator::translator::translate_return_stmt(emitter::ir::return_stmt_ir* return_ir) {
     builder_->SetInsertPoint(current_block_);
 
     auto expr_result = translate_expr(return_ir->expr.get());
