@@ -45,6 +45,9 @@ namespace emitter {
     private:
         std::vector<std::unique_ptr<parser::ast::translation_ast>> translation_asts_;
 
+        std::vector<std::unique_ptr<ir::variable_ir>> global_variables_;
+        std::vector<std::unique_ptr<ir::func_decl_ir>> functions_;
+
         std::unordered_set<std::string> declared_functions_;
         std::unordered_set<std::string> declared_global_variables_;
 
@@ -74,18 +77,20 @@ namespace emitter {
         bool is_identifier_is_func_argument(const std::string& name);
         std::tuple<ir::type*, int> get_type_for_func_argument(const std::string& name);
 
-        std::vector<std::unique_ptr<ir::variable_ir>> emit_all_global_variables();
-        std::vector<std::unique_ptr<ir::func_decl_ir>> emit_all_func_declarations();
+        std::string generate_func_static_var_name(const std::string& var_name);
+
+        void emit_all_global_variables();
+        void emit_all_func_declarations();
         std::unique_ptr<ir::func_decl_ir> emit_for_func(parser::ast::func_decl_stmt* func_stmt);
         std::vector<ir::func_param_ir> emit_func_params(parser::ast::func_decl_stmt* func_stmt);
         ir::func_param_ir emit_for_func_param(const parser::ast::func_param& func_param);
 
-        std::unique_ptr<ir::stmt_ir> emit_for_stmt(std::unique_ptr<parser::ast::stmt> stmt);
+        void emit_for_stmt(std::unique_ptr<parser::ast::stmt> stmt);
         std::unique_ptr<ir::scope_stmt_ir> emit_for_scope_stmt(parser::ast::scope_stmt* scope_stmt);
-        std::unique_ptr<ir::variable_ir> emit_for_let_stmt(parser::ast::let_stmt* let_stmt);
-        std::unique_ptr<ir::assignment_stmt_ir> emit_for_assignment_stmt(parser::ast::assignment_stmt* assignment_stmt);
-        std::unique_ptr<ir::call_stmt_ir> emit_for_call_stmt(parser::ast::call_stmt* call_stmt);
-        std::unique_ptr<ir::return_ir> emit_for_return_stmt(parser::ast::return_stmt* return_stmt);
+        void emit_for_let_stmt(parser::ast::let_stmt* let_stmt);
+        void emit_for_assignment_stmt(parser::ast::assignment_stmt* assignment_stmt);
+        void emit_for_call_stmt(parser::ast::call_stmt* call_stmt);
+        void emit_for_return_stmt(parser::ast::return_stmt* return_stmt);
 
         std::unique_ptr<ir::expr_ir> emit_for_expr(std::unique_ptr<parser::ast::expr> expr);
 
