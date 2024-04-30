@@ -8,7 +8,7 @@ namespace parser::ast {
 
     class identifier_expr : public expr {
     public:
-        identifier_expr(std::string name) : name(std::move(name)) {}
+        identifier_expr(std::string name) : expr(false), name(std::move(name)) {}
 
         std::string name;
     };

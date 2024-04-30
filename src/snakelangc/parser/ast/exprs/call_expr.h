@@ -11,7 +11,7 @@ namespace parser::ast {
     class call_expr : public expr {
     public:
         call_expr(std::string name, std::vector<std::unique_ptr<expr>> arguments) :
-            name(std::move(name)), arguments(std::move(arguments)) {}
+            expr(false), name(std::move(name)), arguments(std::move(arguments)) {}
 
     public:
         std::string name;

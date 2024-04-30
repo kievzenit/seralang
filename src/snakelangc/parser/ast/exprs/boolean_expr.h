@@ -8,7 +8,7 @@ namespace parser::ast {
 
     class boolean_expr : public expr {
     public:
-        boolean_expr(bool value) : value(value) {}
+        boolean_expr(bool value) : expr(true), value(value) {}
 
         bool value;
     };

@@ -10,6 +10,7 @@ namespace parser::ast {
     class binary_expr : public expr {
     public:
         binary_expr(std::unique_ptr<expr> left, std::unique_ptr<expr> right, binary_operation operation) :
+            expr(false),
             left(std::move(left)), right(std::move(right)),
             operation(operation) {}
 
