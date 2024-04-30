@@ -132,7 +132,8 @@ void translator::translator::translate_global_var(
             *module_,
             var_type,
             false,
-            GlobalValue::LinkageTypes::InternalLinkage,
+            variable_ir->is_private ?
+                GlobalValue::LinkageTypes::InternalLinkage : GlobalValue::LinkageTypes::ExternalLinkage,
             initializer,
             variable_ir->name);
 
