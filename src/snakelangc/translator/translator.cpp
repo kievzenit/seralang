@@ -395,6 +395,26 @@ llvm::Value *translator::translator::translate_binary_expr(emitter::ir::binary_e
             return left_expr->expr_type->is_unsigned ?
                 builder_->CreateURem(left, right) :
                 builder_->CreateSRem(left, right);
+        case emitter::ir::binary_operation_type::equals_to:
+            return builder_->CreateICmpEQ(left, right);
+        case emitter::ir::binary_operation_type::not_equals_to:
+            return builder_->CreateICmpNE(left, right);
+        case emitter::ir::binary_operation_type::greater_than:
+            return left_expr->expr_type->is_unsigned ?
+                   builder_->CreateICmpUGT(left, right) :
+                   builder_->CreateICmpSGT(left, right);
+        case emitter::ir::binary_operation_type::less_than:
+            return left_expr->expr_type->is_unsigned ?
+                builder_->CreateICmpULT(left, right) :
+                builder_->CreateICmpSLT(left, right);
+        case emitter::ir::binary_operation_type::greater_or_equal:
+            return left_expr->expr_type->is_unsigned ?
+                builder_->CreateICmpUGE(left, right) :
+                builder_->CreateICmpSGE(left, right);
+        case emitter::ir::binary_operation_type::less_or_equal:
+            return left_expr->expr_type->is_unsigned ?
+                builder_->CreateICmpULE(left, right) :
+                builder_->CreateICmpSLE(left, right);
         default:
             utils::log_error("Unsupported binary operation encountered, exiting with error.");
             __builtin_unreachable();
