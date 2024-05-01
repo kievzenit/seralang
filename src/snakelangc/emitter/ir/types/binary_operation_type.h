@@ -8,7 +8,13 @@ namespace emitter::ir {
         subtraction,
         multiplication,
         division,
-        modulus
+        modulus,
+        equals_to,
+        not_equals_to,
+        greater_than,
+        less_than,
+        greater_or_equal,
+        less_or_equal,
     };
 
 }

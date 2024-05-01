@@ -127,6 +127,10 @@ std::unique_ptr<emitter::ir::integer_expr_ir> emitter::emitter::emit_for_explici
         return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::type::uint32());
     }
 
+    if (explicit_int_type == "uint") {
+        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::type::uint32());
+    }
+
     if (explicit_int_type == "uint64") {
         return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::type::uint64());
     }
@@ -182,12 +186,27 @@ emitter::emitter::emit_for_binary_expr(parser::ast::binary_expr *binary_expr) {
     auto right_expr_ir = emit_for_expr(std::move(binary_expr->right));
 
     auto result = emit_for_cast(std::move(left_expr_ir), std::move(right_expr_ir));
+    ir::type* expr_type;
+
+    switch (binary_expr->operation) {
+        case parser::ast::binary_operation::equals_to:
+        case parser::ast::binary_operation::not_equals_to:
+        case parser::ast::binary_operation::greater_than:
+        case parser::ast::binary_operation::less_than:
+        case parser::ast::binary_operation::greater_or_equal:
+        case parser::ast::binary_operation::less_or_equal:
+            expr_type = types_["bool"];
+            break;
+        default:
+            expr_type = std::get<2>(result);
+            break;
+    }
 
     return std::make_unique<ir::binary_expr_ir>(
             std::move(std::get<0>(result)),
             std::move(std::get<1>(result)),
             (ir::binary_operation_type)binary_expr->operation,
-            std::get<2>(result));
+            expr_type);
 }
 
 std::unique_ptr<emitter::ir::call_expr_ir> emitter::emitter::emit_for_call_expr(parser::ast::call_expr *call_expr) {
