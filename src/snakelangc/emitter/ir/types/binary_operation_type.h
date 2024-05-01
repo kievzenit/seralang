@@ -15,6 +15,11 @@ namespace emitter::ir {
         less_than,
         greater_or_equal,
         less_or_equal,
+        bitwise_and,
+        bitwise_or,
+        bitwise_xor,
+        logical_and,
+        logical_or,
     };
 
 }
