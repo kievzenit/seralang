@@ -43,7 +43,9 @@
     | "/"
     | "%"
 
-<binary_expression> ::= <expression> <arithmetic_operator> <expression>
+<binary_operator> ::= <arithmetic_operator> | <relational_operator>
+
+<binary_expression> ::= <expression> <binary_operator> <expression>
 
 <relational_operator> ::= ">"
     | "<"
