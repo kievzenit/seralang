@@ -79,6 +79,7 @@ bool lexer::lexer::is_current_char_punctuation() {
         || current_character_ == ';'
         || current_character_ == '.'
         || current_character_ == ','
+        || current_character_ == '!'
         || current_character_ == '='
         || current_character_ == '<'
         || current_character_ == '>';
@@ -257,6 +258,7 @@ lexer::token lexer::lexer::process_punctuation() {
         case '*':
         case '/':
         case '%':
+        case '!':
         case '>':
         case '<':
         case '=':
@@ -313,6 +315,15 @@ lexer::token lexer::lexer::process_punctuation() {
                         line_,
                         column_,
                         column_
+                };
+            case '!':
+                return {
+                  token_type::exclamation_mark,
+                  "!",
+                  file_name_,
+                  line_,
+                  column_,
+                  column_
                 };
             case '>':
                 return {
@@ -387,6 +398,15 @@ lexer::token lexer::lexer::process_punctuation() {
             return {
                 token_type::modulus_assign,
                 "%=",
+                file_name_,
+                line_,
+                column_started,
+                column_
+            };
+        case '!':
+            return {
+                token_type::not_equals,
+                "!=",
                 file_name_,
                 line_,
                 column_started,

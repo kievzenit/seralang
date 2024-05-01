@@ -33,6 +33,7 @@ namespace lexer {
         semicolon,
         dot,
         coma,
+        exclamation_mark,
 
         assign,
         plus_assign,
@@ -42,6 +43,7 @@ namespace lexer {
         modulus_assign,
 
         equals,
+        not_equals,
         less_than,
         greater_than,
         less_or_equal,
