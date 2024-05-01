@@ -75,6 +75,9 @@ bool lexer::lexer::is_current_char_punctuation() {
         || current_character_ == '*'
         || current_character_ == '/'
         || current_character_ == '%'
+        || current_character_ == '&'
+        || current_character_ == '|'
+        || current_character_ == '^'
         || current_character_ == ':'
         || current_character_ == ';'
         || current_character_ == '.'
@@ -253,6 +256,15 @@ lexer::token lexer::lexer::process_punctuation() {
                     column_,
                     column_
             };
+        case '^':
+            return {
+                token_type::bitwise_xor,
+                "^",
+                file_name_,
+                line_,
+                column_,
+                column_
+            };
         case '+':
         case '-':
         case '*':
@@ -262,6 +274,8 @@ lexer::token lexer::lexer::process_punctuation() {
         case '>':
         case '<':
         case '=':
+        case '&':
+        case '|':
             first_char = current_character_;
             break;
         default: __builtin_unreachable();
@@ -351,6 +365,48 @@ lexer::token lexer::lexer::process_punctuation() {
                         line_,
                         column_,
                         column_
+                };
+            case '&':
+                if (current_character_ == '&') {
+                    eat_current_char();
+                    return {
+                        token_type::logical_and,
+                        "&&",
+                        file_name_,
+                        line_,
+                        column_started,
+                        column_
+                    };
+                }
+
+                return {
+                  token_type::bitwise_and,
+                  "&",
+                  file_name_,
+                  line_,
+                  column_,
+                  column_
+                };
+            case '|':
+                if (current_character_ == '|') {
+                    eat_current_char();
+                    return {
+                        token_type::logical_or,
+                        "||",
+                        file_name_,
+                        line_,
+                        column_started,
+                        column_
+                    };
+                }
+
+                return {
+                    token_type::bitwise_or,
+                    "|",
+                    file_name_,
+                    line_,
+                    column_started,
+                    column_
                 };
             default: __builtin_unreachable();
         }
