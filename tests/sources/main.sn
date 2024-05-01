@@ -15,6 +15,7 @@ func main() int {
     foo(); // foo::s = 3
     let a = bar() + foobar(2:int16, 3:int8); // 1406
     b_glb = 0xf:int1;
+    let b = a <= 1400 + 2 * 3;
     a += foobar(a_glb, b_glb + 0xa:int8); // 1541 = 605
     return a; // 05 = 5
 }
