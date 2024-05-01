@@ -185,28 +185,52 @@ emitter::emitter::emit_for_binary_expr(parser::ast::binary_expr *binary_expr) {
     auto left_expr_ir = emit_for_expr(std::move(binary_expr->left));
     auto right_expr_ir = emit_for_expr(std::move(binary_expr->right));
 
-    auto result = emit_for_cast(std::move(left_expr_ir), std::move(right_expr_ir));
-    ir::type* expr_type;
+    std::tuple<std::unique_ptr<ir::expr_ir>, std::unique_ptr<ir::expr_ir>, ir::type*> result;
 
     switch (binary_expr->operation) {
+        case parser::ast::binary_operation::logical_and:
+        case parser::ast::binary_operation::logical_or:
+            left_expr_ir = emit_for_cast(std::move(left_expr_ir), types_["bool"]);
+            right_expr_ir = emit_for_cast(std::move(right_expr_ir), types_["bool"]);
+            return std::make_unique<ir::logical_expr_ir>(
+                    std::move(left_expr_ir),
+                    std::move(right_expr_ir),
+                    (ir::binary_operation_type)binary_expr->operation);
         case parser::ast::binary_operation::equals_to:
         case parser::ast::binary_operation::not_equals_to:
         case parser::ast::binary_operation::greater_than:
         case parser::ast::binary_operation::less_than:
         case parser::ast::binary_operation::greater_or_equal:
         case parser::ast::binary_operation::less_or_equal:
-            expr_type = types_["bool"];
-            break;
+            result = emit_for_cast(std::move(left_expr_ir), std::move(right_expr_ir));
+            return std::make_unique<ir::relational_expr_ir>(
+                    std::move(std::get<0>(result)),
+                    std::move(std::get<1>(result)),
+                    (ir::binary_operation_type)binary_expr->operation);
+        case parser::ast::binary_operation::bitwise_and:
+        case parser::ast::binary_operation::bitwise_or:
+        case parser::ast::binary_operation::bitwise_xor:
+            result = emit_for_cast(std::move(left_expr_ir), std::move(right_expr_ir));
+            return std::make_unique<ir::bitwise_expr_ir>(
+                    std::move(std::get<0>(result)),
+                    std::move(std::get<1>(result)),
+                    (ir::binary_operation_type)binary_expr->operation,
+                    std::get<2>(result));
+        case parser::ast::binary_operation::plus:
+        case parser::ast::binary_operation::minus:
+        case parser::ast::binary_operation::multiply:
+        case parser::ast::binary_operation::divide:
+        case parser::ast::binary_operation::modulus:
+            result = emit_for_cast(std::move(left_expr_ir), std::move(right_expr_ir));
+            return std::make_unique<ir::arithmetic_expr_ir>(
+                    std::move(std::get<0>(result)),
+                    std::move(std::get<1>(result)),
+                    (ir::binary_operation_type)binary_expr->operation,
+                    std::get<2>(result));
         default:
-            expr_type = std::get<2>(result);
-            break;
+            utils::log_error("Unsupported binary expr encountered, this should never happen!");
+            __builtin_unreachable();
     }
-
-    return std::make_unique<ir::binary_expr_ir>(
-            std::move(std::get<0>(result)),
-            std::move(std::get<1>(result)),
-            (ir::binary_operation_type)binary_expr->operation,
-            expr_type);
 }
 
 std::unique_ptr<emitter::ir::call_expr_ir> emitter::emitter::emit_for_call_expr(parser::ast::call_expr *call_expr) {
