@@ -80,6 +80,11 @@ parser::ast::binary_operation parser::parser::token_type_to_binary_operation(lex
         case lexer::token_type::less_than: return ast::binary_operation::less_than;
         case lexer::token_type::greater_or_equal: return ast::binary_operation::greater_or_equal;
         case lexer::token_type::less_or_equal: return ast::binary_operation::less_or_equal;
+        case lexer::token_type::logical_and: return ast::binary_operation::logical_and;
+        case lexer::token_type::logical_or: return ast::binary_operation::logical_or;
+        case lexer::token_type::bitwise_and: return ast::binary_operation::bitwise_and;
+        case lexer::token_type::bitwise_or: return ast::binary_operation::bitwise_or;
+        case lexer::token_type::bitwise_xor: return ast::binary_operation::bitwise_xor;
         default: return (ast::binary_operation)-1;
     }
 }

@@ -31,17 +31,22 @@ namespace parser {
         std::stack<lexer::token> putback_tokens_;
 
         std::map<ast::binary_operation, int> binop_precedence_ = {
-                {ast::binary_operation::plus, 20},
-                {ast::binary_operation::minus, 20},
-                {ast::binary_operation::multiply, 30},
-                {ast::binary_operation::divide, 30},
-                {ast::binary_operation::modulus, 30},
-                {ast::binary_operation::equals_to, 10},
-                {ast::binary_operation::not_equals_to, 10},
-                {ast::binary_operation::greater_than, 10},
-                {ast::binary_operation::less_than, 10},
-                {ast::binary_operation::greater_or_equal, 10},
-                {ast::binary_operation::less_or_equal, 10},
+                {ast::binary_operation::logical_and, 10},
+                {ast::binary_operation::logical_or, 10},
+                {ast::binary_operation::equals_to, 20},
+                {ast::binary_operation::not_equals_to, 20},
+                {ast::binary_operation::greater_than, 20},
+                {ast::binary_operation::less_than, 20},
+                {ast::binary_operation::greater_or_equal, 20},
+                {ast::binary_operation::less_or_equal, 20},
+                {ast::binary_operation::plus, 30},
+                {ast::binary_operation::minus, 30},
+                {ast::binary_operation::multiply, 40},
+                {ast::binary_operation::divide, 40},
+                {ast::binary_operation::modulus, 40},
+                {ast::binary_operation::bitwise_and, 50},
+                {ast::binary_operation::bitwise_or, 50},
+                {ast::binary_operation::bitwise_xor, 50},
         };
 
         bool has_tokens() const;

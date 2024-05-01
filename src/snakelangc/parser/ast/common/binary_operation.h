@@ -18,6 +18,15 @@ namespace parser::ast {
         less_than,
         greater_or_equal,
         less_or_equal,
+
+        // bitwise,
+        bitwise_and,
+        bitwise_or,
+        bitwise_xor,
+
+        // logical
+        logical_and,
+        logical_or
     };
 
 }
