@@ -37,15 +37,25 @@
 
 <expression> ::= <primary_expression> | <binary_expression>
 
+<binary_expression> ::= <arithmetic_expression> | <relational_expression> | <logical_expression> | <bitwise_expression>
+
+<bitwise_expression> ::= <expression> <bitwise_operator> <expression>
+
+<bitwise_operator> ::= "&" | "|" | "^"
+
+<logical_expression> ::= <expression> <logical_operator> <expression>
+
+<logical_operator> ::= "&&" | "||"
+
+<arithmetic_expression> ::= <expression> <arithmetic_operator> <expression>
+
 <arithmetic_operator> ::= "+"
     | "-"
     | "*"
     | "/"
     | "%"
 
-<binary_operator> ::= <arithmetic_operator> | <relational_operator>
-
-<binary_expression> ::= <expression> <binary_operator> <expression>
+<relational_expression> ::= <expression> <relational_operator> <expression>
 
 <relational_operator> ::= ">"
     | "<"
