@@ -31,11 +31,17 @@ namespace parser {
         std::stack<lexer::token> putback_tokens_;
 
         std::map<ast::binary_operation, int> binop_precedence_ = {
-                {ast::binary_operation::plus, 10},
-                {ast::binary_operation::minus, 10},
-                {ast::binary_operation::multiply, 20},
-                {ast::binary_operation::divide, 20},
-                {ast::binary_operation::modulus, 20},
+                {ast::binary_operation::plus, 20},
+                {ast::binary_operation::minus, 20},
+                {ast::binary_operation::multiply, 30},
+                {ast::binary_operation::divide, 30},
+                {ast::binary_operation::modulus, 30},
+                {ast::binary_operation::equals_to, 10},
+                {ast::binary_operation::not_equals_to, 10},
+                {ast::binary_operation::greater_than, 10},
+                {ast::binary_operation::less_than, 10},
+                {ast::binary_operation::greater_or_equal, 10},
+                {ast::binary_operation::less_or_equal, 10},
         };
 
         bool has_tokens() const;

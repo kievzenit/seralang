@@ -74,6 +74,12 @@ parser::ast::binary_operation parser::parser::token_type_to_binary_operation(lex
         case lexer::token_type::divide_assign: return ast::binary_operation::divide;
         case lexer::token_type::modulus_assign: return ast::binary_operation::modulus;
         // ---------
+        case lexer::token_type::equals: return ast::binary_operation::equals_to;
+        case lexer::token_type::not_equals: return ast::binary_operation::not_equals_to;
+        case lexer::token_type::greater_than: return ast::binary_operation::greater_than;
+        case lexer::token_type::less_than: return ast::binary_operation::less_than;
+        case lexer::token_type::greater_or_equal: return ast::binary_operation::greater_or_equal;
+        case lexer::token_type::less_or_equal: return ast::binary_operation::less_or_equal;
         default: return (ast::binary_operation)-1;
     }
 }
