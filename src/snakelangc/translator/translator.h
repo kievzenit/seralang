@@ -21,6 +21,10 @@
 #include "../emitter/ir/exprs/upcast_expr_ir.h"
 #include "../emitter/ir/exprs/downcast_expr_ir.h"
 #include "../emitter/ir/stmts/assignment_stmt_ir.h"
+#include "../emitter/ir/exprs/arithmetic_expr_ir.h"
+#include "../emitter/ir/exprs/relational_expr_ir.h"
+#include "../emitter/ir/exprs/logical_expr_ir.h"
+#include "../emitter/ir/exprs/bitwise_expr_ir.h"
 
 namespace translator {
 
@@ -45,6 +49,7 @@ namespace translator {
 
         llvm::BasicBlock* current_allocation_block_ = nullptr;
         llvm::BasicBlock* current_block_ = nullptr;
+        llvm::BasicBlock* priv_block_ = nullptr;
         llvm::Function* current_function_ = nullptr;
 
         emitter::ir::scope_stmt_ir* current_scope_ = nullptr;
@@ -73,6 +78,10 @@ namespace translator {
         llvm::Constant* translate_int_expr(emitter::ir::integer_expr_ir* integer_expr);
         llvm::Constant* translate_boolean_expr(emitter::ir::boolean_expr_ir* boolean_expr);
         llvm::Value* translate_binary_expr(emitter::ir::binary_expr_ir* binary_expr);
+        llvm::Value* translate_arithmetic_expr(emitter::ir::arithmetic_expr_ir* arithmetic_expr);
+        llvm::Value* translate_relational_expr(emitter::ir::relational_expr_ir* relational_expr);
+        llvm::Value* translate_logical_expr(emitter::ir::logical_expr_ir* logical_expr);
+        llvm::Value* translate_bitwise_expr(emitter::ir::bitwise_expr_ir* bitwise_expr);
         llvm::Value* translate_call_expr(emitter::ir::call_expr_ir* call_expr);
         llvm::Value* translate_identifier_expr(emitter::ir::identifier_expr_ir* identifier_expr);
         llvm::Value* translate_argument_expr(emitter::ir::argument_exp_ir* argument_expr);

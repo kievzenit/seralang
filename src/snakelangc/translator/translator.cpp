@@ -372,15 +372,38 @@ llvm::Constant *translator::translator::translate_boolean_expr(emitter::ir::bool
 }
 
 llvm::Value *translator::translator::translate_binary_expr(emitter::ir::binary_expr_ir* binary_expr) {
+    using namespace emitter::ir;
+
+    if (dynamic_cast<arithmetic_expr_ir*>(binary_expr)) {
+        return translate_arithmetic_expr(dynamic_cast<arithmetic_expr_ir*>(binary_expr));
+    }
+
+    if (dynamic_cast<relational_expr_ir*>(binary_expr)) {
+        return translate_relational_expr(dynamic_cast<relational_expr_ir*>(binary_expr));
+    }
+
+    if (dynamic_cast<logical_expr_ir*>(binary_expr)) {
+        return translate_logical_expr(dynamic_cast<logical_expr_ir*>(binary_expr));
+    }
+
+    if (dynamic_cast<bitwise_expr_ir*>(binary_expr)) {
+        return translate_bitwise_expr(dynamic_cast<bitwise_expr_ir*>(binary_expr));
+    }
+
+    utils::log_error("Unsupported binary expression found, this should never happen!");
+    __builtin_unreachable();
+}
+
+llvm::Value *translator::translator::translate_arithmetic_expr(emitter::ir::arithmetic_expr_ir *arithmetic_expr) {
     using namespace llvm;
 
-    auto left_expr = binary_expr->left.get();
-    auto right_expr = binary_expr->right.get();
+    auto left_expr = arithmetic_expr->left.get();
+    auto right_expr = arithmetic_expr->right.get();
 
     auto left = translate_expr(left_expr);
     auto right = translate_expr(right_expr);
 
-    switch (binary_expr->operation_type) {
+    switch (arithmetic_expr->operation_type) {
         case emitter::ir::addition:
             return builder_->CreateAdd(left, right);
         case emitter::ir::subtraction:
@@ -389,12 +412,28 @@ llvm::Value *translator::translator::translate_binary_expr(emitter::ir::binary_e
             return builder_->CreateMul(left, right);
         case emitter::ir::division:
             return left_expr->expr_type->is_unsigned ?
-                builder_->CreateUDiv(left, right) :
-                builder_->CreateSDiv(left, right);
+                   builder_->CreateUDiv(left, right) :
+                   builder_->CreateSDiv(left, right);
         case emitter::ir::binary_operation_type::modulus:
             return left_expr->expr_type->is_unsigned ?
-                builder_->CreateURem(left, right) :
-                builder_->CreateSRem(left, right);
+                   builder_->CreateURem(left, right) :
+                   builder_->CreateSRem(left, right);
+        default:
+            utils::log_error("Malformed arithmetic expression found, this should never happen!");
+            __builtin_unreachable();
+    }
+}
+
+llvm::Value *translator::translator::translate_relational_expr(emitter::ir::relational_expr_ir *relational_expr) {
+    using namespace llvm;
+
+    auto left_expr = relational_expr->left.get();
+    auto right_expr = relational_expr->right.get();
+
+    auto left = translate_expr(left_expr);
+    auto right = translate_expr(right_expr);
+
+    switch (relational_expr->operation_type) {
         case emitter::ir::binary_operation_type::equals_to:
             return builder_->CreateICmpEQ(left, right);
         case emitter::ir::binary_operation_type::not_equals_to:
@@ -405,18 +444,104 @@ llvm::Value *translator::translator::translate_binary_expr(emitter::ir::binary_e
                    builder_->CreateICmpSGT(left, right);
         case emitter::ir::binary_operation_type::less_than:
             return left_expr->expr_type->is_unsigned ?
-                builder_->CreateICmpULT(left, right) :
-                builder_->CreateICmpSLT(left, right);
+                   builder_->CreateICmpULT(left, right) :
+                   builder_->CreateICmpSLT(left, right);
         case emitter::ir::binary_operation_type::greater_or_equal:
             return left_expr->expr_type->is_unsigned ?
-                builder_->CreateICmpUGE(left, right) :
-                builder_->CreateICmpSGE(left, right);
+                   builder_->CreateICmpUGE(left, right) :
+                   builder_->CreateICmpSGE(left, right);
         case emitter::ir::binary_operation_type::less_or_equal:
             return left_expr->expr_type->is_unsigned ?
-                builder_->CreateICmpULE(left, right) :
-                builder_->CreateICmpSLE(left, right);
+                   builder_->CreateICmpULE(left, right) :
+                   builder_->CreateICmpSLE(left, right);
         default:
-            utils::log_error("Unsupported binary operation encountered, exiting with error.");
+            utils::log_error("Malformed relational expression found, this should never happen!");
+            __builtin_unreachable();
+    }
+}
+
+llvm::Value *translator::translator::translate_logical_expr(emitter::ir::logical_expr_ir *logical_expr) {
+    using namespace llvm;
+
+    if (logical_expr->operation_type == emitter::ir::binary_operation_type::logical_and) {
+        auto logical_right_block = BasicBlock::Create(
+                *context_, "logical_right", current_function_);
+        auto logical_result_block = BasicBlock::Create(
+                *context_, "logical_result", current_function_);
+
+        auto left_expr = logical_expr->left.get();
+        auto right_expr = logical_expr->right.get();
+
+        priv_block_ = current_block_;
+
+        auto left = translate_expr(left_expr);
+        builder_->CreateCondBr(left, logical_right_block, logical_result_block);
+
+        current_block_ = logical_right_block;
+        builder_->SetInsertPoint(current_block_);
+        auto right = translate_expr(right_expr);
+        builder_->CreateBr(logical_result_block);
+
+        current_block_ = logical_result_block;
+        builder_->SetInsertPoint(current_block_);
+        auto phi = builder_->CreatePHI(types_["bool"], 2);
+        phi->addIncoming(ConstantInt::get(types_["bool"], false), priv_block_);
+        phi->addIncoming(right, logical_right_block);
+
+        priv_block_ = logical_result_block;
+
+        return phi;
+    }
+
+    if (logical_expr->operation_type == emitter::ir::binary_operation_type::logical_or) {
+        auto logical_right_block = BasicBlock::Create(
+                *context_, "logical_right", current_function_);
+        auto logical_result_block = BasicBlock::Create(
+                *context_, "logical_result", current_function_);
+
+        auto left_expr = logical_expr->left.get();
+        auto right_expr = logical_expr->right.get();
+
+        priv_block_ = current_block_;
+
+        auto left = translate_expr(left_expr);
+        builder_->CreateCondBr(left, logical_result_block, logical_right_block);
+
+        current_block_ = logical_right_block;
+        builder_->SetInsertPoint(current_block_);
+        auto right = translate_expr(right_expr);
+        builder_->CreateBr(logical_result_block);
+
+        current_block_ = logical_result_block;
+        builder_->SetInsertPoint(current_block_);
+        auto phi = builder_->CreatePHI(types_["bool"], 2);
+        phi->addIncoming(ConstantInt::get(types_["bool"], true), priv_block_);
+        phi->addIncoming(right, logical_right_block);
+
+        priv_block_ = logical_result_block;
+
+        return phi;
+    }
+
+    utils::log_error("Malformed logical expression found, this should never happen!");
+    __builtin_unreachable();
+}
+
+llvm::Value *translator::translator::translate_bitwise_expr(emitter::ir::bitwise_expr_ir *bitwise_expr) {
+    using namespace llvm;
+
+    auto left = translate_expr(bitwise_expr->left.get());
+    auto right = translate_expr(bitwise_expr->right.get());
+
+    switch (bitwise_expr->operation_type) {
+        case emitter::ir::binary_operation_type::bitwise_and:
+            return builder_->CreateAnd(left, right);
+        case emitter::ir::binary_operation_type::bitwise_or:
+            return builder_->CreateOr(left, right);
+        case emitter::ir::binary_operation_type::bitwise_xor:
+            return builder_->CreateXor(left, right);
+        default:
+            utils::log_error("Malformed bitwise expression found, this should never happen!");
             __builtin_unreachable();
     }
 }
