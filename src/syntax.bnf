@@ -7,6 +7,7 @@
 
 <statement> ::= <return_statement>
     | <func_decl_statement>
+    | <if_statement>
     | <let_statement>
     | <scope_statement>
     | <assignment_statement>
@@ -20,6 +21,12 @@
 
 <func_prototype_decl_statement> ::= "extern" <func_decl> ";"
 <func_decl_statement> ::= <func_decl> <scope_statement>
+
+<if_statement> ::= "if" "(" <expression> ")" <scope_statement> <else_if_statement>* <else_statement>?
+
+<else_if_statement> ::= "else" "if" "(" <expression> ")" <scope_statement>
+
+<else_statement> ::= "else" <scope_statement>
 
 <assignment> ::= "="
     | "+="
