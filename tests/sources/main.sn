@@ -3,15 +3,15 @@ package test_package;
 func main() int {
     let a = 0;
 
-    if (foo()) {
+    if (foo() && bar()) {
         a = 1;
-    } else if (bar()) {
+    } else if (foo() || bar() && foobar()) {
         a = 2;
-    } else if (foobar()) {
+    } else if (foo()) {
         a = 3;
-    } else if (foo() && bar()) {
+    } else if (bar()) {
         a = 4;
-    } else if (foo() && bar() || foobar()) {
+    } else if (foobar()) {
         a = 5;
     } else {
         a = 6;
