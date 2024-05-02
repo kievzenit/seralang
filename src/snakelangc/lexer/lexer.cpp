@@ -705,6 +705,72 @@ lexer::token lexer::lexer::process_identifier() {
         };
     }
 
+    if (identifier == "while") {
+        return {
+                token_type::while_,
+                identifier,
+                file_name_,
+                line_,
+                column_started,
+                column_
+        };
+    }
+
+    if (identifier == "do") {
+        return {
+                token_type::do_,
+                identifier,
+                file_name_,
+                line_,
+                column_started,
+                column_
+        };
+    }
+
+    if (identifier == "switch") {
+        return {
+                token_type::switch_,
+                identifier,
+                file_name_,
+                line_,
+                column_started,
+                column_
+        };
+    }
+
+    if (identifier == "for") {
+        return {
+                token_type::for_,
+                identifier,
+                file_name_,
+                line_,
+                column_started,
+                column_
+        };
+    }
+
+    if (identifier == "foreach") {
+        return {
+                token_type::foreach,
+                identifier,
+                file_name_,
+                line_,
+                column_started,
+                column_
+        };
+    }
+
+    if (identifier == "in") {
+        return {
+                token_type::in,
+                identifier,
+                file_name_,
+                line_,
+                column_started,
+                column_
+        };
+    }
+
     if (identifier == "true") {
         return {
                 token_type::boolean,

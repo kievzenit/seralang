@@ -18,6 +18,12 @@ namespace lexer {
         static_,
         if_,
         else_,
+        while_,
+        do_,
+        switch_,
+        for_,
+        foreach,
+        in,
 
         l_parenthesis,
         r_parenthesis,
