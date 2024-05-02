@@ -683,6 +683,28 @@ lexer::token lexer::lexer::process_identifier() {
         };
     }
 
+    if (identifier == "if") {
+        return {
+                token_type::if_,
+                identifier,
+                file_name_,
+                line_,
+                column_started,
+                column_
+        };
+    }
+
+    if (identifier == "else") {
+        return {
+                token_type::else_,
+                identifier,
+                file_name_,
+                line_,
+                column_started,
+                column_
+        };
+    }
+
     if (identifier == "true") {
         return {
                 token_type::boolean,

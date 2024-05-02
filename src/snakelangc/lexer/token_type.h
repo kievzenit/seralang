@@ -16,6 +16,8 @@ namespace lexer {
         ret,
         package,
         static_,
+        if_,
+        else_,
 
         l_parenthesis,
         r_parenthesis,
