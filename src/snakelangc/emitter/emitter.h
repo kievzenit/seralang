@@ -36,6 +36,9 @@
 #include "../parser/ast/stmts/call_stmt.h"
 #include "../parser/ast/stmts/assignment_stmt.h"
 #include "ir/stmts/assignment_stmt_ir.h"
+#include "../parser/ast/stmts/if_stmt.h"
+#include "ir/stmts/else_if_stmt_ir.h"
+#include "ir/stmts/else_stmt_ir.h"
 
 namespace emitter {
 
@@ -91,6 +94,11 @@ namespace emitter {
 
         void emit_for_stmt(std::unique_ptr<parser::ast::stmt> stmt);
         std::unique_ptr<ir::scope_stmt_ir> emit_for_scope_stmt(parser::ast::scope_stmt* scope_stmt);
+        void emit_for_if_stmt(parser::ast::if_stmt* if_stmt);
+        std::vector<std::unique_ptr<ir::else_if_stmt_ir>>
+        emit_for_else_if_stmts(std::vector<std::unique_ptr<parser::ast::else_if_stmt>> else_if_branches);
+        std::unique_ptr<ir::else_if_stmt_ir> emit_for_else_if_stmt(parser::ast::else_if_stmt* else_if_stmt);
+        std::unique_ptr<ir::else_stmt_ir> emit_for_else_stmt(parser::ast::else_stmt* else_stmt);
         void emit_for_let_stmt(parser::ast::let_stmt* let_stmt);
         void emit_for_assignment_stmt(parser::ast::assignment_stmt* assignment_stmt);
         void emit_for_call_stmt(parser::ast::call_stmt* call_stmt);

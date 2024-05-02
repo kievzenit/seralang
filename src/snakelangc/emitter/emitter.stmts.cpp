@@ -1,6 +1,12 @@
 #include "emitter.h"
+#include "ir/stmts/if_stmt_ir.h"
 
 void emitter::emitter::emit_for_stmt(std::unique_ptr<parser::ast::stmt> stmt) {
+    if (dynamic_cast<parser::ast::if_stmt*>(stmt.get()) != nullptr) {
+        emit_for_if_stmt(dynamic_cast<parser::ast::if_stmt*>(stmt.get()));
+        return;
+    }
+
     if (dynamic_cast<parser::ast::scope_stmt*>(stmt.get()) != nullptr) {
         emit_for_scope_stmt(dynamic_cast<parser::ast::scope_stmt*>(stmt.get()));
         return;
@@ -42,6 +48,57 @@ emitter::emitter::emit_for_scope_stmt(parser::ast::scope_stmt* scope_stmt) {
     current_scope_ = current_scope_->parent_scope;
 
     return scope;
+}
+
+void emitter::emitter::emit_for_if_stmt(parser::ast::if_stmt *if_stmt) {
+    auto if_expr = emit_for_cast(
+            emit_for_expr(std::move(if_stmt->if_expr)),
+            types_["bool"]);
+
+    auto if_scope = emit_for_scope_stmt(if_stmt->scope.get());
+
+    auto else_if_branches = emit_for_else_if_stmts(std::move(if_stmt->else_if_branches));
+
+    std::unique_ptr<ir::else_stmt_ir> else_branch;
+    if (if_stmt->else_branch) {
+        else_branch = emit_for_else_stmt(if_stmt->else_branch.get());
+    }
+
+    auto if_stmt_ir = std::make_unique<ir::if_stmt_ir>(
+            std::move(if_expr),
+            std::move(if_scope),
+            std::move(else_if_branches),
+            std::move(else_branch));
+
+    current_scope_->inner_stmts.push_back(std::move(if_stmt_ir));
+}
+
+std::vector<std::unique_ptr<emitter::ir::else_if_stmt_ir>>
+emitter::emitter::emit_for_else_if_stmts(std::vector<std::unique_ptr<parser::ast::else_if_stmt>> else_if_branches) {
+    std::vector<std::unique_ptr<ir::else_if_stmt_ir>> else_if_ir_branches;
+
+    for (auto& else_if : else_if_branches) {
+        auto else_if_stmt = emit_for_else_if_stmt(else_if.get());
+        else_if_ir_branches.push_back(std::move(else_if_stmt));
+    }
+
+    return else_if_ir_branches;
+}
+
+std::unique_ptr<emitter::ir::else_if_stmt_ir>
+emitter::emitter::emit_for_else_if_stmt(parser::ast::else_if_stmt *else_if_stmt) {
+    auto else_if_expr = emit_for_cast(
+            emit_for_expr(std::move(else_if_stmt->if_expr)),
+            types_["bool"]);
+
+    auto else_if_scope = emit_for_scope_stmt(else_if_stmt->scope.get());
+
+    return std::make_unique<ir::else_if_stmt_ir>(std::move(else_if_expr), std::move(else_if_scope));
+}
+
+std::unique_ptr<emitter::ir::else_stmt_ir> emitter::emitter::emit_for_else_stmt(parser::ast::else_stmt *else_stmt) {
+    auto else_scope = emit_for_scope_stmt(else_stmt->scope.get());
+    return std::make_unique<ir::else_stmt_ir>(std::move(else_scope));
 }
 
 void emitter::emitter::emit_for_let_stmt(parser::ast::let_stmt *let_stmt) {
@@ -102,7 +159,7 @@ void emitter::emitter::emit_for_assignment_stmt(parser::ast::assignment_stmt *as
     auto assignment_expr = emit_for_expr(std::move(assignment_stmt->assignment_expr));
 
     if (current_scope_->is_var_exists(assignment_stmt->name)) {
-        auto identifier_type = current_scope_->variables_types[assignment_stmt->name];
+        auto identifier_type = current_scope_->get_type_for_variable(assignment_stmt->name);
         auto assignment_stmt_ir = std::make_unique<ir::assignment_stmt_ir>(
                 assignment_stmt->name,
                 false,
