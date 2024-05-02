@@ -291,13 +291,20 @@ void translator::translator::translate_scope_stmt(emitter::ir::scope_stmt_ir *sc
 void translator::translator::translate_if_stmt(emitter::ir::if_stmt_ir *if_stmt) {
     using namespace llvm;
 
+    auto current_cond_block = BasicBlock::Create(*context_, "cond", current_function_);
+
+    builder_->SetInsertPoint(current_block_);
+    builder_->CreateBr(current_cond_block);
+
+    current_block_ = current_cond_block;
+    builder_->SetInsertPoint(current_block_);
+    auto condition = translate_expr(if_stmt->if_expr.get());
+
     auto current_if_block = BasicBlock::Create(*context_, "if", current_function_);
     auto current_else_block = BasicBlock::Create(*context_, "else", current_function_);
     auto after_if_block = BasicBlock::Create(*context_, "after_if", current_function_);
 
-    priv_block_ = current_block_;
     builder_->SetInsertPoint(current_block_);
-    auto condition = translate_expr(if_stmt->if_expr.get());
     builder_->CreateCondBr(condition, current_if_block, current_else_block);
     builder_->ClearInsertionPoint();
 
@@ -313,11 +320,23 @@ void translator::translator::translate_if_stmt(emitter::ir::if_stmt_ir *if_stmt)
         current_block_ = current_else_block;
         builder_->SetInsertPoint(current_block_);
 
-        current_if_block = BasicBlock::Create(*context_, "if", current_function_);
-        current_else_block = BasicBlock::Create(*context_, "else", current_function_);
+        current_cond_block = BasicBlock::Create(
+                *context_, "cond", current_function_, after_if_block);
+        builder_->CreateBr(current_cond_block);
+
+        current_if_block = BasicBlock::Create(
+                *context_, "if", current_function_, after_if_block);
+        current_else_block = BasicBlock::Create(
+                *context_, "else", current_function_, after_if_block);
+
+        current_block_ = current_cond_block;
+        next_block_ = current_if_block;
+        builder_->SetInsertPoint(current_block_);
 
         condition = translate_expr(else_if_stmt->if_expr.get());
         builder_->CreateCondBr(condition, current_if_block, current_else_block);
+
+        next_block_ = nullptr;
 
         current_block_ = current_if_block;
         translate_scope_stmt(else_if_stmt->scope.get());
@@ -535,14 +554,15 @@ llvm::Value *translator::translator::translate_logical_expr(emitter::ir::logical
 
     if (logical_expr->operation_type == emitter::ir::binary_operation_type::logical_and) {
         auto logical_right_block = BasicBlock::Create(
-                *context_, "logical_right", current_function_);
+                *context_, "logical_right", current_function_, next_block_);
         auto logical_result_block = BasicBlock::Create(
-                *context_, "logical_result", current_function_);
+                *context_, "logical_result", current_function_, next_block_);
 
         auto left_expr = logical_expr->left.get();
         auto right_expr = logical_expr->right.get();
 
         priv_block_ = current_block_;
+        next_block_ = logical_right_block;
 
         auto left = translate_expr(left_expr);
         builder_->CreateCondBr(left, logical_right_block, logical_result_block);
@@ -559,20 +579,22 @@ llvm::Value *translator::translator::translate_logical_expr(emitter::ir::logical
         phi->addIncoming(right, logical_right_block);
 
         priv_block_ = logical_result_block;
+        next_block_ = nullptr;
 
         return phi;
     }
 
     if (logical_expr->operation_type == emitter::ir::binary_operation_type::logical_or) {
         auto logical_right_block = BasicBlock::Create(
-                *context_, "logical_right", current_function_);
+                *context_, "logical_right", current_function_, next_block_);
         auto logical_result_block = BasicBlock::Create(
-                *context_, "logical_result", current_function_);
+                *context_, "logical_result", current_function_, next_block_);
 
         auto left_expr = logical_expr->left.get();
         auto right_expr = logical_expr->right.get();
 
         priv_block_ = current_block_;
+        next_block_ = logical_right_block;
 
         auto left = translate_expr(left_expr);
         builder_->CreateCondBr(left, logical_result_block, logical_right_block);
@@ -589,6 +611,7 @@ llvm::Value *translator::translator::translate_logical_expr(emitter::ir::logical
         phi->addIncoming(right, logical_right_block);
 
         priv_block_ = logical_result_block;
+        next_block_ = nullptr;
 
         return phi;
     }

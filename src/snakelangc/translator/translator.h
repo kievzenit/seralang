@@ -51,6 +51,7 @@ namespace translator {
         llvm::BasicBlock* current_allocation_block_ = nullptr;
         llvm::BasicBlock* current_block_ = nullptr;
         llvm::BasicBlock* priv_block_ = nullptr;
+        llvm::BasicBlock* next_block_ = nullptr;
         llvm::Function* current_function_ = nullptr;
 
         emitter::ir::scope_stmt_ir* current_scope_ = nullptr;
