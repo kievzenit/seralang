@@ -53,6 +53,9 @@ set(SOURCE_FILES main.cpp
         emitter/ir/stmts/stmt_ir.h
         emitter/ir/stmts/scope_stmt_ir.h
         emitter/ir/stmts/call_stmt_ir.h
+        emitter/ir/stmts/if_stmt_ir.h
+        emitter/ir/stmts/else_if_stmt_ir.h
+        emitter/ir/stmts/else_stmt_ir.h
         emitter/ir/exprs/expr_ir.h
         emitter/ir/exprs/integer_expr_ir.h
         emitter/ir/exprs/boolean_expr_ir.h
