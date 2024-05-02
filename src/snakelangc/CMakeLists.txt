@@ -25,6 +25,9 @@ set(SOURCE_FILES main.cpp
         parser/ast/stmts/return_stmt.h
         parser/ast/stmts/call_stmt.h
         parser/ast/stmts/assignment_stmt.h
+        parser/ast/stmts/if_stmt.h
+        parser/ast/stmts/else_stmt.h
+        parser/ast/stmts/else_if_stmt.h
         parser/ast/exprs/expr.h
         parser/ast/exprs/integer_expr.h
         parser/ast/exprs/boolean_expr.h
