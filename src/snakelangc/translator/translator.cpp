@@ -553,6 +553,8 @@ llvm::Value *translator::translator::translate_logical_expr(emitter::ir::logical
     using namespace llvm;
 
     if (logical_expr->operation_type == emitter::ir::binary_operation_type::logical_and) {
+        auto logical_left_block = BasicBlock::Create(
+                *context_, "logical_left", current_function_, next_block_);
         auto logical_right_block = BasicBlock::Create(
                 *context_, "logical_right", current_function_, next_block_);
         auto logical_result_block = BasicBlock::Create(
@@ -561,8 +563,13 @@ llvm::Value *translator::translator::translate_logical_expr(emitter::ir::logical
         auto left_expr = logical_expr->left.get();
         auto right_expr = logical_expr->right.get();
 
+        builder_->SetInsertPoint(current_block_);
+        builder_->CreateBr(logical_left_block);
+
+        current_block_ = logical_left_block;
         priv_block_ = current_block_;
-        next_block_ = logical_right_block;
+
+        builder_->SetInsertPoint(current_block_);
 
         auto left = translate_expr(left_expr);
         builder_->CreateCondBr(left, logical_right_block, logical_result_block);
@@ -585,6 +592,8 @@ llvm::Value *translator::translator::translate_logical_expr(emitter::ir::logical
     }
 
     if (logical_expr->operation_type == emitter::ir::binary_operation_type::logical_or) {
+        auto logical_left_block = BasicBlock::Create(
+                *context_, "logical_left", current_function_, next_block_);
         auto logical_right_block = BasicBlock::Create(
                 *context_, "logical_right", current_function_, next_block_);
         auto logical_result_block = BasicBlock::Create(
@@ -593,8 +602,13 @@ llvm::Value *translator::translator::translate_logical_expr(emitter::ir::logical
         auto left_expr = logical_expr->left.get();
         auto right_expr = logical_expr->right.get();
 
+        builder_->SetInsertPoint(current_block_);
+        builder_->CreateBr(logical_left_block);
+
+        current_block_ = logical_left_block;
         priv_block_ = current_block_;
-        next_block_ = logical_right_block;
+
+        builder_->SetInsertPoint(current_block_);
 
         auto left = translate_expr(left_expr);
         builder_->CreateCondBr(left, logical_result_block, logical_right_block);
