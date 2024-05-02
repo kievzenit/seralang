@@ -247,6 +247,11 @@ llvm::Function* translator::translator::translate_function(std::unique_ptr<emitt
 }
 
 void translator::translator::translate_stmt(std::unique_ptr<emitter::ir::stmt_ir> stmt_ir) {
+    if (dynamic_cast<emitter::ir::if_stmt_ir*>(stmt_ir.get()) != nullptr) {
+        translate_if_stmt(dynamic_cast<emitter::ir::if_stmt_ir*>(stmt_ir.get()));
+        return;
+    }
+
     if (dynamic_cast<emitter::ir::scope_stmt_ir*>(stmt_ir.get()) != nullptr) {
         translate_scope_stmt(dynamic_cast<emitter::ir::scope_stmt_ir*>(stmt_ir.get()));
         return;
@@ -281,6 +286,71 @@ void translator::translator::translate_scope_stmt(emitter::ir::scope_stmt_ir *sc
         translate_stmt(std::move(stmt));
     }
     current_scope_ = nullptr;
+}
+
+void translator::translator::translate_if_stmt(emitter::ir::if_stmt_ir *if_stmt) {
+    using namespace llvm;
+
+    auto current_if_block = BasicBlock::Create(*context_, "if", current_function_);
+    auto current_else_block = BasicBlock::Create(*context_, "else", current_function_);
+    auto after_if_block = BasicBlock::Create(*context_, "after_if", current_function_);
+
+    priv_block_ = current_block_;
+    builder_->SetInsertPoint(current_block_);
+    auto condition = translate_expr(if_stmt->if_expr.get());
+    builder_->CreateCondBr(condition, current_if_block, current_else_block);
+    builder_->ClearInsertionPoint();
+
+    current_block_ = current_if_block;
+    translate_scope_stmt(if_stmt->scope.get());
+
+    current_block_ = current_if_block;
+    builder_->SetInsertPoint(current_block_);
+    builder_->CreateBr(after_if_block);
+    builder_->ClearInsertionPoint();
+
+    for (auto& else_if_stmt : if_stmt->else_if_branches) {
+        current_block_ = current_else_block;
+        builder_->SetInsertPoint(current_block_);
+
+        current_if_block = BasicBlock::Create(*context_, "if", current_function_);
+        current_else_block = BasicBlock::Create(*context_, "else", current_function_);
+
+        condition = translate_expr(else_if_stmt->if_expr.get());
+        builder_->CreateCondBr(condition, current_if_block, current_else_block);
+
+        current_block_ = current_if_block;
+        translate_scope_stmt(else_if_stmt->scope.get());
+
+        current_block_ = current_if_block;
+        builder_->SetInsertPoint(current_block_);
+        builder_->CreateBr(after_if_block);
+
+        builder_->ClearInsertionPoint();
+    }
+
+    if (if_stmt->else_branch) {
+        current_block_ = current_else_block;
+        translate_scope_stmt(if_stmt->else_branch->scope.get());
+    }
+
+    current_block_ = current_else_block;
+    builder_->SetInsertPoint(current_block_);
+    builder_->CreateBr(after_if_block);
+
+    current_block_ = after_if_block;
+
+    builder_->ClearInsertionPoint();
+}
+
+llvm::BasicBlock *translator::translator::translate_else_stmt(emitter::ir::else_stmt_ir *else_stmt) {
+    using namespace llvm;
+
+    auto else_block = BasicBlock::Create(*context_, "else", current_function_);
+    current_block_ = else_block;
+    translate_scope_stmt(else_stmt->scope.get());
+
+    return else_block;
 }
 
 void translator::translator::translate_var_stmt(emitter::ir::variable_ir* variable_ir) {
