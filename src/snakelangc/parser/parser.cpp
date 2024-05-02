@@ -194,8 +194,10 @@ std::unique_ptr<parser::ast::stmt> parser::parser::parse_stmt() {
 
     auto priv_token = current_token_;
     switch (current_token_.type) {
-        case lexer::token_type::let: return parse_let_stmt(false);
-        case lexer::token_type::ret: return parse_return_stmt();
+        case lexer::token_type::let:
+            return parse_let_stmt(false);
+        case lexer::token_type::ret:
+            return parse_return_stmt();
         case lexer::token_type::static_:
             eat();
             return parse_let_stmt(true);
@@ -210,10 +212,116 @@ std::unique_ptr<parser::ast::stmt> parser::parser::parse_stmt() {
             putback_tokens_.push(current_token_);
             putback_tokens_.push(priv_token);
             return parse_assignment_stmt();
+        case lexer::token_type::if_:
+            return parse_if_stmt();
         default:
             utils::log_error("Unexpected statement got, exiting with error.");
             __builtin_unreachable();
     }
+}
+
+std::unique_ptr<parser::ast::if_stmt> parser::parser::parse_if_stmt() {
+    eat();
+    expect(lexer::token_type::l_parenthesis);
+
+    auto if_expr = parse_expr();
+
+    eat();
+    expect(lexer::token_type::r_parenthesis);
+
+    auto if_scope = parse_scope_stmt();
+
+    std::vector<std::unique_ptr<ast::else_if_stmt>> else_if_branches;
+    std::unique_ptr<ast::else_stmt> else_branch;
+
+    eat();
+    auto else_token = current_token_;
+    if (current_token_.type != lexer::token_type::else_) {
+        putback_tokens_.push(else_token);
+
+        return std::make_unique<ast::if_stmt>(
+                std::move(if_expr),
+                std::move(if_scope),
+                std::move(else_if_branches),
+                std::move(else_branch));
+    }
+
+    eat();
+    if (current_token_.type == lexer::token_type::if_) {
+        putback_tokens_.push(current_token_);
+        putback_tokens_.push(else_token);
+
+        else_if_branches = parse_else_if_stmts();
+    } else {
+        putback_tokens_.push(current_token_);
+        putback_tokens_.push(else_token);
+    }
+
+    eat();
+    if (current_token_.type != lexer::token_type::else_) {
+        putback_tokens_.push(current_token_);
+
+        return std::make_unique<ast::if_stmt>(
+                std::move(if_expr),
+                std::move(if_scope),
+                std::move(else_if_branches),
+                std::move(else_branch));
+    }
+
+    putback_tokens_.push(current_token_);
+    else_branch = parse_else_stmt();
+
+    return std::make_unique<ast::if_stmt>(
+            std::move(if_expr),
+            std::move(if_scope),
+            std::move(else_if_branches),
+            std::move(else_branch));
+}
+
+std::vector<std::unique_ptr<parser::ast::else_if_stmt>> parser::parser::parse_else_if_stmts() {
+    std::vector<std::unique_ptr<ast::else_if_stmt>> else_if_branches;
+
+    eat();
+    while (has_tokens() && current_token_.type == lexer::token_type::else_) {
+        auto else_token = current_token_;
+        eat();
+        if (current_token_.type != lexer::token_type::if_) {
+            putback_tokens_.push(current_token_);
+            current_token_ = else_token;
+            break;
+        }
+
+        auto else_if_stmt = parse_else_if_stmt();
+        else_if_branches.push_back(std::move(else_if_stmt));
+        eat();
+    }
+
+    putback_tokens_.push(current_token_);
+
+    return else_if_branches;
+}
+
+std::unique_ptr<parser::ast::else_if_stmt> parser::parser::parse_else_if_stmt() {
+    eat();
+    expect(lexer::token_type::l_parenthesis);
+
+    auto else_if_expr = parse_expr();
+
+    eat();
+    expect(lexer::token_type::r_parenthesis);
+
+    auto else_if_scope = parse_scope_stmt();
+
+    return std::make_unique<ast::else_if_stmt>(std::move(else_if_expr), std::move(else_if_scope));
+}
+
+std::unique_ptr<parser::ast::else_stmt> parser::parser::parse_else_stmt() {
+    eat();
+    expect(lexer::token_type::else_);
+
+    auto else_scope = parse_scope_stmt();
+
+    return std::make_unique<ast::else_stmt>(std::move(else_scope));
 }
 
 std::unique_ptr<parser::ast::scope_stmt> parser::parser::parse_scope_stmt() {

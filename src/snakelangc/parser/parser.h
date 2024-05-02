@@ -17,6 +17,7 @@
 #include "ast/stmts/call_stmt.h"
 #include "ast/exprs/identifier_expr.h"
 #include "ast/stmts/assignment_stmt.h"
+#include "ast/stmts/if_stmt.h"
 
 namespace parser {
 
@@ -65,6 +66,10 @@ namespace parser {
         std::vector<ast::func_param> parse_func_params();
         ast::func_param parse_func_param();
         std::unique_ptr<ast::stmt> parse_stmt();
+        std::unique_ptr<ast::if_stmt> parse_if_stmt();
+        std::vector<std::unique_ptr<ast::else_if_stmt>> parse_else_if_stmts();
+        std::unique_ptr<ast::else_if_stmt> parse_else_if_stmt();
+        std::unique_ptr<ast::else_stmt> parse_else_stmt();
         std::unique_ptr<ast::scope_stmt> parse_scope_stmt();
         std::unique_ptr<ast::let_stmt> parse_let_stmt(bool is_static);
         std::unique_ptr<ast::assignment_stmt> parse_assignment_stmt();
