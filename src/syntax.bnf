@@ -31,7 +31,7 @@
 
 <breakall_statement> ::= "brekall"
 
-<break_statement> ::= "break" <decimal_number>?
+<break_statement> ::= "break" <integer_expression>?
 
 <do_while_statement> ::= "do" <scope_statement> "while" <parenthesis_expression> ";"
 
