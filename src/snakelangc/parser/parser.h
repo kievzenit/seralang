@@ -18,6 +18,8 @@
 #include "ast/exprs/identifier_expr.h"
 #include "ast/stmts/assignment_stmt.h"
 #include "ast/stmts/if_stmt.h"
+#include "ast/stmts/while_stmt.h"
+#include "ast/stmts/do_while_stmt.h"
 
 namespace parser {
 
@@ -70,6 +72,8 @@ namespace parser {
         std::vector<std::unique_ptr<ast::else_if_stmt>> parse_else_if_stmts();
         std::unique_ptr<ast::else_if_stmt> parse_else_if_stmt();
         std::unique_ptr<ast::else_stmt> parse_else_stmt();
+        std::unique_ptr<ast::while_stmt> parse_while_stmt();
+        std::unique_ptr<ast::do_while_stmt> parse_do_while_stmt();
         std::unique_ptr<ast::scope_stmt> parse_scope_stmt();
         std::unique_ptr<ast::let_stmt> parse_let_stmt(bool is_static);
         std::unique_ptr<ast::assignment_stmt> parse_assignment_stmt();

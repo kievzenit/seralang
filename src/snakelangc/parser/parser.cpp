@@ -214,6 +214,10 @@ std::unique_ptr<parser::ast::stmt> parser::parser::parse_stmt() {
             return parse_assignment_stmt();
         case lexer::token_type::if_:
             return parse_if_stmt();
+        case lexer::token_type::while_:
+            return parse_while_stmt();
+        case lexer::token_type::do_:
+            return parse_do_while_stmt();
         default:
             utils::log_error("Unexpected statement got, exiting with error.");
             __builtin_unreachable();
@@ -324,6 +328,31 @@ std::unique_ptr<parser::ast::else_stmt> parser::parser::parse_else_stmt() {
     return std::make_unique<ast::else_stmt>(std::move(else_scope));
 }
 
+std::unique_ptr<parser::ast::while_stmt> parser::parser::parse_while_stmt() {
+    expect(lexer::token_type::while_);
+
+    auto condition_expr = parse_parenthesis_expr();
+    auto while_scope = parse_scope_stmt();
+
+    return std::make_unique<ast::while_stmt>(std::move(condition_expr), std::move(while_scope));
+}
+
+std::unique_ptr<parser::ast::do_while_stmt> parser::parser::parse_do_while_stmt() {
+    expect(lexer::token_type::do_);
+
+    auto do_while_scope = parse_scope_stmt();
+
+    eat();
+    expect(lexer::token_type::while_);
+
+    auto condition_expr = parse_parenthesis_expr();
+
+    eat();
+    expect(lexer::token_type::semicolon);
+
+    return std::make_unique<ast::do_while_stmt>(std::move(condition_expr), std::move(do_while_scope));
+}
+
 std::unique_ptr<parser::ast::scope_stmt> parser::parser::parse_scope_stmt() {
     eat();
     expect(lexer::token_type::l_curly_brace);
@@ -423,7 +452,9 @@ std::unique_ptr<parser::ast::expr> parser::parser::parse_primary_expr() {
         case lexer::token_type::number: return parse_integer_expr();
         case lexer::token_type::boolean: return parse_boolean_expr();
         case lexer::token_type::identifier: return parse_identifier_expr();
-        case lexer::token_type::l_parenthesis: return parse_parenthesis_expr();
+        case lexer::token_type::l_parenthesis:
+            putback_tokens_.push(current_token_);
+            return parse_parenthesis_expr();
         default:
             unexpected_token_error();
             __builtin_unreachable();
@@ -431,6 +462,7 @@ std::unique_ptr<parser::ast::expr> parser::parser::parse_primary_expr() {
 }
 
 std::unique_ptr<parser::ast::expr> parser::parser::parse_parenthesis_expr() {
+    eat();
     expect(lexer::token_type::l_parenthesis);
 
     auto expr = parse_expr();
