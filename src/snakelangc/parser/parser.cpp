@@ -222,6 +222,8 @@ std::unique_ptr<parser::ast::stmt> parser::parser::parse_stmt() {
             return parse_break_stmt();
         case lexer::token_type::breakall:
             return parse_breakall_stmt();
+        case lexer::token_type::continue_:
+            return parse_continue_stmt();
         default:
             utils::log_error("Unexpected statement got, exiting with error.");
             __builtin_unreachable();
@@ -450,6 +452,15 @@ std::unique_ptr<parser::ast::breakall_stmt> parser::parser::parse_breakall_stmt(
     expect(lexer::token_type::semicolon);
 
     return std::make_unique<ast::breakall_stmt>();
+}
+
+std::unique_ptr<parser::ast::continue_stmt> parser::parser::parse_continue_stmt() {
+    expect(lexer::token_type::continue_);
+
+    eat();
+    expect(lexer::token_type::semicolon);
+
+    return std::make_unique<ast::continue_stmt>();
 }
 
 std::unique_ptr<parser::ast::expr> parser::parser::parse_expr() {
