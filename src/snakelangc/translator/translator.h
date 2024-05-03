@@ -28,6 +28,8 @@
 #include "../emitter/ir/stmts/if_stmt_ir.h"
 #include "../emitter/ir/stmts/whille_stmt_ir.h"
 #include "../emitter/ir/stmts/do_while_stmt_ir.h"
+#include "../emitter/ir/stmts/break_stmt_ir.h"
+#include "../emitter/ir/stmts/breakall_stmt_ir.h"
 
 namespace translator {
 
@@ -54,6 +56,10 @@ namespace translator {
         llvm::BasicBlock* current_block_ = nullptr;
         llvm::BasicBlock* priv_block_ = nullptr;
         llvm::BasicBlock* next_block_ = nullptr;
+        llvm::BasicBlock* break_to_block_ = nullptr;
+
+        bool generating_br_from_loop = false;
+
         llvm::Function* current_function_ = nullptr;
 
         emitter::ir::scope_stmt_ir* current_scope_ = nullptr;
@@ -80,6 +86,8 @@ namespace translator {
         void translate_assignment_stmt(emitter::ir::assignment_stmt_ir* assignment_stmt);
         void translate_call_stmt(emitter::ir::call_stmt_ir* call_stmt);
         void translate_return_stmt(emitter::ir::return_stmt_ir* return_ir);
+        void translate_break_stmt();
+        void translate_breakall_stmt();
 
         llvm::Value* translate_expr(emitter::ir::expr_ir* expr);
         llvm::Constant* translate_int_expr(emitter::ir::integer_expr_ir* integer_expr);

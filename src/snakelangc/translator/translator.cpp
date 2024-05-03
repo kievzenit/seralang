@@ -287,6 +287,16 @@ void translator::translator::translate_stmt(std::unique_ptr<emitter::ir::stmt_ir
         return;
     }
 
+    if (dynamic_cast<emitter::ir::break_stmt_ir*>(stmt_ir.get()) != nullptr) {
+        translate_break_stmt();
+        return;
+    }
+
+    if (dynamic_cast<emitter::ir::breakall_stmt_ir*>(stmt_ir.get()) != nullptr) {
+        translate_breakall_stmt();
+        return;
+    }
+
     utils::log_error("Unsupported statement type encountered, this should never happen!");
 }
 
@@ -326,9 +336,13 @@ void translator::translator::translate_if_stmt(emitter::ir::if_stmt_ir *if_stmt)
     next_block_ = current_else_block;
     translate_scope_stmt(if_stmt->scope.get());
 
-    builder_->SetInsertPoint(current_block_);
-    builder_->CreateBr(after_if_block);
-    builder_->ClearInsertionPoint();
+    if (!generating_br_from_loop) {
+        builder_->SetInsertPoint(current_block_);
+        builder_->CreateBr(after_if_block);
+        builder_->ClearInsertionPoint();
+    } else {
+        generating_br_from_loop = false;
+    }
 
     next_block_ = after_if_block;
 
@@ -358,10 +372,14 @@ void translator::translator::translate_if_stmt(emitter::ir::if_stmt_ir *if_stmt)
         next_block_ = after_if_block;
         translate_scope_stmt(else_if_stmt->scope.get());
 
-        current_block_ = current_if_block;
-        builder_->SetInsertPoint(current_block_);
-        builder_->CreateBr(after_if_block);
-        builder_->ClearInsertionPoint();
+        if (!generating_br_from_loop) {
+            current_block_ = current_if_block;
+            builder_->SetInsertPoint(current_block_);
+            builder_->CreateBr(after_if_block);
+            builder_->ClearInsertionPoint();
+        } else {
+            generating_br_from_loop = false;
+        }
     }
 
     if (if_stmt->else_branch) {
@@ -370,10 +388,14 @@ void translator::translator::translate_if_stmt(emitter::ir::if_stmt_ir *if_stmt)
         translate_scope_stmt(if_stmt->else_branch->scope.get());
     }
 
-    current_block_ = current_else_block;
-    builder_->SetInsertPoint(current_block_);
-    builder_->CreateBr(after_if_block);
-    builder_->ClearInsertionPoint();
+    if (!generating_br_from_loop) {
+        current_block_ = current_else_block;
+        builder_->SetInsertPoint(current_block_);
+        builder_->CreateBr(after_if_block);
+        builder_->ClearInsertionPoint();
+    } else {
+        generating_br_from_loop = false;
+    }
 
     current_block_ = after_if_block;
     next_block_ = nullptr;
@@ -388,6 +410,8 @@ void translator::translator::translate_while_stmt(emitter::ir::while_stmt_ir *wh
             *context_, "while_body", current_function_, next_block_);
     auto after_while_block = BasicBlock::Create(
             *context_, "after_while", current_function_, next_block_);
+    auto priv_break_to_block = break_to_block_;
+    break_to_block_ = after_while_block;
 
     builder_->SetInsertPoint(current_block_);
     builder_->CreateBr(condition_block);
@@ -402,11 +426,16 @@ void translator::translator::translate_while_stmt(emitter::ir::while_stmt_ir *wh
     next_block_ = after_while_block;
     translate_scope_stmt(while_stmt->scope.get());
 
-    builder_->SetInsertPoint(current_block_);
-    builder_->CreateBr(condition_block);
+    if (!generating_br_from_loop) {
+        builder_->SetInsertPoint(current_block_);
+        builder_->CreateBr(condition_block);
+    } else {
+        generating_br_from_loop = false;
+    }
 
     current_block_ = after_while_block;
     next_block_ = nullptr;
+    break_to_block_ = priv_break_to_block;
 
     builder_->ClearInsertionPoint();
 }
@@ -420,6 +449,8 @@ void translator::translator::translate_do_while_stmt(emitter::ir::do_while_stmt_
             *context_, "do_while_cond", current_function_, next_block_);
     auto after_do_while_block = BasicBlock::Create(
             *context_, "after_do_while", current_function_, next_block_);
+    auto priv_break_to_block = break_to_block_;
+    break_to_block_ = after_do_while_block;
 
     builder_->SetInsertPoint(current_block_);
     builder_->CreateBr(do_while_block);
@@ -427,6 +458,13 @@ void translator::translator::translate_do_while_stmt(emitter::ir::do_while_stmt_
     current_block_ = do_while_block;
     next_block_ = condition_block;
     translate_scope_stmt(do_while_stmt->scope.get());
+
+    if (!generating_br_from_loop) {
+        builder_->SetInsertPoint(current_block_);
+        builder_->CreateBr(condition_block);
+    } else {
+        generating_br_from_loop = false;
+    }
 
     builder_->SetInsertPoint(current_block_);
     builder_->CreateBr(condition_block);
@@ -439,6 +477,7 @@ void translator::translator::translate_do_while_stmt(emitter::ir::do_while_stmt_
 
     current_block_ = after_do_while_block;
     next_block_ = nullptr;
+    break_to_block_ = priv_break_to_block;
 
     builder_->ClearInsertionPoint();
 }
@@ -489,6 +528,20 @@ void translator::translator::translate_return_stmt(emitter::ir::return_stmt_ir* 
     auto expr_result = translate_expr(return_ir->expr.get());
     builder_->CreateRet(expr_result);
 
+    builder_->ClearInsertionPoint();
+}
+
+void translator::translator::translate_break_stmt() {
+    builder_->SetInsertPoint(current_block_);
+    generating_br_from_loop = true;
+    builder_->CreateBr(break_to_block_);
+    builder_->ClearInsertionPoint();
+}
+
+void translator::translator::translate_breakall_stmt() {
+    builder_->SetInsertPoint(current_block_);
+    generating_br_from_loop = true;
+    builder_->CreateBr(break_to_block_);
     builder_->ClearInsertionPoint();
 }
 
@@ -800,3 +853,4 @@ llvm::Value *translator::translator::translate_downcast_expr(emitter::ir::downca
      utils::log_error("Downcasting non-basic types is not supported for now.");
     __builtin_unreachable();
 }
+
