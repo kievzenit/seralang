@@ -39,6 +39,10 @@
 #include "../parser/ast/stmts/if_stmt.h"
 #include "ir/stmts/else_if_stmt_ir.h"
 #include "ir/stmts/else_stmt_ir.h"
+#include "ir/stmts/if_stmt_ir.h"
+#include "ir/stmts/whille_stmt_ir.h"
+#include "../parser/ast/stmts/while_stmt.h"
+#include "../parser/ast/stmts/do_while_stmt.h"
 
 namespace emitter {
 
@@ -99,6 +103,8 @@ namespace emitter {
         emit_for_else_if_stmts(std::vector<std::unique_ptr<parser::ast::else_if_stmt>> else_if_branches);
         std::unique_ptr<ir::else_if_stmt_ir> emit_for_else_if_stmt(parser::ast::else_if_stmt* else_if_stmt);
         std::unique_ptr<ir::else_stmt_ir> emit_for_else_stmt(parser::ast::else_stmt* else_stmt);
+        void emit_for_while_stmt(parser::ast::while_stmt* while_stmt);
+        void emit_for_do_while_stmt(parser::ast::do_while_stmt* do_while_stmt);
         void emit_for_let_stmt(parser::ast::let_stmt* let_stmt);
         void emit_for_assignment_stmt(parser::ast::assignment_stmt* assignment_stmt);
         void emit_for_call_stmt(parser::ast::call_stmt* call_stmt);

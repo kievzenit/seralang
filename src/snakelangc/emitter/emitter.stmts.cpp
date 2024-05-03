@@ -1,9 +1,18 @@
 #include "emitter.h"
-#include "ir/stmts/if_stmt_ir.h"
 
 void emitter::emitter::emit_for_stmt(std::unique_ptr<parser::ast::stmt> stmt) {
     if (dynamic_cast<parser::ast::if_stmt*>(stmt.get()) != nullptr) {
         emit_for_if_stmt(dynamic_cast<parser::ast::if_stmt*>(stmt.get()));
+        return;
+    }
+
+    if (dynamic_cast<parser::ast::while_stmt*>(stmt.get()) != nullptr) {
+        emit_for_while_stmt(dynamic_cast<parser::ast::while_stmt*>(stmt.get()));
+        return;
+    }
+
+    if (dynamic_cast<parser::ast::do_while_stmt*>(stmt.get()) != nullptr) {
+        emit_for_do_while_stmt(dynamic_cast<parser::ast::do_while_stmt*>(stmt.get()));
         return;
     }
 
@@ -99,6 +108,34 @@ emitter::emitter::emit_for_else_if_stmt(parser::ast::else_if_stmt *else_if_stmt)
 std::unique_ptr<emitter::ir::else_stmt_ir> emitter::emitter::emit_for_else_stmt(parser::ast::else_stmt *else_stmt) {
     auto else_scope = emit_for_scope_stmt(else_stmt->scope.get());
     return std::make_unique<ir::else_stmt_ir>(std::move(else_scope));
+}
+
+void emitter::emitter::emit_for_while_stmt(parser::ast::while_stmt *while_stmt) {
+    auto condition_expr = emit_for_cast(
+            emit_for_expr(std::move(while_stmt->condition)),
+            types_["bool"]);
+
+    auto scope = emit_for_scope_stmt(while_stmt->scope.get());
+
+    auto while_stmt_ir = std::make_unique<ir::while_stmt_ir>(
+            std::move(condition_expr),
+            std::move(scope));
+
+    current_scope_->inner_stmts.push_back(std::move(while_stmt_ir));
+}
+
+void emitter::emitter::emit_for_do_while_stmt(parser::ast::do_while_stmt *do_while_stmt) {
+    auto scope = emit_for_scope_stmt(do_while_stmt->scope.get());
+
+    auto condition_expr = emit_for_cast(
+            emit_for_expr(std::move(do_while_stmt->condition)),
+            types_["bool"]);
+
+    auto while_stmt_ir = std::make_unique<ir::while_stmt_ir>(
+            std::move(condition_expr),
+            std::move(scope));
+
+    current_scope_->inner_stmts.push_back(std::move(while_stmt_ir));
 }
 
 void emitter::emitter::emit_for_let_stmt(parser::ast::let_stmt *let_stmt) {
