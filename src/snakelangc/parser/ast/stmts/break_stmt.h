@@ -5,7 +5,13 @@
 
 namespace parser::ast {
 
-    class break_stmt : public stmt {};
+    class break_stmt : public stmt {
+    public:
+        break_stmt() = default;
+        explicit break_stmt(std::unique_ptr<expr> break_expr) : break_expr(std::move(break_expr)) {}
+
+        std::unique_ptr<expr> break_expr;
+    };
 
 }
 

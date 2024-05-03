@@ -440,9 +440,17 @@ std::unique_ptr<parser::ast::break_stmt> parser::parser::parse_break_stmt() {
     expect(lexer::token_type::break_);
 
     eat();
+    if (current_token_.type == lexer::token_type::semicolon) {
+        return std::make_unique<ast::break_stmt>();
+    }
+
+    putback_tokens_.push(current_token_);
+    auto break_expr = parse_expr();
+
+    eat();
     expect(lexer::token_type::semicolon);
 
-    return std::make_unique<ast::break_stmt>();
+    return std::make_unique<ast::break_stmt>(std::move(break_expr));
 }
 
 std::unique_ptr<parser::ast::breakall_stmt> parser::parser::parse_breakall_stmt() {
