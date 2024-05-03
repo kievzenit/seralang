@@ -288,7 +288,7 @@ void translator::translator::translate_stmt(std::unique_ptr<emitter::ir::stmt_ir
     }
 
     if (dynamic_cast<emitter::ir::break_stmt_ir*>(stmt_ir.get()) != nullptr) {
-        translate_break_stmt();
+        translate_break_stmt(dynamic_cast<emitter::ir::break_stmt_ir*>(stmt_ir.get()));
         return;
     }
 
@@ -425,6 +425,7 @@ void translator::translator::translate_while_stmt(emitter::ir::while_stmt_ir *wh
 
     auto priv_break_to_block = break_to_block_;
     break_to_block_ = after_while_block;
+    break_to_blocks_.push_back(break_to_block_);
     auto priv_continue_to_block = continue_to_block_;
     continue_to_block_ = condition_block;
 
@@ -449,6 +450,7 @@ void translator::translator::translate_while_stmt(emitter::ir::while_stmt_ir *wh
     }
 
     current_block_ = after_while_block;
+    break_to_blocks_.erase(break_to_blocks_.begin() + inner_loops_);
     break_to_block_ = priv_break_to_block;
     continue_to_block_ = priv_continue_to_block;
 
@@ -479,6 +481,7 @@ void translator::translator::translate_do_while_stmt(emitter::ir::do_while_stmt_
 
     auto priv_break_to_block = break_to_block_;
     break_to_block_ = after_do_while_block;
+    break_to_blocks_.push_back(break_to_block_);
     auto priv_continue_to_block = continue_to_block_;
     continue_to_block_ = condition_block;
 
@@ -503,6 +506,7 @@ void translator::translator::translate_do_while_stmt(emitter::ir::do_while_stmt_
     builder_->CreateCondBr(condition, do_while_block, after_do_while_block);
 
     current_block_ = after_do_while_block;
+    break_to_blocks_.erase(break_to_blocks_.begin() + inner_loops_);
     break_to_block_ = priv_break_to_block;
     continue_to_block_ = priv_continue_to_block;
 
@@ -564,10 +568,49 @@ void translator::translator::translate_return_stmt(emitter::ir::return_stmt_ir* 
     builder_->ClearInsertionPoint();
 }
 
-void translator::translator::translate_break_stmt() {
+void translator::translator::translate_break_stmt(emitter::ir::break_stmt_ir* break_stmt) {
     builder_->SetInsertPoint(current_block_);
     generating_br_from_loop_ = true;
-    builder_->CreateBr(break_to_block_);
+
+    if (!break_stmt->break_expr) {
+        builder_->CreateBr(break_to_block_);
+    } else {
+        using namespace llvm;
+
+        auto break_expr_block = BasicBlock::Create(
+                *context_, "break_expr", current_function_, next_block_);
+        builder_->SetInsertPoint(current_block_);
+        builder_->CreateBr(break_expr_block);
+        builder_->ClearInsertionPoint();
+
+        std::vector<BasicBlock*> break_conds;
+        for (int i = 0; i < break_to_blocks_.size(); i++) {
+            auto break_cond = BasicBlock::Create(
+                    *context_, "break_cond", current_function_, next_block_);
+            break_conds.push_back(break_cond);
+
+            builder_->SetInsertPoint(break_cond);
+            auto current_break_to_block = break_to_blocks_[break_to_blocks_.size() - (i + 1)];
+            builder_->CreateBr(current_break_to_block);
+            builder_->ClearInsertionPoint();
+        }
+
+        current_block_ = break_expr_block;
+        next_block_ = break_conds[0];
+        builder_->SetInsertPoint(current_block_);
+
+        auto break_expr = translate_expr(break_stmt->break_expr.get());
+        auto switch_inst = builder_->CreateSwitch(break_expr, breakall_to_block_, break_conds.size());
+        for (int i = 0; i < break_conds.size(); i++) {
+            auto break_cond = break_conds[i];
+            switch_inst->addCase(
+                    ConstantInt::get(Type::getInt32Ty(*context_), i + 1),
+                    break_cond);
+        }
+
+        builder_->ClearInsertionPoint();
+    }
+
     builder_->ClearInsertionPoint();
 }
 

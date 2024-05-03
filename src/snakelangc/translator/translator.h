@@ -59,6 +59,7 @@ namespace translator {
         llvm::BasicBlock* next_block_ = nullptr;
 
         llvm::BasicBlock* break_to_block_ = nullptr;
+        std::vector<llvm::BasicBlock*> break_to_blocks_;
         llvm::BasicBlock* breakall_to_block_ = nullptr;
         llvm::BasicBlock* continue_to_block_ = nullptr;
 
@@ -91,7 +92,7 @@ namespace translator {
         void translate_assignment_stmt(emitter::ir::assignment_stmt_ir* assignment_stmt);
         void translate_call_stmt(emitter::ir::call_stmt_ir* call_stmt);
         void translate_return_stmt(emitter::ir::return_stmt_ir* return_ir);
-        void translate_break_stmt();
+        void translate_break_stmt(emitter::ir::break_stmt_ir* break_stmt);
         void translate_breakall_stmt();
         void translate_continue_stmt();
 
