@@ -312,13 +312,13 @@ void translator::translator::translate_if_stmt(emitter::ir::if_stmt_ir *if_stmt)
 
     builder_->SetInsertPoint(current_block_);
     builder_->CreateBr(current_cond_block);
+    builder_->ClearInsertionPoint();
 
     current_block_ = current_cond_block;
     next_block_ = current_if_block;
-    builder_->SetInsertPoint(current_block_);
-    auto condition = translate_expr(if_stmt->if_expr.get());
 
     builder_->SetInsertPoint(current_block_);
+    auto condition = translate_expr(if_stmt->if_expr.get());
     builder_->CreateCondBr(condition, current_if_block, current_else_block);
     builder_->ClearInsertionPoint();
 
@@ -326,7 +326,6 @@ void translator::translator::translate_if_stmt(emitter::ir::if_stmt_ir *if_stmt)
     next_block_ = current_else_block;
     translate_scope_stmt(if_stmt->scope.get());
 
-    current_block_ = current_if_block;
     builder_->SetInsertPoint(current_block_);
     builder_->CreateBr(after_if_block);
     builder_->ClearInsertionPoint();
@@ -335,23 +334,25 @@ void translator::translator::translate_if_stmt(emitter::ir::if_stmt_ir *if_stmt)
 
     for (auto& else_if_stmt : if_stmt->else_if_branches) {
         current_block_ = current_else_block;
-        builder_->SetInsertPoint(current_block_);
 
         current_cond_block = BasicBlock::Create(
                 *context_, "if_cond", current_function_, next_block_);
-        builder_->CreateBr(current_cond_block);
-
         current_if_block = BasicBlock::Create(
                 *context_, "if_body", current_function_, next_block_);
         current_else_block = BasicBlock::Create(
                 *context_, "else_body", current_function_, next_block_);
 
+        builder_->SetInsertPoint(current_block_);
+        builder_->CreateBr(current_cond_block);
+        builder_->ClearInsertionPoint();
+
         current_block_ = current_cond_block;
         next_block_ = current_if_block;
-        builder_->SetInsertPoint(current_block_);
 
+        builder_->SetInsertPoint(current_block_);
         condition = translate_expr(else_if_stmt->if_expr.get());
         builder_->CreateCondBr(condition, current_if_block, current_else_block);
+        builder_->ClearInsertionPoint();
 
         current_block_ = current_if_block;
         next_block_ = after_if_block;
@@ -360,7 +361,6 @@ void translator::translator::translate_if_stmt(emitter::ir::if_stmt_ir *if_stmt)
         current_block_ = current_if_block;
         builder_->SetInsertPoint(current_block_);
         builder_->CreateBr(after_if_block);
-
         builder_->ClearInsertionPoint();
     }
 
@@ -373,11 +373,10 @@ void translator::translator::translate_if_stmt(emitter::ir::if_stmt_ir *if_stmt)
     current_block_ = current_else_block;
     builder_->SetInsertPoint(current_block_);
     builder_->CreateBr(after_if_block);
+    builder_->ClearInsertionPoint();
 
     current_block_ = after_if_block;
     next_block_ = nullptr;
-
-    builder_->ClearInsertionPoint();
 }
 
 void translator::translator::translate_while_stmt(emitter::ir::while_stmt_ir *while_stmt) {
