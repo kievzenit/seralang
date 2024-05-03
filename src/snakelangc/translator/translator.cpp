@@ -631,6 +631,7 @@ llvm::Value *translator::translator::translate_logical_expr(emitter::ir::logical
 
         current_block_ = logical_left_block;
         priv_block_ = current_block_;
+        next_block_ = logical_right_block;
 
         builder_->SetInsertPoint(current_block_);
 
@@ -670,6 +671,7 @@ llvm::Value *translator::translator::translate_logical_expr(emitter::ir::logical
 
         current_block_ = logical_left_block;
         priv_block_ = current_block_;
+        next_block_ = logical_right_block;
 
         builder_->SetInsertPoint(current_block_);
 
