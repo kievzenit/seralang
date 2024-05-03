@@ -20,6 +20,8 @@
 #include "ast/stmts/if_stmt.h"
 #include "ast/stmts/while_stmt.h"
 #include "ast/stmts/do_while_stmt.h"
+#include "ast/stmts/break_stmt.h"
+#include "ast/stmts/breakall_stmt.h"
 
 namespace parser {
 
@@ -79,7 +81,8 @@ namespace parser {
         std::unique_ptr<ast::assignment_stmt> parse_assignment_stmt();
         std::unique_ptr<ast::call_stmt> parse_call_stmt();
         std::unique_ptr<ast::return_stmt> parse_return_stmt();
-
+        std::unique_ptr<ast::break_stmt> parse_break_stmt();
+        std::unique_ptr<ast::breakall_stmt> parse_breakall_stmt();
         std::unique_ptr<ast::expr> parse_expr();
         std::unique_ptr<ast::expr> parse_primary_expr();
         std::unique_ptr<ast::expr> parse_parenthesis_expr();
