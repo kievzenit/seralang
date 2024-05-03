@@ -362,16 +362,6 @@ void translator::translator::translate_if_stmt(emitter::ir::if_stmt_ir *if_stmt)
     builder_->ClearInsertionPoint();
 }
 
-llvm::BasicBlock *translator::translator::translate_else_stmt(emitter::ir::else_stmt_ir *else_stmt) {
-    using namespace llvm;
-
-    auto else_block = BasicBlock::Create(*context_, "else", current_function_);
-    current_block_ = else_block;
-    translate_scope_stmt(else_stmt->scope.get());
-
-    return else_block;
-}
-
 void translator::translator::translate_var_stmt(emitter::ir::variable_ir* variable_ir) {
     builder_->SetInsertPoint(current_allocation_block_);
     auto allocated_var = builder_->CreateAlloca(

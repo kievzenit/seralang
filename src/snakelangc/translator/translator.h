@@ -72,7 +72,6 @@ namespace translator {
         void translate_stmt(std::unique_ptr<emitter::ir::stmt_ir> stmt_ir);
         void translate_scope_stmt(emitter::ir::scope_stmt_ir* scope_ir);
         void translate_if_stmt(emitter::ir::if_stmt_ir* if_stmt);
-        llvm::BasicBlock* translate_else_stmt(emitter::ir::else_stmt_ir* else_stmt);
         void translate_var_stmt(emitter::ir::variable_ir* variable_ir);
         void translate_assignment_stmt(emitter::ir::assignment_stmt_ir* assignment_stmt);
         void translate_call_stmt(emitter::ir::call_stmt_ir* call_stmt);
