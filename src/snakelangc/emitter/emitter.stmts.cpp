@@ -41,6 +41,16 @@ void emitter::emitter::emit_for_stmt(std::unique_ptr<parser::ast::stmt> stmt) {
         return;
     }
 
+    if (dynamic_cast<parser::ast::break_stmt*>(stmt.get()) != nullptr) {
+        emit_for_break_stmt();
+        return;
+    }
+
+    if (dynamic_cast<parser::ast::breakall_stmt*>(stmt.get()) != nullptr) {
+        emit_for_breakall_stmt();
+        return;
+    }
+
     utils::log_error("Unsupported statement encountered, this should never happen!");
     __builtin_unreachable();
 }
@@ -52,6 +62,11 @@ emitter::emitter::emit_for_scope_stmt(parser::ast::scope_stmt* scope_stmt) {
 
     for (auto &stmt : scope_stmt->inner_stmts) {
         emit_for_stmt(std::move(stmt));
+
+        if (break_encountered) {
+            break_encountered = false;
+            break;
+        }
     }
 
     current_scope_ = current_scope_->parent_scope;
@@ -115,7 +130,9 @@ void emitter::emitter::emit_for_while_stmt(parser::ast::while_stmt *while_stmt) 
             emit_for_expr(std::move(while_stmt->condition)),
             types_["bool"]);
 
+    is_inside_loop = true;
     auto scope = emit_for_scope_stmt(while_stmt->scope.get());
+    is_inside_loop = false;
 
     auto while_stmt_ir = std::make_unique<ir::while_stmt_ir>(
             std::move(condition_expr),
@@ -125,7 +142,9 @@ void emitter::emitter::emit_for_while_stmt(parser::ast::while_stmt *while_stmt) 
 }
 
 void emitter::emitter::emit_for_do_while_stmt(parser::ast::do_while_stmt *do_while_stmt) {
+    is_inside_loop = true;
     auto scope = emit_for_scope_stmt(do_while_stmt->scope.get());
+    is_inside_loop = false;
 
     auto condition_expr = emit_for_cast(
             emit_for_expr(std::move(do_while_stmt->condition)),
@@ -242,4 +261,26 @@ void emitter::emitter::emit_for_return_stmt(parser::ast::return_stmt *return_stm
 
     auto return_stmt_ir = std::make_unique<ir::return_stmt_ir>(std::move(cast_result));
     current_scope_->inner_stmts.push_back(std::move(return_stmt_ir));
+}
+
+void emitter::emitter::emit_for_break_stmt() {
+    if (!is_inside_loop) {
+        utils::log_error("Break can be placed only inside loop.");
+    }
+
+    auto break_stmt_ir = std::make_unique<ir::break_stmt_ir>();
+    current_scope_->inner_stmts.push_back(std::move(break_stmt_ir));
+
+    break_encountered = true;
+}
+
+void emitter::emitter::emit_for_breakall_stmt() {
+    if (!is_inside_loop) {
+        utils::log_error("Breakall can be placed only inside loop.");
+    }
+
+    auto breakall_stmt_ir = std::make_unique<ir::breakall_stmt_ir>();
+    current_scope_->inner_stmts.push_back(std::move(breakall_stmt_ir));
+
+    break_encountered = true;
 }

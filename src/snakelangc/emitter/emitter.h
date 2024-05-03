@@ -44,6 +44,10 @@
 #include "ir/stmts/whille_stmt_ir.h"
 #include "../parser/ast/stmts/while_stmt.h"
 #include "../parser/ast/stmts/do_while_stmt.h"
+#include "ir/stmts/break_stmt_ir.h"
+#include "ir/stmts/breakall_stmt_ir.h"
+#include "../parser/ast/stmts/break_stmt.h"
+#include "../parser/ast/stmts/breakall_stmt.h"
 
 namespace emitter {
 
@@ -84,6 +88,9 @@ namespace emitter {
         ir::scope_stmt_ir* current_scope_ = nullptr;
         ir::func_type* current_function_ = nullptr;
 
+        bool is_inside_loop = false;
+        bool break_encountered = false;
+
         void find_globals();
 
         bool is_identifier_is_func_argument(const std::string& name);
@@ -110,6 +117,8 @@ namespace emitter {
         void emit_for_assignment_stmt(parser::ast::assignment_stmt* assignment_stmt);
         void emit_for_call_stmt(parser::ast::call_stmt* call_stmt);
         void emit_for_return_stmt(parser::ast::return_stmt* return_stmt);
+        void emit_for_break_stmt();
+        void emit_for_breakall_stmt();
 
         std::unique_ptr<ir::expr_ir> emit_for_expr(std::unique_ptr<parser::ast::expr> expr);
 
