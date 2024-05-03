@@ -57,8 +57,10 @@ namespace translator {
         llvm::BasicBlock* priv_block_ = nullptr;
         llvm::BasicBlock* next_block_ = nullptr;
         llvm::BasicBlock* break_to_block_ = nullptr;
+        llvm::BasicBlock* breakall_to_block_ = nullptr;
 
         bool generating_br_from_loop = false;
+        int inner_loops = -1;
 
         llvm::Function* current_function_ = nullptr;
 

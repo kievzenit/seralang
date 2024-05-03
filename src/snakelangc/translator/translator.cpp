@@ -404,12 +404,19 @@ void translator::translator::translate_if_stmt(emitter::ir::if_stmt_ir *if_stmt)
 void translator::translator::translate_while_stmt(emitter::ir::while_stmt_ir *while_stmt) {
     using namespace llvm;
 
+    inner_loops++;
+
     auto condition_block = BasicBlock::Create(
             *context_, "while_cond", current_function_, next_block_);
     auto while_block = BasicBlock::Create(
             *context_, "while_body", current_function_, next_block_);
     auto after_while_block = BasicBlock::Create(
             *context_, "after_while", current_function_, next_block_);
+
+    if (inner_loops == 0) {
+        breakall_to_block_ = after_while_block;
+    }
+
     auto priv_break_to_block = break_to_block_;
     break_to_block_ = after_while_block;
 
@@ -437,11 +444,19 @@ void translator::translator::translate_while_stmt(emitter::ir::while_stmt_ir *wh
     next_block_ = nullptr;
     break_to_block_ = priv_break_to_block;
 
+    if (inner_loops == 0) {
+        breakall_to_block_ = nullptr;
+    }
+
+    inner_loops--;
+
     builder_->ClearInsertionPoint();
 }
 
 void translator::translator::translate_do_while_stmt(emitter::ir::do_while_stmt_ir *do_while_stmt) {
     using namespace llvm;
+
+    inner_loops++;
 
     auto do_while_block = BasicBlock::Create(
             *context_, "do_while_body", current_function_, next_block_);
@@ -449,6 +464,11 @@ void translator::translator::translate_do_while_stmt(emitter::ir::do_while_stmt_
             *context_, "do_while_cond", current_function_, next_block_);
     auto after_do_while_block = BasicBlock::Create(
             *context_, "after_do_while", current_function_, next_block_);
+
+    if (inner_loops == 0) {
+        breakall_to_block_ = after_do_while_block;
+    }
+
     auto priv_break_to_block = break_to_block_;
     break_to_block_ = after_do_while_block;
 
@@ -478,6 +498,12 @@ void translator::translator::translate_do_while_stmt(emitter::ir::do_while_stmt_
     current_block_ = after_do_while_block;
     next_block_ = nullptr;
     break_to_block_ = priv_break_to_block;
+
+    if (inner_loops == 0) {
+        breakall_to_block_ = nullptr;
+    }
+
+    inner_loops--;
 
     builder_->ClearInsertionPoint();
 }
@@ -541,7 +567,7 @@ void translator::translator::translate_break_stmt() {
 void translator::translator::translate_breakall_stmt() {
     builder_->SetInsertPoint(current_block_);
     generating_br_from_loop = true;
-    builder_->CreateBr(break_to_block_);
+    builder_->CreateBr(breakall_to_block_);
     builder_->ClearInsertionPoint();
 }
 
