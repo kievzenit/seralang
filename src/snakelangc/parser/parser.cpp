@@ -225,14 +225,9 @@ std::unique_ptr<parser::ast::stmt> parser::parser::parse_stmt() {
 }
 
 std::unique_ptr<parser::ast::if_stmt> parser::parser::parse_if_stmt() {
-    eat();
-    expect(lexer::token_type::l_parenthesis);
+    expect(lexer::token_type::if_);
 
-    auto if_expr = parse_expr();
-
-    eat();
-    expect(lexer::token_type::r_parenthesis);
-
+    auto if_expr = parse_parenthesis_expr();
     auto if_scope = parse_scope_stmt();
 
     std::vector<std::unique_ptr<ast::else_if_stmt>> else_if_branches;
@@ -306,14 +301,9 @@ std::vector<std::unique_ptr<parser::ast::else_if_stmt>> parser::parser::parse_el
 }
 
 std::unique_ptr<parser::ast::else_if_stmt> parser::parser::parse_else_if_stmt() {
-    eat();
-    expect(lexer::token_type::l_parenthesis);
+    expect(lexer::token_type::if_);
 
-    auto else_if_expr = parse_expr();
-
-    eat();
-    expect(lexer::token_type::r_parenthesis);
-
+    auto else_if_expr = parse_parenthesis_expr();
     auto else_if_scope = parse_scope_stmt();
 
     return std::make_unique<ast::else_if_stmt>(std::move(else_if_expr), std::move(else_if_scope));
