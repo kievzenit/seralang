@@ -13,6 +13,9 @@
     | <let_statement>
     | <scope_statement>
     | <assignment_statement>
+    | <continue_statement>
+    | <breakall_statement>
+    | <break_statement>
 
 <type_denotation> ::= ":" <basic_type>
 
@@ -23,6 +26,12 @@
 
 <func_prototype_decl_statement> ::= "extern" <func_decl> ";"
 <func_decl_statement> ::= <func_decl> <scope_statement>
+
+<continue_statement> ::= "continue"
+
+<breakall_statement> ::= "brekall"
+
+<break_statement> ::= "break" <decimal_number>?
 
 <do_while_statement> ::= "do" <scope_statement> "while" <parenthesis_expression> ";"
 
