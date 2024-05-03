@@ -252,6 +252,16 @@ void translator::translator::translate_stmt(std::unique_ptr<emitter::ir::stmt_ir
         return;
     }
 
+    if (dynamic_cast<emitter::ir::while_stmt_ir*>(stmt_ir.get()) != nullptr) {
+        translate_while_stmt(dynamic_cast<emitter::ir::while_stmt_ir*>(stmt_ir.get()));
+        return;
+    }
+
+    if (dynamic_cast<emitter::ir::do_while_stmt_ir*>(stmt_ir.get()) != nullptr) {
+        translate_do_while_stmt(dynamic_cast<emitter::ir::do_while_stmt_ir*>(stmt_ir.get()));
+        return;
+    }
+
     if (dynamic_cast<emitter::ir::scope_stmt_ir*>(stmt_ir.get()) != nullptr) {
         translate_scope_stmt(dynamic_cast<emitter::ir::scope_stmt_ir*>(stmt_ir.get()));
         return;
@@ -336,9 +346,8 @@ void translator::translator::translate_if_stmt(emitter::ir::if_stmt_ir *if_stmt)
         condition = translate_expr(else_if_stmt->if_expr.get());
         builder_->CreateCondBr(condition, current_if_block, current_else_block);
 
-        next_block_ = nullptr;
-
         current_block_ = current_if_block;
+        next_block_ = after_if_block;
         translate_scope_stmt(else_if_stmt->scope.get());
 
         current_block_ = current_if_block;
@@ -358,6 +367,70 @@ void translator::translator::translate_if_stmt(emitter::ir::if_stmt_ir *if_stmt)
     builder_->CreateBr(after_if_block);
 
     current_block_ = after_if_block;
+
+    builder_->ClearInsertionPoint();
+}
+
+void translator::translator::translate_while_stmt(emitter::ir::while_stmt_ir *while_stmt) {
+    using namespace llvm;
+
+    auto condition_block = BasicBlock::Create(
+            *context_, "while_cond", current_function_, next_block_);
+    auto while_block = BasicBlock::Create(
+            *context_, "while_body", current_function_, next_block_);
+    auto after_while_block = BasicBlock::Create(
+            *context_, "after_while", current_function_, next_block_);
+
+    builder_->SetInsertPoint(current_block_);
+    builder_->CreateBr(condition_block);
+
+    current_block_ = condition_block;
+    next_block_ = while_block;
+    builder_->SetInsertPoint(current_block_);
+    auto condition = translate_expr(while_stmt->condition.get());
+    builder_->CreateCondBr(condition, while_block, after_while_block);
+
+    current_block_ = while_block;
+    next_block_ = after_while_block;
+    translate_scope_stmt(while_stmt->scope.get());
+
+    builder_->SetInsertPoint(current_block_);
+    builder_->CreateBr(condition_block);
+
+    current_block_ = after_while_block;
+    next_block_ = nullptr;
+
+    builder_->ClearInsertionPoint();
+}
+
+void translator::translator::translate_do_while_stmt(emitter::ir::do_while_stmt_ir *do_while_stmt) {
+    using namespace llvm;
+
+    auto do_while_block = BasicBlock::Create(
+            *context_, "do_while_body", current_function_, next_block_);
+    auto condition_block = BasicBlock::Create(
+            *context_, "do_while_cond", current_function_, next_block_);
+    auto after_do_while_block = BasicBlock::Create(
+            *context_, "after_do_while", current_function_, next_block_);
+
+    builder_->SetInsertPoint(current_block_);
+    builder_->CreateBr(do_while_block);
+
+    current_block_ = do_while_block;
+    next_block_ = condition_block;
+    translate_scope_stmt(do_while_stmt->scope.get());
+
+    builder_->SetInsertPoint(current_block_);
+    builder_->CreateBr(condition_block);
+
+    current_block_ = condition_block;
+    next_block_ = after_do_while_block;
+    builder_->SetInsertPoint(current_block_);
+    auto condition = translate_expr(do_while_stmt->condition.get());
+    builder_->CreateCondBr(condition, do_while_block, after_do_while_block);
+
+    current_block_ = after_do_while_block;
+    next_block_ = nullptr;
 
     builder_->ClearInsertionPoint();
 }

@@ -26,6 +26,8 @@
 #include "../emitter/ir/exprs/logical_expr_ir.h"
 #include "../emitter/ir/exprs/bitwise_expr_ir.h"
 #include "../emitter/ir/stmts/if_stmt_ir.h"
+#include "../emitter/ir/stmts/whille_stmt_ir.h"
+#include "../emitter/ir/stmts/do_while_stmt_ir.h"
 
 namespace translator {
 
@@ -72,6 +74,8 @@ namespace translator {
         void translate_stmt(std::unique_ptr<emitter::ir::stmt_ir> stmt_ir);
         void translate_scope_stmt(emitter::ir::scope_stmt_ir* scope_ir);
         void translate_if_stmt(emitter::ir::if_stmt_ir* if_stmt);
+        void translate_while_stmt(emitter::ir::while_stmt_ir* while_stmt);
+        void translate_do_while_stmt(emitter::ir::do_while_stmt_ir* do_while_stmt);
         void translate_var_stmt(emitter::ir::variable_ir* variable_ir);
         void translate_assignment_stmt(emitter::ir::assignment_stmt_ir* assignment_stmt);
         void translate_call_stmt(emitter::ir::call_stmt_ir* call_stmt);
