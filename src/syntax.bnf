@@ -8,6 +8,8 @@
 <statement> ::= <return_statement>
     | <func_decl_statement>
     | <if_statement>
+    | <while_statement>
+    | <do_while_statement>
     | <let_statement>
     | <scope_statement>
     | <assignment_statement>
@@ -22,9 +24,13 @@
 <func_prototype_decl_statement> ::= "extern" <func_decl> ";"
 <func_decl_statement> ::= <func_decl> <scope_statement>
 
-<if_statement> ::= "if" "(" <expression> ")" <scope_statement> <else_if_statement>* <else_statement>?
+<do_while_statement> ::= "do" <scope_statement> "while" <parenthesis_expression> ";"
 
-<else_if_statement> ::= "else" "if" "(" <expression> ")" <scope_statement>
+<while_statement> ::= "while" <parenthesis_expression> <scope_statement>
+
+<if_statement> ::= "if" <parenthesis_expression> <scope_statement> <else_if_statement>* <else_statement>?
+
+<else_if_statement> ::= "else" "if" <parenthesis_expression> <scope_statement>
 
 <else_statement> ::= "else" <scope_statement>
 
@@ -43,6 +49,8 @@
 <return_statement> ::= "return" <expression> ";"
 
 <expression> ::= <primary_expression> | <binary_expression>
+
+<parenthesis_expression> ::= "(" <expression> ")"
 
 <binary_expression> ::= <arithmetic_expression> | <relational_expression> | <logical_expression> | <bitwise_expression>
 
@@ -74,6 +82,7 @@
 <primary_expression> ::= <boolean_expression>
     | <integer_expression>
     | <identifier_expression>
+    | <parenthesis_expression>
     | <call_expression>
 
 <call_expression> ::= <identifier> "(" (<expression> ("," <expression>)*)? ")"
