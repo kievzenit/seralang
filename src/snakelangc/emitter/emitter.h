@@ -88,8 +88,8 @@ namespace emitter {
         ir::scope_stmt_ir* current_scope_ = nullptr;
         ir::func_type* current_function_ = nullptr;
 
-        int loop_count = -1;
-        bool break_encountered = false;
+        int loop_count_ = -1;
+        bool skip_all_statements_forward_ = false;
 
         void find_globals();
 

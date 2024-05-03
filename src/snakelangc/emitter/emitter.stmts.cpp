@@ -63,8 +63,8 @@ emitter::emitter::emit_for_scope_stmt(parser::ast::scope_stmt* scope_stmt) {
     for (auto &stmt : scope_stmt->inner_stmts) {
         emit_for_stmt(std::move(stmt));
 
-        if (break_encountered) {
-            break_encountered = false;
+        if (skip_all_statements_forward_) {
+            skip_all_statements_forward_ = false;
             break;
         }
     }
@@ -126,7 +126,7 @@ std::unique_ptr<emitter::ir::else_stmt_ir> emitter::emitter::emit_for_else_stmt(
 }
 
 void emitter::emitter::emit_for_while_stmt(parser::ast::while_stmt *while_stmt) {
-    loop_count++;
+    loop_count_++;
 
     auto condition_expr = emit_for_cast(
             emit_for_expr(std::move(while_stmt->condition)),
@@ -140,11 +140,11 @@ void emitter::emitter::emit_for_while_stmt(parser::ast::while_stmt *while_stmt) 
 
     current_scope_->inner_stmts.push_back(std::move(while_stmt_ir));
 
-    loop_count--;
+    loop_count_--;
 }
 
 void emitter::emitter::emit_for_do_while_stmt(parser::ast::do_while_stmt *do_while_stmt) {
-    loop_count++;
+    loop_count_++;
 
     auto scope = emit_for_scope_stmt(do_while_stmt->scope.get());
 
@@ -158,7 +158,7 @@ void emitter::emitter::emit_for_do_while_stmt(parser::ast::do_while_stmt *do_whi
 
     current_scope_->inner_stmts.push_back(std::move(while_stmt_ir));
 
-    loop_count--;
+    loop_count_--;
 }
 
 void emitter::emitter::emit_for_let_stmt(parser::ast::let_stmt *let_stmt) {
@@ -265,26 +265,28 @@ void emitter::emitter::emit_for_return_stmt(parser::ast::return_stmt *return_stm
 
     auto return_stmt_ir = std::make_unique<ir::return_stmt_ir>(std::move(cast_result));
     current_scope_->inner_stmts.push_back(std::move(return_stmt_ir));
+
+    skip_all_statements_forward_ = true;
 }
 
 void emitter::emitter::emit_for_break_stmt() {
-    if (loop_count == -1) {
+    if (loop_count_ == -1) {
         utils::log_error("Break can be placed only inside loop.");
     }
 
     auto break_stmt_ir = std::make_unique<ir::break_stmt_ir>();
     current_scope_->inner_stmts.push_back(std::move(break_stmt_ir));
 
-    break_encountered = true;
+    skip_all_statements_forward_ = true;
 }
 
 void emitter::emitter::emit_for_breakall_stmt() {
-    if (loop_count == -1) {
+    if (loop_count_ == -1) {
         utils::log_error("Breakall can be placed only inside loop.");
     }
 
     auto breakall_stmt_ir = std::make_unique<ir::breakall_stmt_ir>();
     current_scope_->inner_stmts.push_back(std::move(breakall_stmt_ir));
 
-    break_encountered = true;
+    skip_all_statements_forward_ = true;
 }
