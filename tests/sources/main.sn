@@ -3,34 +3,43 @@ package test_package;
 func main() int {
     let a = 0;
 
-    /*do {
+    do {
         a += 4;
         if (a == 4) {
-            break;
+            continue;
         }
 
-        breakall;
-    } while (true);*/
+        while (a < 10) {
+            a += 5;
 
-    if (a == 0) {
-        while (true) {
-            a += 1;
-            while (true) {
-                a += 2;
+            if (a == 13) {
                 while (true) {
-                    a += 3;
+                    a += 1;
+
+                    if (a != 20) {
+                        continue;
+                    }
+
                     do {
-                        a += 4;
-                        if (a == 10) {
+                        a += 2;
+                        if (a != 30) {
+                            continue;
+                        } else {
                             break;
                         }
-
-                        breakall;
                     } while (true);
+
+                    break;
                 }
+                continue;
             }
         }
-    }
+
+        if (a != 13) {
+            a += 1;
+            break;
+        }
+    } while (true);
 
     return a;
 }
