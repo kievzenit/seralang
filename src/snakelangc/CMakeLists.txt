@@ -28,6 +28,8 @@ set(SOURCE_FILES main.cpp
         parser/ast/stmts/if_stmt.h
         parser/ast/stmts/else_stmt.h
         parser/ast/stmts/else_if_stmt.h
+        parser/ast/stmts/while_stmt.h
+        parser/ast/stmts/do_while_stmt.h
         parser/ast/exprs/expr.h
         parser/ast/exprs/integer_expr.h
         parser/ast/exprs/boolean_expr.h
