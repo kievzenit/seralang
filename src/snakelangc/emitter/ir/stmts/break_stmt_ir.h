@@ -5,7 +5,12 @@
 
 namespace emitter::ir {
 
-    class break_stmt_ir : public stmt_ir {};
+    class break_stmt_ir : public stmt_ir {
+    public:
+        explicit break_stmt_ir(std::unique_ptr<expr_ir> break_expr) : break_expr(std::move(break_expr)) {}
+
+        std::unique_ptr<expr_ir> break_expr;
+    };
 
 }
 
