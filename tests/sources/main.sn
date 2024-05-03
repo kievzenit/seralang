@@ -2,6 +2,7 @@ package test_package;
 
 func main() int {
     let a = 0;
+    let break_count = 2:uint;
 
     do {
         a += 4;
@@ -25,19 +26,16 @@ func main() int {
                         if (a != 30) {
                             continue;
                         } else {
-                            break;
+                            break break_count - 2:uint + 3:uint * 2:uint - 3:uint - 1:uint;
                         }
                     } while (true);
 
                     break;
                 }
+
+                break 2:uint;
                 continue;
             }
-        }
-
-        if (a != 13) {
-            a += 1;
-            break;
         }
     } while (true);
 
