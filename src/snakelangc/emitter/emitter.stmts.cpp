@@ -42,7 +42,7 @@ void emitter::emitter::emit_for_stmt(std::unique_ptr<parser::ast::stmt> stmt) {
     }
 
     if (dynamic_cast<parser::ast::break_stmt*>(stmt.get()) != nullptr) {
-        emit_for_break_stmt();
+        emit_for_break_stmt(dynamic_cast<parser::ast::break_stmt*>(stmt.get()));
         return;
     }
 
@@ -274,12 +274,25 @@ void emitter::emitter::emit_for_return_stmt(parser::ast::return_stmt *return_stm
     skip_all_statements_forward_ = true;
 }
 
-void emitter::emitter::emit_for_break_stmt() {
+void emitter::emitter::emit_for_break_stmt(parser::ast::break_stmt* break_stmt) {
     if (loop_count_ == -1) {
         utils::log_error("Break can be placed only inside loop.");
     }
 
-    auto break_stmt_ir = std::make_unique<ir::break_stmt_ir>();
+    std::unique_ptr<ir::expr_ir> break_expr;
+    if (break_stmt->break_expr) {
+        break_expr = emit_for_expr(std::move(break_stmt->break_expr));
+        if (dynamic_cast<ir::integer_type *>(break_expr->expr_type) == nullptr) {
+            utils::log_error("Only expressions that returns integer are allowed to be after break statement.");
+        }
+
+        auto integer_type = dynamic_cast<ir::integer_type *>(break_expr->expr_type);
+        if (!integer_type->is_unsigned) {
+            utils::log_error("Only unsigned integers are allowed after break statement.");
+        }
+    }
+
+    auto break_stmt_ir = std::make_unique<ir::break_stmt_ir>(std::move(break_expr));
     current_scope_->inner_stmts.push_back(std::move(break_stmt_ir));
 
     skip_all_statements_forward_ = true;

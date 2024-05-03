@@ -119,7 +119,7 @@ namespace emitter {
         void emit_for_assignment_stmt(parser::ast::assignment_stmt* assignment_stmt);
         void emit_for_call_stmt(parser::ast::call_stmt* call_stmt);
         void emit_for_return_stmt(parser::ast::return_stmt* return_stmt);
-        void emit_for_break_stmt();
+        void emit_for_break_stmt(parser::ast::break_stmt* break_stmt);
         void emit_for_breakall_stmt();
         void emit_for_continue_stmt();
 
