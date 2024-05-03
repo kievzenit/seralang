@@ -3,6 +3,14 @@ package test_package;
 func main() int {
     let a = 0;
 
+    while (a < 10) {
+        a += 1;
+    }
+
+    do {
+        a -= 1;
+    } while (a > 0);
+
     if (foo() && bar()) {
         a = 1;
     } else if (foo() || bar() && foobar()) {
