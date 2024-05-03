@@ -126,25 +126,27 @@ std::unique_ptr<emitter::ir::else_stmt_ir> emitter::emitter::emit_for_else_stmt(
 }
 
 void emitter::emitter::emit_for_while_stmt(parser::ast::while_stmt *while_stmt) {
+    loop_count++;
+
     auto condition_expr = emit_for_cast(
             emit_for_expr(std::move(while_stmt->condition)),
             types_["bool"]);
 
-    is_inside_loop = true;
     auto scope = emit_for_scope_stmt(while_stmt->scope.get());
-    is_inside_loop = false;
 
     auto while_stmt_ir = std::make_unique<ir::while_stmt_ir>(
             std::move(condition_expr),
             std::move(scope));
 
     current_scope_->inner_stmts.push_back(std::move(while_stmt_ir));
+
+    loop_count--;
 }
 
 void emitter::emitter::emit_for_do_while_stmt(parser::ast::do_while_stmt *do_while_stmt) {
-    is_inside_loop = true;
+    loop_count++;
+
     auto scope = emit_for_scope_stmt(do_while_stmt->scope.get());
-    is_inside_loop = false;
 
     auto condition_expr = emit_for_cast(
             emit_for_expr(std::move(do_while_stmt->condition)),
@@ -155,6 +157,8 @@ void emitter::emitter::emit_for_do_while_stmt(parser::ast::do_while_stmt *do_whi
             std::move(scope));
 
     current_scope_->inner_stmts.push_back(std::move(while_stmt_ir));
+
+    loop_count--;
 }
 
 void emitter::emitter::emit_for_let_stmt(parser::ast::let_stmt *let_stmt) {
@@ -264,7 +268,7 @@ void emitter::emitter::emit_for_return_stmt(parser::ast::return_stmt *return_stm
 }
 
 void emitter::emitter::emit_for_break_stmt() {
-    if (!is_inside_loop) {
+    if (loop_count == -1) {
         utils::log_error("Break can be placed only inside loop.");
     }
 
@@ -275,7 +279,7 @@ void emitter::emitter::emit_for_break_stmt() {
 }
 
 void emitter::emitter::emit_for_breakall_stmt() {
-    if (!is_inside_loop) {
+    if (loop_count == -1) {
         utils::log_error("Breakall can be placed only inside loop.");
     }
 
