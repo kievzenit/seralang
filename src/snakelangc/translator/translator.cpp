@@ -301,24 +301,29 @@ void translator::translator::translate_scope_stmt(emitter::ir::scope_stmt_ir *sc
 void translator::translator::translate_if_stmt(emitter::ir::if_stmt_ir *if_stmt) {
     using namespace llvm;
 
-    auto current_cond_block = BasicBlock::Create(*context_, "cond", current_function_);
+    auto current_cond_block = BasicBlock::Create(
+            *context_, "if_cond", current_function_, next_block_);
+    auto current_if_block = BasicBlock::Create(
+            *context_, "if_body", current_function_, next_block_);
+    auto current_else_block = BasicBlock::Create(
+            *context_, "else_body", current_function_, next_block_);
+    auto after_if_block = BasicBlock::Create(
+            *context_, "after_if", current_function_, next_block_);
 
     builder_->SetInsertPoint(current_block_);
     builder_->CreateBr(current_cond_block);
 
     current_block_ = current_cond_block;
+    next_block_ = current_if_block;
     builder_->SetInsertPoint(current_block_);
     auto condition = translate_expr(if_stmt->if_expr.get());
-
-    auto current_if_block = BasicBlock::Create(*context_, "if", current_function_);
-    auto current_else_block = BasicBlock::Create(*context_, "else", current_function_);
-    auto after_if_block = BasicBlock::Create(*context_, "after_if", current_function_);
 
     builder_->SetInsertPoint(current_block_);
     builder_->CreateCondBr(condition, current_if_block, current_else_block);
     builder_->ClearInsertionPoint();
 
     current_block_ = current_if_block;
+    next_block_ = current_else_block;
     translate_scope_stmt(if_stmt->scope.get());
 
     current_block_ = current_if_block;
@@ -326,18 +331,20 @@ void translator::translator::translate_if_stmt(emitter::ir::if_stmt_ir *if_stmt)
     builder_->CreateBr(after_if_block);
     builder_->ClearInsertionPoint();
 
+    next_block_ = after_if_block;
+
     for (auto& else_if_stmt : if_stmt->else_if_branches) {
         current_block_ = current_else_block;
         builder_->SetInsertPoint(current_block_);
 
         current_cond_block = BasicBlock::Create(
-                *context_, "cond", current_function_, after_if_block);
+                *context_, "if_cond", current_function_, next_block_);
         builder_->CreateBr(current_cond_block);
 
         current_if_block = BasicBlock::Create(
-                *context_, "if", current_function_, after_if_block);
+                *context_, "if_body", current_function_, next_block_);
         current_else_block = BasicBlock::Create(
-                *context_, "else", current_function_, after_if_block);
+                *context_, "else_body", current_function_, next_block_);
 
         current_block_ = current_cond_block;
         next_block_ = current_if_block;
@@ -359,6 +366,7 @@ void translator::translator::translate_if_stmt(emitter::ir::if_stmt_ir *if_stmt)
 
     if (if_stmt->else_branch) {
         current_block_ = current_else_block;
+        next_block_ = after_if_block;
         translate_scope_stmt(if_stmt->else_branch->scope.get());
     }
 
@@ -367,6 +375,7 @@ void translator::translator::translate_if_stmt(emitter::ir::if_stmt_ir *if_stmt)
     builder_->CreateBr(after_if_block);
 
     current_block_ = after_if_block;
+    next_block_ = nullptr;
 
     builder_->ClearInsertionPoint();
 }
