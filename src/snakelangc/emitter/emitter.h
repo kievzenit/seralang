@@ -48,6 +48,8 @@
 #include "ir/stmts/breakall_stmt_ir.h"
 #include "../parser/ast/stmts/break_stmt.h"
 #include "../parser/ast/stmts/breakall_stmt.h"
+#include "../parser/ast/stmts/continue_stmt.h"
+#include "ir/stmts/continue_stmt_ir.h"
 
 namespace emitter {
 
@@ -119,6 +121,7 @@ namespace emitter {
         void emit_for_return_stmt(parser::ast::return_stmt* return_stmt);
         void emit_for_break_stmt();
         void emit_for_breakall_stmt();
+        void emit_for_continue_stmt();
 
         std::unique_ptr<ir::expr_ir> emit_for_expr(std::unique_ptr<parser::ast::expr> expr);
 

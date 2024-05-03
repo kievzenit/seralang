@@ -51,6 +51,11 @@ void emitter::emitter::emit_for_stmt(std::unique_ptr<parser::ast::stmt> stmt) {
         return;
     }
 
+    if (dynamic_cast<parser::ast::continue_stmt*>(stmt.get()) != nullptr) {
+        emit_for_continue_stmt();
+        return;
+    }
+
     utils::log_error("Unsupported statement encountered, this should never happen!");
     __builtin_unreachable();
 }
@@ -287,6 +292,17 @@ void emitter::emitter::emit_for_breakall_stmt() {
 
     auto breakall_stmt_ir = std::make_unique<ir::breakall_stmt_ir>();
     current_scope_->inner_stmts.push_back(std::move(breakall_stmt_ir));
+
+    skip_all_statements_forward_ = true;
+}
+
+void emitter::emitter::emit_for_continue_stmt() {
+    if (loop_count_ == -1) {
+        utils::log_error("Breakall can be placed only inside loop.");
+    }
+
+    auto continue_stmt_ir = std::make_unique<ir::continue_stmt_ir>();
+    current_scope_->inner_stmts.push_back(std::move(continue_stmt_ir));
 
     skip_all_statements_forward_ = true;
 }
