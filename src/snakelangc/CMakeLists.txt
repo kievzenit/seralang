@@ -62,6 +62,8 @@ set(SOURCE_FILES main.cpp
         emitter/ir/stmts/else_stmt_ir.h
         emitter/ir/stmts/whille_stmt_ir.h
         emitter/ir/stmts/do_while_stmt_ir.h
+        emitter/ir/stmts/break_stmt_ir.h
+        emitter/ir/stmts/breakall_stmt_ir.h
         emitter/ir/exprs/expr_ir.h
         emitter/ir/exprs/integer_expr_ir.h
         emitter/ir/exprs/boolean_expr_ir.h
