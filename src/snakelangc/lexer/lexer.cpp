@@ -782,6 +782,17 @@ lexer::token lexer::lexer::process_identifier() {
         };
     }
 
+    if (identifier == "continue") {
+        return {
+                token_type::continue_,
+                identifier,
+                file_name_,
+                line_,
+                column_started,
+                column_
+        };
+    }
+
     if (identifier == "in") {
         return {
                 token_type::in,

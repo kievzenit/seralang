@@ -26,6 +26,7 @@ namespace lexer {
         in,
         break_,
         breakall,
+        continue_,
 
         l_parenthesis,
         r_parenthesis,
