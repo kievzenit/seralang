@@ -78,6 +78,7 @@ namespace parser {
 
         std::unique_ptr<ast::expr> parse_expr();
         std::unique_ptr<ast::expr> parse_primary_expr();
+        std::unique_ptr<ast::expr> parse_parenthesis_expr();
         std::unique_ptr<ast::expr> parse_binary_expr(std::unique_ptr<ast::expr> left, int precedence = 0);
         std::unique_ptr<ast::call_expr> parse_call_expr();
         std::vector<std::unique_ptr<ast::expr>> parse_call_arguments();

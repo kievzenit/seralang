@@ -423,10 +423,22 @@ std::unique_ptr<parser::ast::expr> parser::parser::parse_primary_expr() {
         case lexer::token_type::number: return parse_integer_expr();
         case lexer::token_type::boolean: return parse_boolean_expr();
         case lexer::token_type::identifier: return parse_identifier_expr();
+        case lexer::token_type::l_parenthesis: return parse_parenthesis_expr();
         default:
             unexpected_token_error();
             __builtin_unreachable();
     }
+}
+
+std::unique_ptr<parser::ast::expr> parser::parser::parse_parenthesis_expr() {
+    expect(lexer::token_type::l_parenthesis);
+
+    auto expr = parse_expr();
+
+    eat();
+    expect(lexer::token_type::r_parenthesis);
+
+    return std::move(expr);
 }
 
 std::unique_ptr<parser::ast::expr> parser::parser::parse_binary_expr(
