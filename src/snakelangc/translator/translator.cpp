@@ -486,9 +486,6 @@ void translator::translator::translate_do_while_stmt(emitter::ir::do_while_stmt_
         generating_br_from_loop = false;
     }
 
-    builder_->SetInsertPoint(current_block_);
-    builder_->CreateBr(condition_block);
-
     current_block_ = condition_block;
     next_block_ = after_do_while_block;
     builder_->SetInsertPoint(current_block_);
