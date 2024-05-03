@@ -53,6 +53,8 @@ set(SOURCE_FILES main.cpp
         emitter/ir/types/type.cpp
         emitter/ir/types/func_param_ir.h
         emitter/ir/types/func_type.h
+        emitter/ir/types/integer_type.h
+        emitter/ir/types/integer_type.cpp
         emitter/ir/stmts/assignment_stmt_ir.h
         emitter/ir/stmts/return_stmt_ir.h
         emitter/ir/stmts/stmt_ir.h
