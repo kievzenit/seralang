@@ -32,6 +32,7 @@ set(SOURCE_FILES main.cpp
         parser/ast/stmts/do_while_stmt.h
         parser/ast/stmts/break_stmt.h
         parser/ast/stmts/breakall_stmt.h
+        parser/ast/stmts/continue_stmt.h
         parser/ast/exprs/expr.h
         parser/ast/exprs/integer_expr.h
         parser/ast/exprs/boolean_expr.h
