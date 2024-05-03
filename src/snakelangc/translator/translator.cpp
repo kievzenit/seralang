@@ -22,15 +22,15 @@ void translator::translator::create_basic_types() {
     using namespace emitter::ir;
 
     types_[type::boolean()->name] = Type::getInt1Ty(*context_);
-    types_[type::int1()->name] = Type::getInt1Ty(*context_);
-    types_[type::int8()->name] = Type::getInt8Ty(*context_);
-    types_[type::int16()->name] = Type::getInt16Ty(*context_);
-    types_[type::int32()->name] = Type::getInt32Ty(*context_);
-    types_[type::int64()->name] = Type::getInt64Ty(*context_);
-    types_[type::uint8()->name] = Type::getInt8Ty(*context_);
-    types_[type::uint16()->name] = Type::getInt16Ty(*context_);
-    types_[type::uint32()->name] = Type::getInt32Ty(*context_);
-    types_[type::uint64()->name] = Type::getInt64Ty(*context_);
+    types_[integer_type::int1()->name] = Type::getInt1Ty(*context_);
+    types_[integer_type::int8()->name] = Type::getInt8Ty(*context_);
+    types_[integer_type::int16()->name] = Type::getInt16Ty(*context_);
+    types_[integer_type::int32()->name] = Type::getInt32Ty(*context_);
+    types_[integer_type::int64()->name] = Type::getInt64Ty(*context_);
+    types_[integer_type::uint8()->name] = Type::getInt8Ty(*context_);
+    types_[integer_type::uint16()->name] = Type::getInt16Ty(*context_);
+    types_[integer_type::uint32()->name] = Type::getInt32Ty(*context_);
+    types_[integer_type::uint64()->name] = Type::getInt64Ty(*context_);
 }
 
 void translator::translator::declare_functions() {
@@ -656,6 +656,13 @@ llvm::Value *translator::translator::translate_arithmetic_expr(emitter::ir::arit
     auto left = translate_expr(left_expr);
     auto right = translate_expr(right_expr);
 
+    if (dynamic_cast<emitter::ir::integer_type*>(left_expr->expr_type) == nullptr) {
+        utils::log_error("Any arithmetical operation to non integer is now not supported.");
+        __builtin_unreachable();
+    }
+
+    auto integer_type = dynamic_cast<emitter::ir::integer_type*>(left_expr->expr_type);
+
     switch (arithmetic_expr->operation_type) {
         case emitter::ir::addition:
             return builder_->CreateAdd(left, right);
@@ -664,11 +671,11 @@ llvm::Value *translator::translator::translate_arithmetic_expr(emitter::ir::arit
         case emitter::ir::multiplication:
             return builder_->CreateMul(left, right);
         case emitter::ir::division:
-            return left_expr->expr_type->is_unsigned ?
+            return integer_type->is_unsigned ?
                    builder_->CreateUDiv(left, right) :
                    builder_->CreateSDiv(left, right);
         case emitter::ir::binary_operation_type::modulus:
-            return left_expr->expr_type->is_unsigned ?
+            return integer_type->is_unsigned ?
                    builder_->CreateURem(left, right) :
                    builder_->CreateSRem(left, right);
         default:
@@ -686,25 +693,40 @@ llvm::Value *translator::translator::translate_relational_expr(emitter::ir::rela
     auto left = translate_expr(left_expr);
     auto right = translate_expr(right_expr);
 
+    if (dynamic_cast<emitter::ir::integer_type*>(left_expr->expr_type) == nullptr) {
+        switch (relational_expr->operation_type) {
+            case emitter::ir::binary_operation_type::equals_to:
+                return builder_->CreateICmpEQ(left, right);
+            case emitter::ir::binary_operation_type::not_equals_to:
+                return builder_->CreateICmpNE(left, right);
+            default:
+                utils::log_error(
+                        "Only equls and not equls relation operators are supported for any non integer type now.");
+                __builtin_unreachable();
+        }
+    }
+
+    auto integer_type = dynamic_cast<emitter::ir::integer_type*>(left_expr->expr_type);
+
     switch (relational_expr->operation_type) {
         case emitter::ir::binary_operation_type::equals_to:
             return builder_->CreateICmpEQ(left, right);
         case emitter::ir::binary_operation_type::not_equals_to:
             return builder_->CreateICmpNE(left, right);
         case emitter::ir::binary_operation_type::greater_than:
-            return left_expr->expr_type->is_unsigned ?
+            return integer_type->is_unsigned ?
                    builder_->CreateICmpUGT(left, right) :
                    builder_->CreateICmpSGT(left, right);
         case emitter::ir::binary_operation_type::less_than:
-            return left_expr->expr_type->is_unsigned ?
+            return integer_type->is_unsigned ?
                    builder_->CreateICmpULT(left, right) :
                    builder_->CreateICmpSLT(left, right);
         case emitter::ir::binary_operation_type::greater_or_equal:
-            return left_expr->expr_type->is_unsigned ?
+            return integer_type->is_unsigned ?
                    builder_->CreateICmpUGE(left, right) :
                    builder_->CreateICmpSGE(left, right);
         case emitter::ir::binary_operation_type::less_or_equal:
-            return left_expr->expr_type->is_unsigned ?
+            return integer_type->is_unsigned ?
                    builder_->CreateICmpULE(left, right) :
                    builder_->CreateICmpSLE(left, right);
         default:
@@ -871,11 +893,13 @@ llvm::Value *translator::translator::translate_upcast_expr(emitter::ir::upcast_e
         auto dest_type = types_[upcast_expr->expr_type->name];
         auto expr = translate_expr(upcast_expr->inner_expr.get());
 
-        if (upcast_expr->expr_type->is_unsigned) {
+        auto integer_type = dynamic_cast<emitter::ir::integer_type *>(upcast_expr->expr_type);
+
+        if (integer_type->is_unsigned) {
             return builder_->CreateZExt(expr, dest_type, "upcasted");
-       } else {
+        } else {
             return builder_->CreateSExt(expr, dest_type, "upcasted");
-       }
+        }
     }
 
     utils::log_error("Upcasting non-basic types is not supported for now.");

@@ -74,17 +74,17 @@ namespace emitter {
 
         std::map<std::string, ir::type*> types_ = {
                 {"bool", ir::type::boolean()},
-                {"int1", ir::type::int1()},
-                {"int8", ir::type::int8()},
-                {"int16", ir::type::int16()},
-                {"int32", ir::type::int32()},
-                {"int", ir::type::int32()},
-                {"int64", ir::type::int64()},
-                {"uint8", ir::type::uint8()},
-                {"uint16", ir::type::uint16()},
-                {"uint32", ir::type::uint32()},
-                {"uint", ir::type::uint32()},
-                {"uint64", ir::type::uint64()}
+                {"int1", ir::integer_type::int1()},
+                {"int8", ir::integer_type::int8()},
+                {"int16", ir::integer_type::int16()},
+                {"int32", ir::integer_type::int32()},
+                {"int", ir::integer_type::int32()},
+                {"int64", ir::integer_type::int64()},
+                {"uint8", ir::integer_type::uint8()},
+                {"uint16", ir::integer_type::uint16()},
+                {"uint32", ir::integer_type::uint32()},
+                {"uint", ir::integer_type::uint32()},
+                {"uint64", ir::integer_type::uint64()}
         };
 
         ir::scope_stmt_ir* current_scope_ = nullptr;

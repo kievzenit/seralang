@@ -96,43 +96,43 @@ emitter::emitter::emit_for_integer_expr(parser::ast::integer_expr *integer_expr)
 std::unique_ptr<emitter::ir::integer_expr_ir> emitter::emitter::emit_for_explicitly_typed_integer(
         parser::ast::integer_expr* integer_expr, const std::string& explicit_int_type) {
     if (explicit_int_type == "int1") {
-        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::type::int1());
+        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::integer_type::int1());
     }
 
     if (explicit_int_type == "int8") {
-        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::type::int8());
+        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::integer_type::int8());
     }
 
     if (explicit_int_type == "int16") {
-        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::type::int16());
+        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::integer_type::int16());
     }
 
     if (explicit_int_type == "int32") {
-        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::type::int32());
+        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::integer_type::int32());
     }
 
     if (explicit_int_type == "int64") {
-        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::type::int64());
+        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::integer_type::int64());
     }
 
     if (explicit_int_type == "uint8") {
-        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::type::uint8());
+        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::integer_type::uint8());
     }
 
     if (explicit_int_type == "uint16") {
-        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::type::uint16());
+        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::integer_type::uint16());
     }
 
     if (explicit_int_type == "uint32") {
-        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::type::uint32());
+        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::integer_type::uint32());
     }
 
     if (explicit_int_type == "uint") {
-        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::type::uint32());
+        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::integer_type::uint32());
     }
 
     if (explicit_int_type == "uint64") {
-        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::type::uint64());
+        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::integer_type::uint64());
     }
 
     utils::log_error(std::format("Expected int type, but got: {} instead.", explicit_int_type));
