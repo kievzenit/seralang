@@ -760,6 +760,28 @@ lexer::token lexer::lexer::process_identifier() {
         };
     }
 
+    if (identifier == "break") {
+        return {
+                token_type::break_,
+                identifier,
+                file_name_,
+                line_,
+                column_started,
+                column_
+        };
+    }
+
+    if (identifier == "breakall") {
+        return {
+                token_type::breakall,
+                identifier,
+                file_name_,
+                line_,
+                column_started,
+                column_
+        };
+    }
+
     if (identifier == "in") {
         return {
                 token_type::in,

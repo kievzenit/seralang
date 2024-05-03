@@ -24,6 +24,8 @@ namespace lexer {
         for_,
         foreach,
         in,
+        break_,
+        breakall,
 
         l_parenthesis,
         r_parenthesis,
