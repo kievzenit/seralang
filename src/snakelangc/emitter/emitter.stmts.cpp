@@ -131,7 +131,7 @@ void emitter::emitter::emit_for_do_while_stmt(parser::ast::do_while_stmt *do_whi
             emit_for_expr(std::move(do_while_stmt->condition)),
             types_["bool"]);
 
-    auto while_stmt_ir = std::make_unique<ir::while_stmt_ir>(
+    auto while_stmt_ir = std::make_unique<ir::do_while_stmt_ir>(
             std::move(condition_expr),
             std::move(scope));
 

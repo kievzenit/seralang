@@ -40,6 +40,7 @@
 #include "ir/stmts/else_if_stmt_ir.h"
 #include "ir/stmts/else_stmt_ir.h"
 #include "ir/stmts/if_stmt_ir.h"
+#include "ir/stmts/do_while_stmt_ir.h"
 #include "ir/stmts/whille_stmt_ir.h"
 #include "../parser/ast/stmts/while_stmt.h"
 #include "../parser/ast/stmts/do_while_stmt.h"
