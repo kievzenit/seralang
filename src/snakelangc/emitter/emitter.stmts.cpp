@@ -16,6 +16,11 @@ void emitter::emitter::emit_for_stmt(std::unique_ptr<parser::ast::stmt> stmt) {
         return;
     }
 
+    if (dynamic_cast<parser::ast::loop_stmt*>(stmt.get()) != nullptr) {
+        emit_for_loop_stmt(dynamic_cast<parser::ast::loop_stmt*>(stmt.get()));
+        return;
+    }
+
     if (dynamic_cast<parser::ast::scope_stmt*>(stmt.get()) != nullptr) {
         emit_for_scope_stmt(dynamic_cast<parser::ast::scope_stmt*>(stmt.get()));
         return;
@@ -162,6 +167,17 @@ void emitter::emitter::emit_for_do_while_stmt(parser::ast::do_while_stmt *do_whi
             std::move(scope));
 
     current_scope_->inner_stmts.push_back(std::move(while_stmt_ir));
+
+    loop_count_--;
+}
+
+void emitter::emitter::emit_for_loop_stmt(parser::ast::loop_stmt *loop_stmt) {
+    loop_count_++;
+
+    auto scope = emit_for_scope_stmt(loop_stmt->scope.get());
+    auto loop_stmt_ir = std::make_unique<ir::loop_stmt_ir>(std::move(scope));
+
+    current_scope_->inner_stmts.push_back(std::move(loop_stmt_ir));
 
     loop_count_--;
 }
