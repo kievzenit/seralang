@@ -345,11 +345,6 @@ void translator::translator::translate_if_stmt(emitter::ir::if_stmt_ir *if_stmt)
     current_block_ = current_if_block;
     insert_before_block_ = current_else_block;
     translate_scope_stmt(if_stmt->scope.get());
-//    if (current_block_->empty()) {
-//        builder_->SetInsertPoint(current_block_);
-//        builder_->CreateBr(insert_before_block_);
-//        br_generated_ = true;
-//    }
 
     if (!br_generated_) {
         builder_->SetInsertPoint(current_block_);
@@ -383,11 +378,6 @@ void translator::translator::translate_if_stmt(emitter::ir::if_stmt_ir *if_stmt)
         current_block_ = current_if_block;
         insert_before_block_ = current_else_block;
         translate_scope_stmt(else_if_stmt->scope.get());
-//        if (current_block_->empty()) {
-//            builder_->SetInsertPoint(current_block_);
-//            builder_->CreateBr(insert_before_block_);
-//            br_generated_ = true;
-//        }
 
         if (!br_generated_) {
             builder_->SetInsertPoint(current_block_);
@@ -401,11 +391,6 @@ void translator::translator::translate_if_stmt(emitter::ir::if_stmt_ir *if_stmt)
         current_block_ = current_else_block;
         insert_before_block_ = after_if_block;
         translate_scope_stmt(if_stmt->else_branch->scope.get());
-//        if (current_block_->empty()) {
-//            builder_->SetInsertPoint(current_block_);
-//            builder_->CreateBr(insert_before_block_);
-//            br_generated_ = true;
-//        }
     }
 
     if (!br_generated_) {
@@ -455,11 +440,6 @@ void translator::translator::translate_while_stmt(emitter::ir::while_stmt_ir *wh
     current_block_ = while_block;
     insert_before_block_ = after_while_block;
     translate_scope_stmt(while_stmt->scope.get());
-//    if (current_block_->empty()) {
-//        builder_->SetInsertPoint(current_block_);
-//        builder_->CreateBr(insert_before_block_);
-//        br_generated_ = true;
-//    }
 
     if (!br_generated_) {
         if (current_block_ == after_while_block) {
@@ -514,11 +494,6 @@ void translator::translator::translate_do_while_stmt(emitter::ir::do_while_stmt_
     current_block_ = do_while_block;
     insert_before_block_ = condition_block;
     translate_scope_stmt(do_while_stmt->scope.get());
-//    if (current_block_->empty()) {
-//        builder_->SetInsertPoint(current_block_);
-//        builder_->CreateBr(insert_before_block_);
-//        br_generated_ = true;
-//    }
 
     if (!br_generated_) {
         if (current_block_ == after_do_while_block) {
@@ -577,11 +552,6 @@ void translator::translator::translate_loop_stmt(emitter::ir::loop_stmt_ir *loop
     current_block_ = loop_block;
     insert_before_block_ = after_loop_block;
     translate_scope_stmt(loop_stmt->scope.get());
-//    if (current_block_->empty()) {
-//        builder_->SetInsertPoint(current_block_);
-//        builder_->CreateBr(insert_before_block_);
-//        br_generated_ = true;
-//    }
 
     if (!br_generated_) {
         if (current_block_ == after_loop_block) {
