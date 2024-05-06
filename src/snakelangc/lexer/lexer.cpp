@@ -27,14 +27,14 @@ lexer::token lexer::lexer::get_next_token() {
         }
     }
 
-    return {token_type::eof, "eof", file_name_, ++line_, 0, 0};
+    return {token_type::eof, "eof", ++line_, 0, 0};
 }
 
 void lexer::lexer::eat_current_char() {
     column_++;
 
     if (putback_characters_.empty()) {
-        current_character_ = file_.get();
+        current_character_ = stream_.get();
         return;
     }
 
@@ -44,7 +44,7 @@ void lexer::lexer::eat_current_char() {
 
 void lexer::lexer::read_current_char() {
     if (putback_characters_.empty()) {
-        current_character_ = file_.peek();
+        current_character_ = stream_.peek();
         return;
     }
 
@@ -53,7 +53,7 @@ void lexer::lexer::read_current_char() {
 }
 
 bool lexer::lexer::can_read() {
-    return (file_.good() && !file_.eof()) || !putback_characters_.empty();
+    return (stream_.good() && !stream_.eof()) || !putback_characters_.empty();
 }
 
 bool lexer::lexer::is_current_char_skippable() {
@@ -170,7 +170,6 @@ lexer::token lexer::lexer::process_punctuation() {
             return {
                     token_type::l_parenthesis,
                     "(",
-                    file_name_,
                     line_,
                     column_,
                     column_
@@ -179,7 +178,6 @@ lexer::token lexer::lexer::process_punctuation() {
             return {
                     token_type::r_parenthesis,
                     ")",
-                    file_name_,
                     line_,
                     column_,
                     column_
@@ -188,7 +186,6 @@ lexer::token lexer::lexer::process_punctuation() {
             return {
                     token_type::l_bracket,
                     "[",
-                    file_name_,
                     line_,
                     column_,
                     column_
@@ -197,7 +194,6 @@ lexer::token lexer::lexer::process_punctuation() {
             return {
                     token_type::r_bracket,
                     "]",
-                    file_name_,
                     line_,
                     column_,
                     column_
@@ -206,7 +202,6 @@ lexer::token lexer::lexer::process_punctuation() {
             return {
                     token_type::l_curly_brace,
                     "{",
-                    file_name_,
                     line_,
                     column_,
                     column_
@@ -215,7 +210,6 @@ lexer::token lexer::lexer::process_punctuation() {
             return {
                     token_type::r_curly_brace,
                     "}",
-                    file_name_,
                     line_,
                     column_,
                     column_
@@ -224,7 +218,6 @@ lexer::token lexer::lexer::process_punctuation() {
             return {
                     token_type::colon,
                     ":",
-                    file_name_,
                     line_,
                     column_,
                     column_
@@ -233,7 +226,6 @@ lexer::token lexer::lexer::process_punctuation() {
             return {
                     token_type::semicolon,
                     ";",
-                    file_name_,
                     line_,
                     column_,
                     column_
@@ -242,7 +234,6 @@ lexer::token lexer::lexer::process_punctuation() {
             return {
                     token_type::dot,
                     ".",
-                    file_name_,
                     line_,
                     column_,
                     column_
@@ -251,7 +242,6 @@ lexer::token lexer::lexer::process_punctuation() {
             return {
                     token_type::coma,
                     ",",
-                    file_name_,
                     line_,
                     column_,
                     column_
@@ -260,7 +250,6 @@ lexer::token lexer::lexer::process_punctuation() {
             return {
                 token_type::bitwise_xor,
                 "^",
-                file_name_,
                 line_,
                 column_,
                 column_
@@ -289,7 +278,6 @@ lexer::token lexer::lexer::process_punctuation() {
                 return {
                         token_type::plus,
                         "+",
-                        file_name_,
                         line_,
                         column_,
                         column_
@@ -298,7 +286,6 @@ lexer::token lexer::lexer::process_punctuation() {
                 return {
                         token_type::minus,
                         "-",
-                        file_name_,
                         line_,
                         column_,
                         column_
@@ -307,7 +294,6 @@ lexer::token lexer::lexer::process_punctuation() {
                 return {
                         token_type::asterisk,
                         "*",
-                        file_name_,
                         line_,
                         column_,
                         column_
@@ -316,7 +302,6 @@ lexer::token lexer::lexer::process_punctuation() {
                 return {
                         token_type::slash,
                         "/",
-                        file_name_,
                         line_,
                         column_,
                         column_
@@ -325,7 +310,6 @@ lexer::token lexer::lexer::process_punctuation() {
                 return {
                         token_type::percent,
                         "%",
-                        file_name_,
                         line_,
                         column_,
                         column_
@@ -334,7 +318,6 @@ lexer::token lexer::lexer::process_punctuation() {
                 return {
                   token_type::exclamation_mark,
                   "!",
-                  file_name_,
                   line_,
                   column_,
                   column_
@@ -343,7 +326,6 @@ lexer::token lexer::lexer::process_punctuation() {
                 return {
                         token_type::greater_than,
                         ">",
-                        file_name_,
                         line_,
                         column_,
                         column_
@@ -352,7 +334,6 @@ lexer::token lexer::lexer::process_punctuation() {
                 return {
                         token_type::less_than,
                         "<",
-                        file_name_,
                         line_,
                         column_,
                         column_
@@ -361,7 +342,6 @@ lexer::token lexer::lexer::process_punctuation() {
                 return {
                         token_type::assign,
                         "=",
-                        file_name_,
                         line_,
                         column_,
                         column_
@@ -372,7 +352,6 @@ lexer::token lexer::lexer::process_punctuation() {
                     return {
                         token_type::logical_and,
                         "&&",
-                        file_name_,
                         line_,
                         column_started,
                         column_
@@ -382,7 +361,6 @@ lexer::token lexer::lexer::process_punctuation() {
                 return {
                   token_type::bitwise_and,
                   "&",
-                  file_name_,
                   line_,
                   column_,
                   column_
@@ -393,7 +371,6 @@ lexer::token lexer::lexer::process_punctuation() {
                     return {
                         token_type::logical_or,
                         "||",
-                        file_name_,
                         line_,
                         column_started,
                         column_
@@ -403,7 +380,6 @@ lexer::token lexer::lexer::process_punctuation() {
                 return {
                     token_type::bitwise_or,
                     "|",
-                    file_name_,
                     line_,
                     column_started,
                     column_
@@ -418,7 +394,6 @@ lexer::token lexer::lexer::process_punctuation() {
             return {
                     token_type::plus_assign,
                     "+=",
-                    file_name_,
                     line_,
                     column_started,
                     column_
@@ -427,7 +402,6 @@ lexer::token lexer::lexer::process_punctuation() {
             return {
                     token_type::minus_assign,
                     "-=",
-                    file_name_,
                     line_,
                     column_started,
                     column_
@@ -436,7 +410,6 @@ lexer::token lexer::lexer::process_punctuation() {
             return {
                     token_type::multiply_assign,
                     "*=",
-                    file_name_,
                     line_,
                     column_started,
                     column_
@@ -445,7 +418,6 @@ lexer::token lexer::lexer::process_punctuation() {
             return {
                     token_type::divide_assign,
                     "/=",
-                    file_name_,
                     line_,
                     column_started,
                     column_
@@ -454,7 +426,6 @@ lexer::token lexer::lexer::process_punctuation() {
             return {
                 token_type::modulus_assign,
                 "%=",
-                file_name_,
                 line_,
                 column_started,
                 column_
@@ -463,7 +434,6 @@ lexer::token lexer::lexer::process_punctuation() {
             return {
                 token_type::not_equals,
                 "!=",
-                file_name_,
                 line_,
                 column_started,
                 column_
@@ -472,7 +442,6 @@ lexer::token lexer::lexer::process_punctuation() {
             return {
                     token_type::greater_or_equal,
                     ">=",
-                    file_name_,
                     line_,
                     column_started,
                     column_
@@ -481,7 +450,6 @@ lexer::token lexer::lexer::process_punctuation() {
             return {
                     token_type::less_or_equal,
                     "<=",
-                    file_name_,
                     line_,
                     column_started,
                     column_
@@ -490,7 +458,6 @@ lexer::token lexer::lexer::process_punctuation() {
             return {
                     token_type::equals,
                     "==",
-                    file_name_,
                     line_,
                     column_started,
                     column_
@@ -514,7 +481,6 @@ lexer::token lexer::lexer::process_number() {
             return {
                     token_type::number,
                     number,
-                    file_name_,
                     line_,
                     column_started,
                     column_
@@ -534,7 +500,6 @@ lexer::token lexer::lexer::process_number() {
     return {
         token_type::number,
         number,
-        file_name_,
         line_,
         column_started,
         column_
@@ -632,7 +597,6 @@ lexer::token lexer::lexer::process_identifier() {
         return {
                 token_type::let,
                 identifier,
-                file_name_,
                 line_,
                 column_started,
                 column_
@@ -643,7 +607,6 @@ lexer::token lexer::lexer::process_identifier() {
         return {
                 token_type::func,
                 identifier,
-                file_name_,
                 line_,
                 column_started,
                 column_
@@ -654,7 +617,6 @@ lexer::token lexer::lexer::process_identifier() {
         return {
                 token_type::ret,
                 identifier,
-                file_name_,
                 line_,
                 column_started,
                 column_
@@ -665,7 +627,6 @@ lexer::token lexer::lexer::process_identifier() {
         return {
                 token_type::package,
                 identifier,
-                file_name_,
                 line_,
                 column_started,
                 column_
@@ -676,7 +637,6 @@ lexer::token lexer::lexer::process_identifier() {
         return {
             token_type::static_,
             identifier,
-            file_name_,
             line_,
             column_started,
             column_
@@ -687,7 +647,6 @@ lexer::token lexer::lexer::process_identifier() {
         return {
                 token_type::if_,
                 identifier,
-                file_name_,
                 line_,
                 column_started,
                 column_
@@ -698,7 +657,6 @@ lexer::token lexer::lexer::process_identifier() {
         return {
                 token_type::else_,
                 identifier,
-                file_name_,
                 line_,
                 column_started,
                 column_
@@ -709,7 +667,6 @@ lexer::token lexer::lexer::process_identifier() {
         return {
                 token_type::while_,
                 identifier,
-                file_name_,
                 line_,
                 column_started,
                 column_
@@ -720,7 +677,6 @@ lexer::token lexer::lexer::process_identifier() {
         return {
                 token_type::do_,
                 identifier,
-                file_name_,
                 line_,
                 column_started,
                 column_
@@ -731,7 +687,6 @@ lexer::token lexer::lexer::process_identifier() {
         return {
                 token_type::switch_,
                 identifier,
-                file_name_,
                 line_,
                 column_started,
                 column_
@@ -742,7 +697,6 @@ lexer::token lexer::lexer::process_identifier() {
         return {
                 token_type::for_,
                 identifier,
-                file_name_,
                 line_,
                 column_started,
                 column_
@@ -753,7 +707,6 @@ lexer::token lexer::lexer::process_identifier() {
         return {
                 token_type::foreach,
                 identifier,
-                file_name_,
                 line_,
                 column_started,
                 column_
@@ -764,7 +717,6 @@ lexer::token lexer::lexer::process_identifier() {
         return {
                 token_type::break_,
                 identifier,
-                file_name_,
                 line_,
                 column_started,
                 column_
@@ -775,7 +727,6 @@ lexer::token lexer::lexer::process_identifier() {
         return {
                 token_type::breakall,
                 identifier,
-                file_name_,
                 line_,
                 column_started,
                 column_
@@ -786,7 +737,16 @@ lexer::token lexer::lexer::process_identifier() {
         return {
                 token_type::continue_,
                 identifier,
-                file_name_,
+                line_,
+                column_started,
+                column_
+        };
+    }
+
+    if (identifier == "loop") {
+        return {
+                token_type::loop,
+                identifier,
                 line_,
                 column_started,
                 column_
@@ -797,7 +757,6 @@ lexer::token lexer::lexer::process_identifier() {
         return {
                 token_type::in,
                 identifier,
-                file_name_,
                 line_,
                 column_started,
                 column_
@@ -808,7 +767,6 @@ lexer::token lexer::lexer::process_identifier() {
         return {
                 token_type::boolean,
                 identifier,
-                file_name_,
                 line_,
                 column_started,
                 column_
@@ -819,7 +777,6 @@ lexer::token lexer::lexer::process_identifier() {
         return {
                 token_type::boolean,
                 identifier,
-                file_name_,
                 line_,
                 column_started,
                 column_
@@ -829,7 +786,6 @@ lexer::token lexer::lexer::process_identifier() {
     return {
         token_type::identifier,
         identifier,
-        file_name_,
         line_,
         column_started,
         column_

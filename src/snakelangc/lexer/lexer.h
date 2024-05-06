@@ -11,29 +11,18 @@ namespace lexer {
 
     class lexer {
     public:
-        lexer(lexer& lexer) {
-            file_name_ = lexer.file_name_;
-            file_.swap(lexer.file_);
-            line_ = lexer.line_;
-            column_ = lexer.column_;
-            current_character_ = lexer.current_character_;
-        }
+        lexer(lexer& other) :
+            stream_(other.stream_.rdbuf()),
+            line_(other.line_),
+            column_(other.column_),
+            current_character_(other.current_character_) {}
 
-        explicit lexer(std::string file_name) : file_name_(std::move(file_name)) {
-            file_ = std::ifstream(file_name_);
-
-            if (!file_.is_open()) {
-                auto error_message = std::format(
-                        "Unable to open file_: {}, exiting with error.\n",
-                        file_name_);
-                utils::log_error(error_message);
-            }
-        }
+        explicit lexer(std::basic_streambuf<char>* streambuf) : stream_(streambuf) {}
 
         token get_next_token();
+
     private:
-        std::string file_name_;
-        std::ifstream file_;
+        std::istream stream_;
 
         int line_ = 1;
         int column_ = 0;
