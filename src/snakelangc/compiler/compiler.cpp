@@ -16,7 +16,15 @@ void compiler::compiler::compile() {
     }
 
     for (const auto& file_name : files_) {
-        lexer::lexer lexer(file_name);
+        std::ifstream file(file_name);
+        if (!file.is_open()) {
+            auto error_message = std::format(
+                    "Unable to open file: {}, exiting with error.\n",
+                    file_name);
+            utils::log_error(error_message);
+        }
+
+        lexer::lexer lexer(file.rdbuf());
         parser::parser parser(lexer);
 
         translation_asts_.push_back(parser.parse());
