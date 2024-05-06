@@ -10,6 +10,7 @@
     | <if_statement>
     | <while_statement>
     | <do_while_statement>
+    | <loop_statement>
     | <let_statement>
     | <scope_statement>
     | <assignment_statement>
@@ -32,6 +33,8 @@
 <breakall_statement> ::= "brekall"
 
 <break_statement> ::= "break" <integer_expression>?
+
+<loop_statement> ::= "loop" <scope_statement>
 
 <do_while_statement> ::= "do" <scope_statement> "while" <parenthesis_expression> ";"
 
