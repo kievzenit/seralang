@@ -20,11 +20,11 @@ func main() int {
                         a += 2;
                         while (a < 30) {
                             do {
-                                if (a == 15) {
+                                if (a == 17) {
                                     a += 1;
                                 }
 
-                                break 2:uint;
+                                break 4:uint; // change here to have different result
                             } while (true);
                         }
 
@@ -37,6 +37,8 @@ func main() int {
 
                     break 2:uint;
                 }
+
+                break;
             }
         } else {
             a += 1;
