@@ -31,6 +31,7 @@
 #include "../emitter/ir/stmts/break_stmt_ir.h"
 #include "../emitter/ir/stmts/breakall_stmt_ir.h"
 #include "../emitter/ir/stmts/continue_stmt_ir.h"
+#include "../emitter/ir/stmts/loop_stmt_ir.h"
 
 namespace translator {
 
@@ -56,14 +57,14 @@ namespace translator {
         llvm::BasicBlock* current_allocation_block_ = nullptr;
         llvm::BasicBlock* current_block_ = nullptr;
         llvm::BasicBlock* priv_block_ = nullptr;
-        llvm::BasicBlock* next_block_ = nullptr;
+        llvm::BasicBlock* insert_before_block_ = nullptr;
 
         llvm::BasicBlock* break_to_block_ = nullptr;
         std::vector<llvm::BasicBlock*> break_to_blocks_;
         llvm::BasicBlock* breakall_to_block_ = nullptr;
         llvm::BasicBlock* continue_to_block_ = nullptr;
 
-        bool generating_br_from_loop_ = false;
+        bool br_generated_ = false;
         int inner_loops_ = -1;
 
         llvm::Function* current_function_ = nullptr;
@@ -88,6 +89,7 @@ namespace translator {
         void translate_if_stmt(emitter::ir::if_stmt_ir* if_stmt);
         void translate_while_stmt(emitter::ir::while_stmt_ir* while_stmt);
         void translate_do_while_stmt(emitter::ir::do_while_stmt_ir* do_while_stmt);
+        void translate_loop_stmt(emitter::ir::loop_stmt_ir* loop_stmt);
         void translate_var_stmt(emitter::ir::variable_ir* variable_ir);
         void translate_assignment_stmt(emitter::ir::assignment_stmt_ir* assignment_stmt);
         void translate_call_stmt(emitter::ir::call_stmt_ir* call_stmt);
