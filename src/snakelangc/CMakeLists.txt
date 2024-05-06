@@ -30,6 +30,7 @@ set(SOURCE_FILES main.cpp
         parser/ast/stmts/else_if_stmt.h
         parser/ast/stmts/while_stmt.h
         parser/ast/stmts/do_while_stmt.h
+        parser/ast/stmts/loop_stmt.h
         parser/ast/stmts/break_stmt.h
         parser/ast/stmts/breakall_stmt.h
         parser/ast/stmts/continue_stmt.h
@@ -65,6 +66,7 @@ set(SOURCE_FILES main.cpp
         emitter/ir/stmts/else_stmt_ir.h
         emitter/ir/stmts/whille_stmt_ir.h
         emitter/ir/stmts/do_while_stmt_ir.h
+        emitter/ir/stmts/loop_stmt_ir.h
         emitter/ir/stmts/break_stmt_ir.h
         emitter/ir/stmts/breakall_stmt_ir.h
         emitter/ir/stmts/continue_stmt_ir.h
