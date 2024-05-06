@@ -59,7 +59,6 @@ namespace translator {
         llvm::BasicBlock* priv_block_ = nullptr;
         llvm::BasicBlock* insert_before_block_ = nullptr;
 
-        llvm::BasicBlock* break_to_block_ = nullptr;
         std::vector<llvm::BasicBlock*> break_to_blocks_;
         llvm::BasicBlock* breakall_to_block_ = nullptr;
         llvm::BasicBlock* continue_to_block_ = nullptr;

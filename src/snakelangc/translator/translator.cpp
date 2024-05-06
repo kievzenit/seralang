@@ -422,9 +422,7 @@ void translator::translator::translate_while_stmt(emitter::ir::while_stmt_ir *wh
         breakall_to_block_ = after_while_block;
     }
 
-    auto priv_break_to_block = break_to_block_;
-    break_to_block_ = after_while_block;
-    break_to_blocks_.push_back(break_to_block_);
+    break_to_blocks_.push_back(after_while_block);
     auto priv_continue_to_block = continue_to_block_;
     continue_to_block_ = condition_block;
 
@@ -454,7 +452,6 @@ void translator::translator::translate_while_stmt(emitter::ir::while_stmt_ir *wh
 
     current_block_ = after_while_block;
     break_to_blocks_.erase(break_to_blocks_.begin() + inner_loops_);
-    break_to_block_ = priv_break_to_block;
     continue_to_block_ = priv_continue_to_block;
 
     if (inner_loops_ == 0) {
@@ -482,9 +479,7 @@ void translator::translator::translate_do_while_stmt(emitter::ir::do_while_stmt_
         breakall_to_block_ = after_do_while_block;
     }
 
-    auto priv_break_to_block = break_to_block_;
-    break_to_block_ = after_do_while_block;
-    break_to_blocks_.push_back(break_to_block_);
+    break_to_blocks_.push_back(after_do_while_block);
     auto priv_continue_to_block = continue_to_block_;
     continue_to_block_ = condition_block;
 
@@ -514,7 +509,6 @@ void translator::translator::translate_do_while_stmt(emitter::ir::do_while_stmt_
 
     current_block_ = after_do_while_block;
     break_to_blocks_.erase(break_to_blocks_.begin() + inner_loops_);
-    break_to_block_ = priv_break_to_block;
     continue_to_block_ = priv_continue_to_block;
 
     if (inner_loops_ == 0) {
@@ -540,9 +534,7 @@ void translator::translator::translate_loop_stmt(emitter::ir::loop_stmt_ir *loop
         breakall_to_block_ = after_loop_block;
     }
 
-    auto priv_break_to_block = break_to_block_;
-    break_to_block_ = after_loop_block;
-    break_to_blocks_.push_back(break_to_block_);
+    break_to_blocks_.push_back(after_loop_block);
     auto priv_continue_to_block = continue_to_block_;
     continue_to_block_ = loop_block;
 
@@ -566,7 +558,6 @@ void translator::translator::translate_loop_stmt(emitter::ir::loop_stmt_ir *loop
 
     current_block_ = after_loop_block;
     break_to_blocks_.erase(break_to_blocks_.begin() + inner_loops_);
-    break_to_block_ = priv_break_to_block;
     continue_to_block_ = priv_continue_to_block;
 
     if (inner_loops_ == 0) {
@@ -632,7 +623,7 @@ void translator::translator::translate_break_stmt(emitter::ir::break_stmt_ir* br
     br_generated_ = true;
 
     if (!break_stmt->break_expr) {
-        builder_->CreateBr(break_to_block_);
+        builder_->CreateBr(break_to_blocks_.back());
     } else {
         using namespace llvm;
 
@@ -643,7 +634,7 @@ void translator::translator::translate_break_stmt(emitter::ir::break_stmt_ir* br
         builder_->ClearInsertionPoint();
 
         std::vector<BasicBlock*> break_conds;
-        for (int i = 0; i < break_to_blocks_.size(); i++) {
+        for (int i = 0; i < break_to_blocks_.size() - 1; i++) {
             auto break_cond = BasicBlock::Create(
                     *context_, "break_cond", current_function_, insert_before_block_);
             break_conds.push_back(break_cond);
