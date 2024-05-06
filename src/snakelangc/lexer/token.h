@@ -11,13 +11,11 @@ namespace lexer {
     public:
         token(token_type type,
               std::string value,
-              std::string file_name,
               int line,
               int column_start,
               int column_end) :
               type(type),
               value(std::move(value)),
-              file_name(std::move(file_name)),
               line(line), column_start(column_start), column_end(column_end) {}
 
         token(nullptr_t pVoid) {}
@@ -30,8 +28,6 @@ namespace lexer {
                     column_start,
                     column_end);
         }
-
-        std::string file_name;
 
         int line;
         int column_start;
