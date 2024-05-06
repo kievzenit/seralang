@@ -23,6 +23,7 @@
 #include "ast/stmts/break_stmt.h"
 #include "ast/stmts/breakall_stmt.h"
 #include "ast/stmts/continue_stmt.h"
+#include "ast/stmts/loop_stmt.h"
 
 namespace parser {
 
@@ -77,6 +78,7 @@ namespace parser {
         std::unique_ptr<ast::else_stmt> parse_else_stmt();
         std::unique_ptr<ast::while_stmt> parse_while_stmt();
         std::unique_ptr<ast::do_while_stmt> parse_do_while_stmt();
+        std::unique_ptr<ast::loop_stmt> parse_loop_stmt();
         std::unique_ptr<ast::scope_stmt> parse_scope_stmt();
         std::unique_ptr<ast::let_stmt> parse_let_stmt(bool is_static);
         std::unique_ptr<ast::assignment_stmt> parse_assignment_stmt();

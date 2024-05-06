@@ -218,6 +218,8 @@ std::unique_ptr<parser::ast::stmt> parser::parser::parse_stmt() {
             return parse_while_stmt();
         case lexer::token_type::do_:
             return parse_do_while_stmt();
+        case lexer::token_type::loop:
+            return parse_loop_stmt();
         case lexer::token_type::break_:
             return parse_break_stmt();
         case lexer::token_type::breakall:
@@ -347,6 +349,14 @@ std::unique_ptr<parser::ast::do_while_stmt> parser::parser::parse_do_while_stmt(
     expect(lexer::token_type::semicolon);
 
     return std::make_unique<ast::do_while_stmt>(std::move(condition_expr), std::move(do_while_scope));
+}
+
+std::unique_ptr<parser::ast::loop_stmt> parser::parser::parse_loop_stmt() {
+    expect(lexer::token_type::loop);
+
+    auto scope = parse_scope_stmt();
+
+    return std::make_unique<ast::loop_stmt>(std::move(scope));
 }
 
 std::unique_ptr<parser::ast::scope_stmt> parser::parser::parse_scope_stmt() {
