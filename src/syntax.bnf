@@ -11,6 +11,7 @@
     | <while_statement>
     | <do_while_statement>
     | <loop_statement>
+    | <for_statement>
     | <let_statement>
     | <scope_statement>
     | <assignment_statement>
@@ -33,6 +34,10 @@
 <breakall_statement> ::= "brekall"
 
 <break_statement> ::= "break" <integer_expression>?
+
+<for_statement> ::= "for"
+    "(" (<statement> ("," <statement>)*) ";" <expression> ";" (<statement> ("," <statement>)*) ")"
+    <scope_statement>
 
 <loop_statement> ::= "loop" <scope_statement>
 
