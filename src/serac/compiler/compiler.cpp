@@ -8,7 +8,7 @@ void compiler::compiler::compile() {
             continue;
         }
 
-        if (!entry.path().has_extension() || entry.path().extension() != ".sn") {
+        if (!entry.path().has_extension() || entry.path().extension() != ".sr") {
             continue;
         }
 
