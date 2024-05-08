@@ -11,7 +11,6 @@ lexer::token lexer::lexer::get_next_token() {
 
         if (current_character_ == '/') {
             process_comment();
-            eat_current_char();
         }
 
         if (is_current_char_punctuation()) {
@@ -144,9 +143,12 @@ void lexer::lexer::process_comment() {
         }
     }
 
+    eat_current_char();
     while (can_read()) {
-        eat_current_char();
+        read_current_char();
+
         if (current_character_ == '\n') {
+            eat_current_char();
             line_++;
             column_ = 0;
             continue;
@@ -154,10 +156,15 @@ void lexer::lexer::process_comment() {
 
         if (current_character_ == '*') {
             eat_current_char();
+            read_current_char();
             if (current_character_ == '/') {
+                eat_current_char();
+                read_current_char();
                 return;
             }
         }
+
+        eat_current_char();
     }
 }
 
