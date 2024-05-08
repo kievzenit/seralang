@@ -6,10 +6,10 @@
 
 
 
-<top_statement> ::= <func_decl> | <let_statement>
+<top_statement> ::= <function_declaration_statement> | <let_statement>
 
 
-<func_decl> ::= "extern"? "func" <identifier> <func_params> <func_return> (";" | <scope_statement>)
+<function_declaration_statement> ::= "extern"? "func" <identifier> <func_params> <func_return> (";" | <scope_statement>)
 
 <func_param> ::= <identifier> <type_denotation>
 <func_params> ::= "(" (<func_param> ("," <func_param>)*)? ")"
@@ -56,7 +56,9 @@
 <return_statement> ::= "return" <expression> ";"
 
 
-<local_statement> ::= <let_statement> | <assignment_statement>
+<local_statement> ::= <let_statement> | <assignment_statement> | <call_statement>
+
+<call_statement> ::= <call_expression>
 
 <let_statement> ::= "static"? "let" <identifier> <type_denotation>? <assignment_operator> <expression> ";"
 <assignment_statement> ::= <identifier> <assignment_operator> <expression> ";"
