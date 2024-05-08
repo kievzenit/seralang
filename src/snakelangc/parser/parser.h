@@ -24,6 +24,7 @@
 #include "ast/stmts/breakall_stmt.h"
 #include "ast/stmts/continue_stmt.h"
 #include "ast/stmts/loop_stmt.h"
+#include "ast/stmts/for_stmt.h"
 
 namespace parser {
 
@@ -71,7 +72,7 @@ namespace parser {
         std::unique_ptr<ast::func_decl_stmt> parse_func_decl_stmt();
         std::vector<ast::func_param> parse_func_params();
         ast::func_param parse_func_param();
-        std::unique_ptr<ast::stmt> parse_stmt();
+        std::unique_ptr<ast::stmt> parse_stmt(bool expect_semicolon = true);
         std::unique_ptr<ast::if_stmt> parse_if_stmt();
         std::vector<std::unique_ptr<ast::else_if_stmt>> parse_else_if_stmts();
         std::unique_ptr<ast::else_if_stmt> parse_else_if_stmt();
@@ -79,9 +80,10 @@ namespace parser {
         std::unique_ptr<ast::while_stmt> parse_while_stmt();
         std::unique_ptr<ast::do_while_stmt> parse_do_while_stmt();
         std::unique_ptr<ast::loop_stmt> parse_loop_stmt();
+        std::unique_ptr<ast::for_stmt> parse_for_stmt();
         std::unique_ptr<ast::scope_stmt> parse_scope_stmt();
-        std::unique_ptr<ast::let_stmt> parse_let_stmt(bool is_static);
-        std::unique_ptr<ast::assignment_stmt> parse_assignment_stmt();
+        std::unique_ptr<ast::let_stmt> parse_let_stmt(bool is_static, bool expect_semicolon = true);
+        std::unique_ptr<ast::assignment_stmt> parse_assignment_stmt(bool expect_semicolon = true);
         std::unique_ptr<ast::call_stmt> parse_call_stmt();
         std::unique_ptr<ast::return_stmt> parse_return_stmt();
         std::unique_ptr<ast::break_stmt> parse_break_stmt();

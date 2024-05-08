@@ -189,18 +189,18 @@ parser::ast::func_param parser::parser::parse_func_param() {
     return {param_name, param_type};
 }
 
-std::unique_ptr<parser::ast::stmt> parser::parser::parse_stmt() {
+std::unique_ptr<parser::ast::stmt> parser::parser::parse_stmt(bool expect_semicolon) {
     eat();
 
     auto priv_token = current_token_;
     switch (current_token_.type) {
         case lexer::token_type::let:
-            return parse_let_stmt(false);
+            return parse_let_stmt(false, expect_semicolon);
         case lexer::token_type::ret:
             return parse_return_stmt();
         case lexer::token_type::static_:
             eat();
-            return parse_let_stmt(true);
+            return parse_let_stmt(true, expect_semicolon);
         case lexer::token_type::identifier:
             eat();
             if (current_token_.type == lexer::token_type::l_parenthesis) {
@@ -211,7 +211,7 @@ std::unique_ptr<parser::ast::stmt> parser::parser::parse_stmt() {
 
             putback_tokens_.push(current_token_);
             putback_tokens_.push(priv_token);
-            return parse_assignment_stmt();
+            return parse_assignment_stmt(expect_semicolon);
         case lexer::token_type::if_:
             return parse_if_stmt();
         case lexer::token_type::while_:
@@ -220,6 +220,8 @@ std::unique_ptr<parser::ast::stmt> parser::parser::parse_stmt() {
             return parse_do_while_stmt();
         case lexer::token_type::loop:
             return parse_loop_stmt();
+        case lexer::token_type::for_:
+            return parse_for_stmt();
         case lexer::token_type::break_:
             return parse_break_stmt();
         case lexer::token_type::breakall:
@@ -359,6 +361,50 @@ std::unique_ptr<parser::ast::loop_stmt> parser::parser::parse_loop_stmt() {
     return std::make_unique<ast::loop_stmt>(std::move(scope));
 }
 
+std::unique_ptr<parser::ast::for_stmt> parser::parser::parse_for_stmt() {
+    expect(lexer::token_type::for_);
+
+    eat();
+    expect(lexer::token_type::l_parenthesis);
+
+    std::vector<std::unique_ptr<ast::stmt>> run_once;
+    auto for_init_parsing_completed = false;
+    do {
+        auto stmt = parse_stmt(false);
+        run_once.push_back(std::move(stmt));
+
+        if (current_token_.type != lexer::token_type::coma
+            && current_token_.type != lexer::token_type::semicolon) {
+            expect(lexer::token_type::coma);
+        } else if (current_token_.type == lexer::token_type::semicolon) {
+            for_init_parsing_completed = true;
+        }
+    } while (!for_init_parsing_completed);
+
+    auto condition = parse_expr();
+    eat();
+    expect(lexer::token_type::semicolon);
+
+    std::vector<std::unique_ptr<ast::stmt>> run_after_each;
+    auto for_after_each_parsing_completed = false;
+    do {
+        auto stmt = parse_stmt(false);
+        run_after_each.push_back(std::move(stmt));
+
+        if (current_token_.type != lexer::token_type::coma
+            && current_token_.type != lexer::token_type::r_parenthesis) {
+            expect(lexer::token_type::coma);
+        } else if (current_token_.type == lexer::token_type::r_parenthesis) {
+            for_after_each_parsing_completed = true;
+        }
+    } while (!for_after_each_parsing_completed);
+
+    auto scope = parse_scope_stmt();
+
+    return std::make_unique<ast::for_stmt>(
+            std::move(run_once), std::move(condition), std::move(run_after_each), std::move(scope));
+}
+
 std::unique_ptr<parser::ast::scope_stmt> parser::parser::parse_scope_stmt() {
     eat();
     expect(lexer::token_type::l_curly_brace);
@@ -377,7 +423,7 @@ std::unique_ptr<parser::ast::scope_stmt> parser::parser::parse_scope_stmt() {
     return std::make_unique<ast::scope_stmt>(std::move(inner_stmts));
 }
 
-std::unique_ptr<parser::ast::let_stmt> parser::parser::parse_let_stmt(bool is_static) {
+std::unique_ptr<parser::ast::let_stmt> parser::parser::parse_let_stmt(bool is_static, bool expect_semicolon) {
     eat();
     expect(lexer::token_type::identifier);
     auto identifier_name = current_token_.value;
@@ -388,12 +434,14 @@ std::unique_ptr<parser::ast::let_stmt> parser::parser::parse_let_stmt(bool is_st
     auto expression = parse_expr();
 
     eat();
-    expect(lexer::token_type::semicolon);
+    if (expect_semicolon) {
+        expect(lexer::token_type::semicolon);
+    }
 
     return std::make_unique<ast::let_stmt>(identifier_name, std::move(expression), is_static);
 }
 
-std::unique_ptr<parser::ast::assignment_stmt> parser::parser::parse_assignment_stmt() {
+std::unique_ptr<parser::ast::assignment_stmt> parser::parser::parse_assignment_stmt(bool expect_semicolon) {
     eat();
     expect(lexer::token_type::identifier);
     auto identifier_name = current_token_.value;
@@ -416,7 +464,9 @@ std::unique_ptr<parser::ast::assignment_stmt> parser::parser::parse_assignment_s
     auto expr = parse_expr();
 
     eat();
-    expect(lexer::token_type::semicolon);
+    if (expect_semicolon) {
+        expect(lexer::token_type::semicolon);
+    }
 
     if (assign_token_type != lexer::token_type::assign) {
         expr = std::make_unique<ast::binary_expr>(
