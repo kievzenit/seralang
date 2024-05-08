@@ -31,7 +31,7 @@
 
 <for_statement> ::= "for"
     "("
-        (<local_statement> ("," <local_statement>)*) ";"
+        (<assignment_statements> ("," <assignment_statements>)*) ";"
         <expression> ";"
         (<assignment_statement> ("," <assignment_statement>)*)
     ")"
@@ -56,9 +56,11 @@
 <return_statement> ::= "return" <expression> ";"
 
 
-<local_statement> ::= <let_statement> | <assignment_statement> | <call_statement>
+<local_statement> ::= <assignment_statements> | <call_statement>
 
 <call_statement> ::= <call_expression>
+
+<assignment_statements> ::= <let_statement> | <assignment_statement>
 
 <let_statement> ::= "static"? "let" <identifier> <type_denotation>? <assignment_operator> <expression> ";"
 <assignment_statement> ::= <identifier> <assignment_operator> <expression> ";"
