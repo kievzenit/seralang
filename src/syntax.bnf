@@ -57,7 +57,7 @@
     | "*="
     | "/="
     | "%="
-<let_statement> ::= "static"? "let" <identifier> <type_denotation>? "=" <expression> ";"
+<let_statement> ::= "static"? "let" <identifier> <type_denotation>? <assignment> <expression> ";"
 
 <assignment_statement> ::= <identifier> <assignment> <expression> ";"
 
