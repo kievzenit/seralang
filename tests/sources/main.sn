@@ -3,6 +3,10 @@ package test_package;
 func main() int {
     let a = 0;
 
+    for (let i = 0; i < 6; i += 1, i -= 1, i += 2) {
+        a += 1;
+    }
+
     while (true) {
         if (a > 20) {
             break;
