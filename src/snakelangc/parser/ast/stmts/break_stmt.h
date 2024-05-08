@@ -1,11 +1,11 @@
 #ifndef SNAKELANG_BREAK_STMT_H
 #define SNAKELANG_BREAK_STMT_H
 
-#include "stmt.h"
+#include "control_flow_stmt.h"
 
 namespace parser::ast {
 
-    class break_stmt : public stmt {
+    class break_stmt : public control_flow_stmt {
     public:
         break_stmt() = default;
         explicit break_stmt(std::unique_ptr<expr> break_expr) : break_expr(std::move(break_expr)) {}

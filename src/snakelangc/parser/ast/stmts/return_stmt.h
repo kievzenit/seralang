@@ -2,12 +2,12 @@
 #define SNAKELANG_RETURN_STMT_H
 
 #include <memory>
-#include "stmt.h"
+#include "control_flow_stmt.h"
 #include "../exprs/expr.h"
 
 namespace parser::ast {
 
-    class return_stmt : public stmt {
+    class return_stmt : public control_flow_stmt {
     public:
         return_stmt(std::unique_ptr<expr> return_expr) : return_expr(std::move(return_expr)) {}
 

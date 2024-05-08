@@ -3,7 +3,7 @@
 
 #include <memory>
 #include <vector>
-#include "stmt.h"
+#include "compound_stmt.h"
 #include "../exprs/expr.h"
 #include "scope_stmt.h"
 #include "else_if_stmt.h"
@@ -11,7 +11,7 @@
 
 namespace parser::ast {
 
-    class if_stmt : public stmt {
+    class if_stmt : public compound_stmt {
     public:
         if_stmt(
                 std::unique_ptr<expr> if_expr,

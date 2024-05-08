@@ -3,11 +3,11 @@
 
 #include <string>
 #include "../exprs/expr.h"
-#include "stmt.h"
+#include "local_stmt.h"
 
 namespace parser::ast {
 
-    class let_stmt : public top_stmt, public stmt {
+    class let_stmt : public top_stmt, public local_stmt {
     public:
         let_stmt(std::string name, std::unique_ptr<expr> expression, bool is_static) :
             name(std::move(name)), expression(std::move(expression)), is_static(is_static) {}

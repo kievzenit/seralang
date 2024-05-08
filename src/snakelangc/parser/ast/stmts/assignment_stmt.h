@@ -2,11 +2,11 @@
 #define SNAKELANG_ASSIGNMENT_STMT_H
 
 #include <memory>
-#include "stmt.h"
+#include "local_stmt.h"
 
 namespace parser::ast {
 
-    class assignment_stmt : public stmt {
+    class assignment_stmt : public local_stmt {
     public:
         explicit assignment_stmt(std::string name, std::unique_ptr<ast::expr> assignment_expr) :
             name(std::move(name)), assignment_expr(std::move(assignment_expr)) {}

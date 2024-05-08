@@ -4,12 +4,12 @@
 #include <memory>
 #include <vector>
 
-#include "stmt.h"
+#include "compound_stmt.h"
 #include "../exprs/expr.h"
 
 namespace parser::ast {
 
-    class for_stmt : public stmt {
+    class for_stmt : public compound_stmt {
     public:
         for_stmt(
                 std::vector<std::unique_ptr<stmt>> run_once,

@@ -1,11 +1,11 @@
 #ifndef SNAKELANG_CONTINUE_STMT_H
 #define SNAKELANG_CONTINUE_STMT_H
 
-#include "stmt.h"
+#include "control_flow_stmt.h"
 
 namespace parser::ast {
 
-    class continue_stmt : public stmt {};
+    class continue_stmt : public control_flow_stmt {};
 
 }
 

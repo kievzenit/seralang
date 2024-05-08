@@ -3,12 +3,12 @@
 
 #include <utility>
 #include <memory>
-#include "stmt.h"
+#include "local_stmt.h"
 #include "../exprs/call_expr.h"
 
 namespace parser::ast {
 
-    class call_stmt : public stmt {
+    class call_stmt : public local_stmt {
     public:
         call_stmt(std::unique_ptr<call_expr> expression) : expression(std::move(expression)) {}
 
