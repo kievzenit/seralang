@@ -2,10 +2,10 @@
 
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 
-#include "../../src/snakelangc/lexer/lexer.h"
-#include "../../src/snakelangc/parser/parser.h"
-#include "../../src/snakelangc/translator/translator.h"
-#include "../../src/snakelangc/emitter/emitter.h"
+#include "../../src/serac/lexer/lexer.h"
+#include "../../src/serac/parser/parser.h"
+#include "../../src/serac/translator/translator.h"
+#include "../../src/serac/emitter/emitter.h"
 
 #include <cstdio>
 

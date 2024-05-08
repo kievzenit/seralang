@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.27)
-project(snakelangc_tests)
+project(serac_tests)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -23,10 +23,10 @@ add_definitions(${LLVM_DEFINITIONS})
 llvm_map_components_to_libnames(llvm_libs -16)
 
 file(GLOB_RECURSE TEST_SOURCES LIST_DIRECTORIES false *.h *.cpp)
-add_executable(snakelangc_test ${TEST_SOURCES} ${COMPILER_SOURCES})
+add_executable(serac_test ${TEST_SOURCES} ${COMPILER_SOURCES})
 
-target_include_directories(snakelangc PUBLIC ../src/snakelangc)
-target_link_libraries(snakelangc_test gtest ${llvm_libs} snakelangc_lib)
+target_include_directories(serac PUBLIC ../src/serac)
+target_link_libraries(serac_test gtest ${llvm_libs} serac_lib)
 
 include(GoogleTest)
-gtest_discover_tests(snakelangc_test)
+gtest_discover_tests(serac_test)
