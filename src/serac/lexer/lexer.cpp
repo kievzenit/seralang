@@ -498,7 +498,16 @@ lexer::token lexer::lexer::process_number() {
     while (can_read()) {
         read_current_char();
 
-        if (!is_current_char_decimal_digit()) break;
+        if (!is_current_char_decimal_digit() && current_character_ != '_') break;
+
+        if (current_character_ == '_') {
+            eat_current_char();
+            read_current_char();
+
+            if (!is_current_char_decimal_digit()) {
+                utils::log_error(std::format("Expected digit, but got: {} instead.", current_character_));
+            }
+        }
 
         number += current_character_;
         eat_current_char();
