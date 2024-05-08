@@ -1,86 +1,87 @@
 <translation_unit> ::= <package_statement> <top_statement>*
 
 
+
 <package_statement> ::= "package" <identifier> ("." <identifier>)* ";"
 
-<top_statement> ::= <func_prototype_decl_statement> | <func_decl_statement> | <let_statement>
 
-<statement> ::= <return_statement>
-    | <func_decl_statement>
-    | <if_statement>
-    | <while_statement>
-    | <do_while_statement>
-    | <loop_statement>
-    | <for_statement>
-    | <let_statement>
-    | <scope_statement>
-    | <assignment_statement>
-    | <continue_statement>
-    | <breakall_statement>
-    | <break_statement>
 
-<type_denotation> ::= ":" <basic_type>
+<top_statement> ::= <func_decl> | <let_statement>
+
+
+<func_decl> ::= "extern"? "func" <identifier> <func_params> <func_return> (";" | <scope_statement>)
 
 <func_param> ::= <identifier> <type_denotation>
 <func_params> ::= "(" (<func_param> ("," <func_param>)*)? ")"
 <func_return> ::= <basic_type>
-<func_decl> ::= "func" <identifier> <func_params> <func_return>
 
-<func_prototype_decl_statement> ::= "extern" <func_decl> ";"
-<func_decl_statement> ::= <func_decl> <scope_statement>
 
-<continue_statement> ::= "continue"
 
-<breakall_statement> ::= "brekall"
+<statement> ::= <compound_statement> | <control_flow_statement> | <local_statement> | <scope_statement>
 
-<break_statement> ::= "break" <integer_expression>?
+<scope_statement> ::= "{" <statement>* "}"
+
+
+
+<compound_statement> ::= <if_statement>
+    | <while_statement>
+    | <do_while_statement>
+    | <loop_statement>
+    | <for_statement>
 
 <for_statement> ::= "for"
-    "(" (<statement> ("," <statement>)*) ";" <expression> ";" (<statement> ("," <statement>)*) ")"
+    "("
+        (<local_statement> ("," <local_statement>)*) ";"
+        <expression> ";"
+        (<assignment_statement> ("," <assignment_statement>)*)
+    ")"
     <scope_statement>
-
 <loop_statement> ::= "loop" <scope_statement>
-
 <do_while_statement> ::= "do" <scope_statement> "while" <parenthesis_expression> ";"
-
 <while_statement> ::= "while" <parenthesis_expression> <scope_statement>
 
 <if_statement> ::= "if" <parenthesis_expression> <scope_statement> <else_if_statement>* <else_statement>?
-
 <else_if_statement> ::= "else" "if" <parenthesis_expression> <scope_statement>
-
 <else_statement> ::= "else" <scope_statement>
 
-<assignment> ::= "="
+
+<control_flow_statement> ::= <continue_statement>
+    | <break_statement>
+    | <breakall_statement>
+    | <return_statement>
+
+<continue_statement> ::= "continue"
+<break_statement> ::= "break" <integer_expression>?
+<breakall_statement> ::= "brekall"
+<return_statement> ::= "return" <expression> ";"
+
+
+<local_statement> ::= <let_statement> | <assignment_statement>
+
+<let_statement> ::= "static"? "let" <identifier> <type_denotation>? <assignment_operator> <expression> ";"
+<assignment_statement> ::= <identifier> <assignment_operator> <expression> ";"
+
+<assignment_operator> ::= "="
     | "+="
     | "-="
     | "*="
     | "/="
     | "%="
-<let_statement> ::= "static"? "let" <identifier> <type_denotation>? <assignment> <expression> ";"
 
-<assignment_statement> ::= <identifier> <assignment> <expression> ";"
 
-<scope_statement> ::= "{" <statement>* "}"
-
-<return_statement> ::= "return" <expression> ";"
 
 <expression> ::= <primary_expression> | <binary_expression>
 
-<parenthesis_expression> ::= "(" <expression> ")"
 
 <binary_expression> ::= <arithmetic_expression> | <relational_expression> | <logical_expression> | <bitwise_expression>
 
 <bitwise_expression> ::= <expression> <bitwise_operator> <expression>
-
 <bitwise_operator> ::= "&" | "|" | "^"
 
 <logical_expression> ::= <expression> <logical_operator> <expression>
-
 <logical_operator> ::= "&&" | "||"
 
 <arithmetic_expression> ::= <expression> <arithmetic_operator> <expression>
-
 <arithmetic_operator> ::= "+"
     | "-"
     | "*"
@@ -88,13 +89,13 @@
     | "%"
 
 <relational_expression> ::= <expression> <relational_operator> <expression>
-
 <relational_operator> ::= ">"
     | "<"
     | ">="
     | "<="
     | "!="
     | "=="
+
 
 <primary_expression> ::= <boolean_expression>
     | <integer_expression>
@@ -103,18 +104,19 @@
     | <call_expression>
 
 <call_expression> ::= <identifier> "(" (<expression> ("," <expression>)*)? ")"
-
+<parenthesis_expression> ::= "(" <expression> ")"
 <identifier_expression> ::= <identifier>
-
-<integer_expression> ::= <number>
-
+<integer_expression> ::= <number_literal>
 <boolean_expression> ::= "true" | "false"
 
 
+
+<type_denotation> ::= ":" <basic_type>
 <basic_type> ::= "void"
     | "bool"
     | <integer_type>
 
+<int_type_denotation> ::= ":" <integer_type>
 <integer_type> ::= "int1"
     | "int8"
     | "int16"
@@ -127,26 +129,26 @@
     | "uint"
     | "uint64"
 
-<identifier> ::= (<letter> | "_") | <identifier> (<letter> | <decimal_digit> | "_")+
 
+
+<identifier> ::= (<letter> | "_") | <identifier> (<letter> | <decimal_digit> | "_")+
 <letter> ::= [a-z] | [A-Z]
 
-<int_type_denotation> ::= ":" <integer_type>
 
-<number> ::= <numbers> <int_type_denotation>?
+<number_literal> ::= <number_literals> <int_type_denotation>?
 
-<numbers> ::= <decimal_number>
-    | <complex_hexadecimal_number>
-    | <complex_decimal_number>
-    | <complex_octal_number>
-    | <complex_binary_number>
+<number_literals> ::= <decimal_number_literal>
+    | <complex_hexadecimal_number_literal>
+    | <complex_decimal_number_literal>
+    | <complex_octal_number_literal>
+    | <complex_binary_number_literal>
 
-<complex_hexadecimal_number> ::= "0x" <hexadecimal_digit>+
-<complex_decimal_number> ::= "0d" <decimal_digit>+
-<complex_octal_number> ::= "0o" <octal_digit>+
-<complex_binary_number> ::= "0b" <binary_digit>+
+<complex_hexadecimal_number_literal> ::= "0x" <hexadecimal_digit>+
+<complex_decimal_number_literal> ::= "0d" <decimal_digit>+
+<complex_octal_number_literal> ::= "0o" <octal_digit>+
+<complex_binary_number_literal> ::= "0b" <binary_digit>+
 
-<decimal_number> ::= <decimal_digit>+
+<decimal_number_literal> ::= <decimal_digit> ("_" | <decimal_digit>)*
 
 <hexadecimal_digit> ::= <decimal_digit> | [a-f]
 <decimal_digit> ::= <octal_digit> | [8-9]
