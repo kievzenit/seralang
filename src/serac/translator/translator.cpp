@@ -311,6 +311,17 @@ void translator::translator::translate_stmt(std::unique_ptr<emitter::ir::stmt_ir
 }
 
 void translator::translator::translate_scope_stmt(emitter::ir::scope_stmt_ir *scope_ir) {
+    auto scope_block = llvm::BasicBlock::Create(
+            *context_, "scope", current_function_, insert_before_block_);
+    auto after_scope_block = llvm::BasicBlock::Create(
+            *context_, "after_scope", current_function_, insert_before_block_);
+    insert_before_block_ = after_scope_block;
+
+    builder_->SetInsertPoint(current_block_);
+    builder_->CreateBr(scope_block);
+    builder_->ClearInsertionPoint();
+    current_block_ = scope_block;
+
     current_scope_ = scope_ir;
     for (auto &stmt : scope_ir->inner_stmts) {
         auto priv_insert_before_block = insert_before_block_;
@@ -318,6 +329,22 @@ void translator::translator::translate_scope_stmt(emitter::ir::scope_stmt_ir *sc
         insert_before_block_ = priv_insert_before_block;
     }
     current_scope_ = nullptr;
+
+    if (!br_generated_) {
+        builder_->SetInsertPoint(current_block_);
+        builder_->CreateBr(after_scope_block);
+    } else {
+        br_generated_ = false;
+    }
+
+    current_block_ = after_scope_block;
+
+    if (scope_ir->parent_scope == nullptr) {
+        builder_->SetInsertPoint(after_scope_block);
+        builder_->CreateUnreachable();
+    }
+
+    builder_->ClearInsertionPoint();
 }
 
 void translator::translator::translate_if_stmt(emitter::ir::if_stmt_ir *if_stmt) {
@@ -346,16 +373,12 @@ void translator::translator::translate_if_stmt(emitter::ir::if_stmt_ir *if_stmt)
     insert_before_block_ = current_else_block;
     translate_scope_stmt(if_stmt->scope.get());
 
-    if (!br_generated_) {
-        builder_->SetInsertPoint(current_block_);
-        builder_->CreateBr(after_if_block);
-    } else {
-        br_generated_ = false;
-    }
+    builder_->SetInsertPoint(current_block_);
+    builder_->CreateBr(after_if_block);
 
     insert_before_block_ = after_if_block;
 
-    for (auto& else_if_stmt : if_stmt->else_if_branches) {
+    for (auto &else_if_stmt: if_stmt->else_if_branches) {
         current_block_ = current_else_block;
 
         current_cond_block = BasicBlock::Create(
@@ -379,27 +402,20 @@ void translator::translator::translate_if_stmt(emitter::ir::if_stmt_ir *if_stmt)
         insert_before_block_ = current_else_block;
         translate_scope_stmt(else_if_stmt->scope.get());
 
-        if (!br_generated_) {
-            builder_->SetInsertPoint(current_block_);
-            builder_->CreateBr(after_if_block);
-        } else {
-            br_generated_ = false;
-        }
+        builder_->SetInsertPoint(current_block_);
+        builder_->CreateBr(after_if_block);
     }
 
     if (if_stmt->else_branch) {
         current_block_ = current_else_block;
         insert_before_block_ = after_if_block;
         translate_scope_stmt(if_stmt->else_branch->scope.get());
+    } else {
+        current_block_ = current_else_block;
     }
 
-    if (!br_generated_) {
-        current_block_ = current_else_block;
-        builder_->SetInsertPoint(current_block_);
-        builder_->CreateBr(after_if_block);
-    } else {
-        br_generated_ = false;
-    }
+    builder_->SetInsertPoint(current_block_);
+    builder_->CreateBr(after_if_block);
 
     current_block_ = after_if_block;
 
@@ -439,16 +455,8 @@ void translator::translator::translate_while_stmt(emitter::ir::while_stmt_ir *wh
     insert_before_block_ = after_while_block;
     translate_scope_stmt(while_stmt->scope.get());
 
-    if (!br_generated_) {
-        if (current_block_ == after_while_block) {
-            br_generated_ = true;
-        }
-
-        builder_->SetInsertPoint(current_block_);
-        builder_->CreateBr(condition_block);
-    } else {
-        br_generated_ = false;
-    }
+    builder_->SetInsertPoint(current_block_);
+    builder_->CreateBr(condition_block);
 
     current_block_ = after_while_block;
     break_to_blocks_.erase(break_to_blocks_.begin() + inner_loops_);
@@ -490,16 +498,8 @@ void translator::translator::translate_do_while_stmt(emitter::ir::do_while_stmt_
     insert_before_block_ = condition_block;
     translate_scope_stmt(do_while_stmt->scope.get());
 
-    if (!br_generated_) {
-        if (current_block_ == after_do_while_block) {
-            br_generated_ = true;
-        }
-
-        builder_->SetInsertPoint(current_block_);
-        builder_->CreateBr(condition_block);
-    } else {
-        br_generated_ = false;
-    }
+    builder_->SetInsertPoint(current_block_);
+    builder_->CreateBr(condition_block);
 
     current_block_ = condition_block;
     insert_before_block_ = after_do_while_block;
@@ -545,16 +545,8 @@ void translator::translator::translate_loop_stmt(emitter::ir::loop_stmt_ir *loop
     insert_before_block_ = after_loop_block;
     translate_scope_stmt(loop_stmt->scope.get());
 
-    if (!br_generated_) {
-        if (current_block_ == after_loop_block) {
-            br_generated_ = true;
-        }
-
-        builder_->SetInsertPoint(current_block_);
-        builder_->CreateBr(loop_block);
-    } else {
-        br_generated_ = false;
-    }
+    builder_->SetInsertPoint(current_block_);
+    builder_->CreateBr(loop_block);
 
     current_block_ = after_loop_block;
     break_to_blocks_.erase(break_to_blocks_.begin() + inner_loops_);
@@ -614,6 +606,8 @@ void translator::translator::translate_return_stmt(emitter::ir::return_stmt_ir* 
 
     auto expr_result = translate_expr(return_ir->expr.get());
     builder_->CreateRet(expr_result);
+
+    br_generated_ = true;
 
     builder_->ClearInsertionPoint();
 }
