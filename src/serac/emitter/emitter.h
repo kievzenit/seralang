@@ -52,6 +52,7 @@
 #include "ir/stmts/continue_stmt_ir.h"
 #include "../parser/ast/stmts/loop_stmt.h"
 #include "ir/stmts/loop_stmt_ir.h"
+#include "../parser/ast/stmts/for_stmt.h"
 
 namespace emitter {
 
@@ -118,6 +119,7 @@ namespace emitter {
         void emit_for_while_stmt(parser::ast::while_stmt* while_stmt);
         void emit_for_do_while_stmt(parser::ast::do_while_stmt* do_while_stmt);
         void emit_for_loop_stmt(parser::ast::loop_stmt* loop_stmt);
+        void emit_for_for_stmt(parser::ast::for_stmt* for_stmt);
         void emit_for_let_stmt(parser::ast::let_stmt* let_stmt);
         void emit_for_assignment_stmt(parser::ast::assignment_stmt* assignment_stmt);
         void emit_for_call_stmt(parser::ast::call_stmt* call_stmt);

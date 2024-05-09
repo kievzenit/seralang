@@ -21,6 +21,11 @@ void emitter::emitter::emit_for_stmt(std::unique_ptr<parser::ast::stmt> stmt) {
         return;
     }
 
+    if (dynamic_cast<parser::ast::for_stmt*>(stmt.get()) != nullptr) {
+        emit_for_for_stmt(dynamic_cast<parser::ast::for_stmt*>(stmt.get()));
+        return;
+    }
+
     if (dynamic_cast<parser::ast::scope_stmt*>(stmt.get()) != nullptr) {
         emit_for_scope_stmt(dynamic_cast<parser::ast::scope_stmt*>(stmt.get()));
         return;
@@ -178,6 +183,63 @@ void emitter::emitter::emit_for_loop_stmt(parser::ast::loop_stmt *loop_stmt) {
     auto loop_stmt_ir = std::make_unique<ir::loop_stmt_ir>(std::move(scope));
 
     current_scope_->inner_stmts.push_back(std::move(loop_stmt_ir));
+
+    loop_count_--;
+}
+
+void emitter::emitter::emit_for_for_stmt(parser::ast::for_stmt* for_stmt) {
+    loop_count_++;
+
+    auto for_scope = std::make_unique<ir::scope_stmt_ir>(current_scope_);
+    auto for_scope_ptr = for_scope.get();
+    current_scope_->inner_stmts.push_back(std::move(for_scope));
+    current_scope_ = for_scope_ptr;
+
+    for (auto &run_once: for_stmt->run_once) {
+        if (dynamic_cast<parser::ast::let_stmt *>(run_once.get()) != nullptr) {
+            auto let_stmt = dynamic_cast<parser::ast::let_stmt *>(run_once.get());
+            if (let_stmt->is_static) {
+                utils::log_error("Static let variables cannot be use inside for init stage.");
+            }
+
+            emit_for_let_stmt(let_stmt);
+            continue;
+        }
+
+        if (dynamic_cast<parser::ast::assignment_stmt *>(run_once.get()) != nullptr) {
+            emit_for_assignment_stmt(dynamic_cast<parser::ast::assignment_stmt *>(run_once.get()));
+            continue;
+        }
+
+        utils::log_error("Only let and assignment statements are allowed in init stage of for loop.");
+    }
+
+    auto condition = emit_for_cast(
+            emit_for_expr(std::move(for_stmt->condition)),
+            types_["bool"]);
+
+    auto scope = emit_for_scope_stmt(for_stmt->scope.get());
+    current_scope_ = scope.get();
+
+    auto while_stmt = std::make_unique<ir::while_stmt_ir>(std::move(condition), std::move(scope));
+
+    auto run_after_each_scope = std::make_unique<ir::scope_stmt_ir>(
+            while_stmt->scope.get());
+    auto run_after_each_scope_ptr = run_after_each_scope.get();
+    current_scope_->inner_stmts.push_back(std::move(run_after_each_scope));
+    current_scope_ = run_after_each_scope_ptr;
+
+    for (auto &run_after_each: for_stmt->run_after_each) {
+        if (dynamic_cast<parser::ast::assignment_stmt *>(run_after_each.get()) != nullptr) {
+            emit_for_assignment_stmt(dynamic_cast<parser::ast::assignment_stmt *>(run_after_each.get()));
+            continue;
+        }
+
+        utils::log_error("Only assignment statements are allowed in init stage of for loop.");
+    }
+
+    for_scope_ptr->inner_stmts.push_back(std::move(while_stmt));
+    current_scope_ = for_scope_ptr->parent_scope;
 
     loop_count_--;
 }
