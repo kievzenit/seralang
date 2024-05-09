@@ -1,38 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <llvm/ExecutionEngine/ExecutionEngine.h>
-
-#include "../../src/serac/lexer/lexer.h"
-#include "../../src/serac/parser/parser.h"
-#include "../../src/serac/translator/translator.h"
-#include "../../src/serac/emitter/emitter.h"
-
-#include <cstdio>
-
-#define STRINGIFY(...) #__VA_ARGS__
-
-int test_source(const std::string& source) {
-    std::istringstream string_stream(source);
-    lexer::lexer lexer(string_stream.rdbuf());
-    parser::parser parser(lexer);
-
-    auto translation_ast = parser.parse();
-    std::vector<std::unique_ptr<parser::ast::translation_ast>> translation_asts;
-    translation_asts.push_back(std::move(translation_ast));
-
-    emitter::emitter emitter(std::move(translation_asts));
-    auto package_ir = emitter.emit();
-
-    translator::translator translator(std::move(package_ir));
-    auto module = translator.translate();
-
-    auto main_func = module->getFunction("main");
-
-    llvm::EngineBuilder engine_builder(std::move(module));
-    llvm::ExecutionEngine* execution_engine = engine_builder.create();
-
-    return execution_engine->runFunctionAsMain(main_func, {}, {});
-}
+#include "../utils/stringify.h"
+#include "../utils/test_utils.h"
 
 TEST(LoopTests, LoopCanUseBreak) {
     auto source = STRINGIFY(
@@ -107,6 +76,74 @@ TEST(LoopTests, LoopCanUseBreakall) {
     EXPECT_EQ(actual, expected);
 }
 
+TEST(LoopTests, LoopCanUseBreakInt) {
+    auto source = STRINGIFY(
+            package test;
+            func main() int {
+            let a = 0;
+            do {
+                while (true) {
+                    a += 1;
+
+                    if (a == 10) {
+                        loop {
+                                a += 1;
+
+                                if (a % 2 == 0) {
+                                    break 2:uint;
+                                }
+                        }
+                    }
+                }
+
+                loop {
+                        loop {
+                                loop {
+                                        loop {
+                                                loop {
+                                                        loop {
+                                                                a += 1;
+
+                                                                if (a > 30) {
+                                                                    break 6:uint;
+                                                                }
+                                                        }
+                                                }
+                                        }
+                                }
+                        }
+                }
+
+                a += 5;
+            } while (a < 30);
+            return a;
+    }
+    );
+
+    const int expected = 36;
+    auto actual = test_source(source);
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(LoopTests, LoopCanUseReturn) {
+    auto source = STRINGIFY(
+            package test;
+            func main() int {
+            let a = 1;
+            loop {
+                return a * 8;
+            }
+            return a;
+    }
+    );
+
+    const int expected = 8;
+    auto actual = test_source(source);
+
+    EXPECT_EQ(actual, expected);
+}
+
 TEST(LoopTests, LoopCanUseIf) {
     auto source = STRINGIFY(
             package test;
@@ -133,78 +170,146 @@ TEST(LoopTests, LoopCanUseIf) {
     EXPECT_EQ(actual, expected);
 }
 
-TEST(LoopTests, IfCanUseLoop) {
+TEST(LoopTests, LoopCanUseWhileLoop) {
     auto source = STRINGIFY(
             package test;
             func main() int {
                 let a = 0;
-                if (a == 0 && a != 0) {
-                    a = 9;
-                } else if (a < 1 || a == 9) {
-                    loop {
-                        a += 2;
-                        if (a == 6) {
-                            break;
-                        }
+                loop {
+                    while (a < 10) {
+                        a += 1;
                     }
-                } else {
-                    a = 8;
+                    break;
                 }
                 return a;
             }
             );
 
-    const int expected = 6;
+    const int expected = 10;
     auto actual = test_source(source);
 
     EXPECT_EQ(actual, expected);
 }
 
-TEST(LoopTests, LoopCanUseBreakInt) {
+TEST(LoopTests, LoopCanUseDoWhileLoop) {
     auto source = STRINGIFY(
             package test;
             func main() int {
                 let a = 0;
-                do {
-                    while (true) {
-                        a += 1;
-
-                        if (a == 10) {
-                            loop {
-                                a += 1;
-
-                                if (a % 2 == 0) {
-                                    break 2:uint;
-                                }
-                            }
-                        }
-                    }
-
-                    loop {
-                        loop {
-                            loop {
-                                loop {
-                                    loop {
-                                        loop {
-                                            a += 1;
-
-                                            if (a > 30) {
-                                                break 6:uint;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    a += 5;
-                } while (a < 30);
+                loop {
+                    a += 1;
+                    do {
+                        a += 2;
+                    } while (a % 1 != 0);
+                    break;
+                }
                 return a;
             }
             );
 
-    const int expected = 36;
+    const int expected = 3;
+    auto actual = test_source(source);
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(LoopTests, LoopCanUseAnotherLoop) {
+    auto source = STRINGIFY(
+            package test;
+            func main() int {
+            let a = 0;
+            loop {
+                loop {
+                    a += 2;
+
+                    if (a == 20) {
+                        breakall;
+                    }
+                }
+            }
+            return a;
+    }
+    );
+
+    const int expected = 20;
+    auto actual = test_source(source);
+
+    EXPECT_EQ(actual, expected);
+}
+
+
+TEST(LoopTests, LoopCanUseForLoop) {
+    auto source = STRINGIFY(
+            package test;
+            func main() int {
+            let a = 0;
+            loop {
+                for (let i = 0; i < 24; i += 1) {
+                    a += 1;
+                }
+                break;
+            }
+            return a;
+    }
+    );
+
+    const int expected = 24;
+    auto actual = test_source(source);
+
+    EXPECT_EQ(actual, expected);
+}
+
+TEST(LoopTests, LoopCanBeUsedInComplexSituations) {
+    auto source = STRINGIFY(
+            package test;
+            func main() int {
+                let a = 0;
+
+                if (a >= 0) {
+                    loop {
+                        while (true) {
+                            for (let i = 30; a < 14; i -= 1) {
+                                a += 1;
+
+                                do {
+                                    a += 1;
+                                } while (a % 2 != 1);
+                            }
+                            break;
+                        }
+
+                        for (let i = 0; i < 3; i += 1) {
+                            a -= 1;
+                        }
+
+                        if (a < 100) {
+                            loop {
+                                while (true) {
+                                    do {
+                                        loop {
+                                            for (let i = 0; i < 10989; i *= 3) {
+                                                a += 30;
+                                                break 6:uint;
+                                            }
+                                        }
+                                    } while (a > 9 && a < 1000);
+                                }
+                            }
+                        }
+                    }
+                } else if (a > 1) {
+                    return 1;
+                }
+
+                if (a > 0) {
+                    a -= 15;
+                }
+
+                return a;
+            }
+            );
+
+    const int expected = 27;
     auto actual = test_source(source);
 
     EXPECT_EQ(actual, expected);
