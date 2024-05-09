@@ -12,6 +12,7 @@
 #include <llvm/Target/TargetOptions.h>
 #include <llvm/Support/FileSystem.h>
 #include <llvm/IR/LegacyPassManager.h>
+#include <llvm/ExecutionEngine/ExecutionEngine.h>
 
 #include "../parser/parser.h"
 #include "../emitter/emitter.h"
@@ -38,7 +39,8 @@ namespace compiler {
         std::vector<std::unique_ptr<parser::ast::translation_ast>> translation_asts_;
 
         void compile_module(std::unique_ptr<llvm::Module> module);
-        std::string generate_extension() const;
+        void run_module_in_jit(std::unique_ptr<llvm::Module> module);
+        [[nodiscard]] std::string generate_extension() const;
     };
 
 }

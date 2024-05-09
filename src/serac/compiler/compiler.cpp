@@ -37,6 +37,11 @@ void compiler::compiler::compile() {
         translator::translator translator(std::move(package_ir));
         auto module = translator.translate();
 
+        if (options_.run_in_jit) {
+            run_module_in_jit(std::move(module));
+            continue;
+        }
+
         compile_module(std::move(module));
     }
 }
@@ -54,6 +59,10 @@ compiler::compiler::split_asts_by_package() {
 
 void compiler::compiler::compile_module(std::unique_ptr<llvm::Module> module) {
     using namespace llvm;
+
+    if (options_.output_type == emit_type::none) {
+        return;
+    }
 
     InitializeAllTargetInfos();
     InitializeAllTargets();
@@ -106,6 +115,17 @@ void compiler::compiler::compile_module(std::unique_ptr<llvm::Module> module) {
 
     pass.run(*module);
     dest.flush();
+}
+
+void compiler::compiler::run_module_in_jit(std::unique_ptr<llvm::Module> module) {
+    auto main_func = module->getFunction("main");
+
+    llvm::EngineBuilder engine_builder(std::move(module));
+    llvm::ExecutionEngine* execution_engine = engine_builder.create();
+
+    auto result = execution_engine->runFunctionAsMain(main_func, {}, {});
+
+    std::cout << "Program returned code: " << result << std::endl;
 }
 
 std::string compiler::compiler::generate_extension() const {
