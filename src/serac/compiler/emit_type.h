@@ -4,6 +4,7 @@
 namespace compiler {
 
     enum emit_type {
+        none,
         object_file,
         assembler,
         llvm_ir
