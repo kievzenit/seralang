@@ -27,7 +27,9 @@ void emitter::emitter::emit_for_stmt(std::unique_ptr<parser::ast::stmt> stmt) {
     }
 
     if (dynamic_cast<parser::ast::scope_stmt*>(stmt.get()) != nullptr) {
-        emit_for_scope_stmt(dynamic_cast<parser::ast::scope_stmt*>(stmt.get()));
+        auto scope =
+                emit_for_scope_stmt(dynamic_cast<parser::ast::scope_stmt*>(stmt.get()));\
+        current_scope_->inner_stmts.push_back(std::move(scope));
         return;
     }
 
