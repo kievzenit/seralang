@@ -208,8 +208,11 @@ std::unique_ptr<parser::ast::stmt> parser::parser::parse_stmt() {
         case lexer::token_type::static_:
         case lexer::token_type::identifier:
             return parse_local_stmt();
+        case lexer::token_type::l_curly_brace:
+            putback_tokens_.push(current_token_);
+            return parse_scope_stmt();
         default:
-            utils::log_error("Unexpected control flow statement got, exiting with error from parser.");
+            utils::log_error("Unexpected statement got, exiting with error from parser.");
             __builtin_unreachable();
     }
 }
