@@ -1,0 +1,6 @@
+#ifndef SERALANG_STRINGIFY_H
+#define SERALANG_STRINGIFY_H
+
+#define STRINGIFY(...) #__VA_ARGS__
+
+#endif //SERALANG_STRINGIFY_H
