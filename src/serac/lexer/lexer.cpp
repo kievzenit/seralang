@@ -11,6 +11,7 @@ lexer::token lexer::lexer::get_next_token() {
 
         if (current_character_ == '/') {
             process_comment();
+            read_current_char();
         }
 
         if (is_current_char_punctuation()) {
