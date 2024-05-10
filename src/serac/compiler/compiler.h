@@ -26,7 +26,8 @@ namespace compiler {
     public:
         explicit compiler(compile_options options) : options_(std::move(options)) {}
         compiler() {
-            options_ = compile_options(std::filesystem::current_path(), emit_type::object_file);
+            options_ = compile_options(
+                    std::filesystem::current_path(), emit_type::object_file, false);
         }
 
         void compile();
