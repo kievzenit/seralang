@@ -10,15 +10,12 @@ namespace compiler {
     public:
         compile_options() = default;
 
-        explicit compile_options(emit_type output_type) :
-            output_type(output_type), run_in_jit(false) {}
-
-        compile_options(std::string current_directory, emit_type output_type) :
-            current_directory(std::move(current_directory)), output_type(output_type), run_in_jit(false) {}
+        compile_options(std::string current_directory, emit_type output_type, bool run_in_jit) :
+            current_directory(std::move(current_directory)), output_type(output_type), run_in_jit(run_in_jit) {}
 
         std::string current_directory = std::filesystem::current_path();
-        bool run_in_jit = true;
-        emit_type output_type = emit_type::none;
+        bool run_in_jit = false;
+        emit_type output_type = emit_type::object_file;
     };
 
 }
