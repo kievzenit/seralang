@@ -138,6 +138,9 @@ namespace emitter {
         static std::unique_ptr<ir::downcast_expr_ir>
         emit_for_downcast(std::unique_ptr<ir::expr_ir> inner_expr, ir::type* cast_to_type);
 
+        std::unique_ptr<ir::identifier_expr_ir> emit_for_identifier_expr(parser::ast::identifier_expr* identifier_expr);
+        std::unique_ptr<ir::call_expr_ir> emit_for_call_expr(parser::ast::call_expr* call_expr);
+        static std::unique_ptr<ir::boolean_expr_ir> emit_for_boolean_expr(parser::ast::boolean_expr* boolean_expr);
         static std::unique_ptr<ir::integer_expr_ir> emit_for_integer_expr(parser::ast::integer_expr* integer_expr);
         static std::unique_ptr<ir::integer_expr_ir>
         emit_for_explicitly_typed_integer(parser::ast::integer_expr* integer_expr, const std::string& explicit_int_type);
