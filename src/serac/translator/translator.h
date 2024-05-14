@@ -32,6 +32,9 @@
 #include "../emitter/ir/stmts/breakall_stmt_ir.h"
 #include "../emitter/ir/stmts/continue_stmt_ir.h"
 #include "../emitter/ir/stmts/loop_stmt_ir.h"
+#include "../emitter/ir/exprs/unary_expr_ir.h"
+#include "../emitter/ir/exprs/prefix_expr_ir.h"
+#include "../emitter/ir/exprs/postfix_expr_ir.h"
 
 namespace translator {
 
@@ -68,6 +71,9 @@ namespace translator {
 
         llvm::Function* current_function_ = nullptr;
 
+        bool variable_encountered_ = false;
+        llvm::Value* current_variable_ = nullptr;
+
         emitter::ir::scope_stmt_ir* current_scope_ = nullptr;
         std::map<std::string, llvm::Value*> local_variables_;
 
@@ -100,6 +106,9 @@ namespace translator {
         llvm::Value* translate_expr(emitter::ir::expr_ir* expr);
         llvm::Constant* translate_int_expr(emitter::ir::integer_expr_ir* integer_expr);
         llvm::Constant* translate_boolean_expr(emitter::ir::boolean_expr_ir* boolean_expr);
+        llvm::Value* translate_unary_expr(emitter::ir::unary_expr_ir* unary_expr);
+        llvm::Value* translate_prefix_expr(emitter::ir::prefix_expr_ir* prefix_expr);
+        llvm::Value* translate_postfix_expr(emitter::ir::postfix_expr_ir* postfix_expr);
         llvm::Value* translate_binary_expr(emitter::ir::binary_expr_ir* binary_expr);
         llvm::Value* translate_arithmetic_expr(emitter::ir::arithmetic_expr_ir* arithmetic_expr);
         llvm::Value* translate_relational_expr(emitter::ir::relational_expr_ir* relational_expr);

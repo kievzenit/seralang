@@ -71,8 +71,8 @@ void translator::translator::translate_global_vars() {
             *context_,
             {
                 Type::getInt32Ty(*context_),
-                PointerType::get(Type::getInt64PtrTy(*context_), 0),
-                PointerType::get(Type::getInt64PtrTy(*context_), 0)
+                PointerType::get(Type::getInt64Ty(*context_), 0),
+                PointerType::get(Type::getInt64Ty(*context_), 0)
             });
     auto llvm_global_ctors_type = ArrayType::get(llvm_global_ctors_element_type, 1);
 
@@ -86,7 +86,7 @@ void translator::translator::translate_global_vars() {
                             init_globals_func,
                             Constant::getNullValue(
                                 PointerType::get(
-                                        Type::getInt64PtrTy(*context_),
+                                        Type::getInt64Ty(*context_),
                                         0))
                     })});
 
@@ -311,6 +311,13 @@ void translator::translator::translate_stmt(std::unique_ptr<emitter::ir::stmt_ir
 }
 
 void translator::translator::translate_scope_stmt(emitter::ir::scope_stmt_ir *scope_ir) {
+    if (scope_ir->parent_scope == nullptr) {
+        insert_before_block_ = nullptr;
+        break_to_blocks_.clear();
+        breakall_to_block_ = nullptr;
+        continue_to_block_ = nullptr;
+    }
+
     auto scope_block = llvm::BasicBlock::Create(
             *context_, "scope", current_function_, insert_before_block_);
     auto after_scope_block = llvm::BasicBlock::Create(
@@ -687,6 +694,10 @@ llvm::Value *translator::translator::translate_expr(emitter::ir::expr_ir* expr) 
         return translate_binary_expr(dynamic_cast<binary_expr_ir*>(expr));
     }
 
+    if (dynamic_cast<unary_expr_ir*>(expr) != nullptr) {
+        return translate_unary_expr(dynamic_cast<unary_expr_ir*>(expr));
+    }
+
     if (dynamic_cast<call_expr_ir*>(expr) != nullptr) {
         return translate_call_expr(dynamic_cast<call_expr_ir*>(expr));
     }
@@ -709,6 +720,92 @@ llvm::Constant *translator::translator::translate_int_expr(emitter::ir::integer_
 
 llvm::Constant *translator::translator::translate_boolean_expr(emitter::ir::boolean_expr_ir* boolean_expr) {
     return llvm::ConstantInt::get(types_[boolean_expr->expr_type->name], (int)boolean_expr->value);
+}
+
+llvm::Value *translator::translator::translate_unary_expr(emitter::ir::unary_expr_ir *unary_expr) {
+    if (dynamic_cast<emitter::ir::prefix_expr_ir*>(unary_expr) != nullptr) {
+        return translate_prefix_expr(dynamic_cast<emitter::ir::prefix_expr_ir*>(unary_expr));
+    }
+
+    if (dynamic_cast<emitter::ir::postfix_expr_ir*>(unary_expr) != nullptr) {
+        return translate_postfix_expr(dynamic_cast<emitter::ir::postfix_expr_ir*>(unary_expr));
+    }
+
+    utils::log_error("Unsupported unary expression found, exiting with error.");
+    __builtin_unreachable();
+}
+
+llvm::Value *translator::translator::translate_prefix_expr(emitter::ir::prefix_expr_ir *prefix_expr) {
+    auto value = translate_expr(prefix_expr->expr.get());
+
+    switch (prefix_expr->operation) {
+        case emitter::ir::unary_operation_type::positive:
+            return value;
+        case emitter::ir::unary_operation_type::negative:
+            return builder_->CreateNeg(value, "negated");
+        case emitter::ir::unary_operation_type::bitwise_not:
+            return builder_->CreateXor(
+                    value,
+                    llvm::ConstantInt::get(types_[prefix_expr->expr_type->name], -1, true),
+                    "bitwise_not");
+        case emitter::ir::unary_operation_type::logical_not:
+            return builder_->CreateXor(
+                    value, llvm::ConstantInt::get(types_["bool"], true), "not");
+        case emitter::ir::unary_operation_type::increment:
+            value = builder_->CreateAdd(
+                    value,
+                    llvm::ConstantInt::get(types_[prefix_expr->expr_type->name], 1),
+                    "incremented");
+            if (variable_encountered_) {
+                variable_encountered_ = false;
+                builder_->CreateStore(value, current_variable_);
+            }
+            return value;
+        case emitter::ir::unary_operation_type::decrement:
+            value = builder_->CreateSub(
+                    value,
+                    llvm::ConstantInt::get(types_[prefix_expr->expr_type->name], 1),
+                    "decremented");
+            if (variable_encountered_) {
+                variable_encountered_ = false;
+                builder_->CreateStore(value, current_variable_);
+            }
+            return value;
+        default:
+            utils::log_error("Unsupported prefix operator found, exiting with error.");
+            __builtin_unreachable();
+    }
+}
+
+llvm::Value *translator::translator::translate_postfix_expr(emitter::ir::postfix_expr_ir *postfix_expr) {
+    auto value = translate_expr(postfix_expr->expr.get());
+
+    llvm::Value* post_value;
+    switch (postfix_expr->operation) {
+        case emitter::ir::unary_operation_type::increment:
+            post_value = builder_->CreateAdd(
+                    value,
+                    llvm::ConstantInt::get(types_[postfix_expr->expr_type->name], 1),
+                    "incremented");
+            if (variable_encountered_) {
+                variable_encountered_ = false;
+                builder_->CreateStore(post_value, current_variable_);
+            }
+            return value;
+        case emitter::ir::unary_operation_type::decrement:
+            post_value = builder_->CreateSub(
+                    value,
+                    llvm::ConstantInt::get(types_[postfix_expr->expr_type->name], 1),
+                    "decremented");
+            if (variable_encountered_) {
+                variable_encountered_ = false;
+                builder_->CreateStore(post_value, current_variable_);
+            }
+            return value;
+        default:
+            utils::log_error("Unsupported postfix operator found, exiting with error.");
+            __builtin_unreachable();
+    }
 }
 
 llvm::Value *translator::translator::translate_binary_expr(emitter::ir::binary_expr_ir* binary_expr) {
@@ -950,9 +1047,13 @@ llvm::Value *translator::translator::translate_identifier_expr(emitter::ir::iden
 
     if (identifier_expr->is_global) {
         auto global_var = module_->getNamedGlobal(llvm::StringRef(identifier_expr->name));
+        current_variable_ = global_var;
+        variable_encountered_ = true;
         return builder_->CreateLoad(type, global_var);
     }
 
+    current_variable_ = local_variables_[identifier_expr->name];
+    variable_encountered_ = true;
     return builder_->CreateLoad(type, local_variables_[identifier_expr->name]);
 }
 
