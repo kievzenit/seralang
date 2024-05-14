@@ -69,7 +69,7 @@
 
 
 
-<expression> ::= <primary_expression> | <binary_expression>
+<expression> ::= <primary_expression> | <unary_expression> | <binary_expression>
 
 
 <binary_expression> ::= <arithmetic_expression> | <relational_expression> | <logical_expression> | <bitwise_expression>
@@ -95,6 +95,15 @@
     | "<="
     | "!="
     | "=="
+
+
+<unary_expression> ::= <prefix_expression> | <postfix_expression>
+
+<prefix_expression> ::= <prefix_operator> <primary_expression>
+<prefix_operator> ::= "+" | "-" | "!" | "~" | "++" | "--"
+
+<postfix_expression> ::= <primary_expression> <postfix_operator>
+<postfix_operator> ::= "++" | "--"
 
 
 <primary_expression> ::= <boolean_expression>
