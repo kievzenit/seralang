@@ -20,7 +20,7 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
-llvm_map_components_to_libnames(llvm_libs -16)
+llvm_map_components_to_libnames(llvm_libs -18)
 
 file(GLOB_RECURSE TEST_SOURCES LIST_DIRECTORIES false *.h *.cpp)
 add_executable(serac_test ${TEST_SOURCES} ${COMPILER_SOURCES})
