@@ -53,6 +53,13 @@
 #include "../parser/ast/stmts/loop_stmt.h"
 #include "ir/stmts/loop_stmt_ir.h"
 #include "../parser/ast/stmts/for_stmt.h"
+#include "../parser/ast/exprs/unary_expr.h"
+#include "ir/exprs/unary_expr_ir.h"
+#include "ir/exprs/prefix_expr_ir.h"
+#include "../parser/ast/exprs/prefix_expr.h"
+#include "ir/exprs/postfix_expr_ir.h"
+#include "../parser/ast/exprs/postfix_expr.h"
+#include "ir/types/unary_operation_type.h"
 
 namespace emitter {
 
@@ -130,6 +137,12 @@ namespace emitter {
 
         std::unique_ptr<ir::expr_ir> emit_for_expr(std::unique_ptr<parser::ast::expr> expr);
 
+        std::unique_ptr<ir::unary_expr_ir> emit_for_unary_expr(parser::ast::unary_expr* unary_expr);
+        std::unique_ptr<ir::prefix_expr_ir> emit_for_prefix_expr(parser::ast::prefix_expr* prefix_expr);
+        std::unique_ptr<ir::postfix_expr_ir> emit_for_postfix_expr(parser::ast::postfix_expr* postfix_expr);
+
+        std::unique_ptr<ir::binary_expr_ir> emit_for_binary_expr(parser::ast::binary_expr* binary_expr);
+
         static std::unique_ptr<ir::expr_ir> emit_for_cast(std::unique_ptr<ir::expr_ir> expr, ir::type* cast_to);
         static std::tuple<std::unique_ptr<ir::expr_ir>, std::unique_ptr<ir::expr_ir>, ir::type*>
         emit_for_cast(std::unique_ptr<ir::expr_ir> left, std::unique_ptr<ir::expr_ir> right);
@@ -144,10 +157,6 @@ namespace emitter {
         static std::unique_ptr<ir::integer_expr_ir> emit_for_integer_expr(parser::ast::integer_expr* integer_expr);
         static std::unique_ptr<ir::integer_expr_ir>
         emit_for_explicitly_typed_integer(parser::ast::integer_expr* integer_expr, const std::string& explicit_int_type);
-        static std::unique_ptr<ir::boolean_expr_ir> emit_for_boolean_expr(parser::ast::boolean_expr* boolean_expr);
-        std::unique_ptr<ir::identifier_expr_ir> emit_for_identifier_expr(parser::ast::identifier_expr* identifier_expr);
-        std::unique_ptr<ir::binary_expr_ir> emit_for_binary_expr(parser::ast::binary_expr* binary_expr);
-        std::unique_ptr<ir::call_expr_ir> emit_for_call_expr(parser::ast::call_expr* call_expr);
     };
 
 }

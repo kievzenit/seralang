@@ -21,8 +21,57 @@ std::unique_ptr<emitter::ir::expr_ir> emitter::emitter::emit_for_expr(std::uniqu
         return emit_for_binary_expr(dynamic_cast<parser::ast::binary_expr*>(expr.get()));
     }
 
+    if (dynamic_cast<parser::ast::unary_expr*>(expr.get()) != nullptr) {
+        return emit_for_unary_expr(dynamic_cast<parser::ast::unary_expr*>(expr.get()));
+    }
+
     utils::log_error("Unexpected expression expr_type, this should never happen!");
     __builtin_unreachable();
+}
+
+std::unique_ptr<emitter::ir::unary_expr_ir>
+emitter::emitter::emit_for_unary_expr(parser::ast::unary_expr *unary_expr) {
+    if (dynamic_cast<parser::ast::prefix_expr*>(unary_expr) != nullptr) {
+        return emit_for_prefix_expr(dynamic_cast<parser::ast::prefix_expr*>(unary_expr));
+    }
+
+    if (dynamic_cast<parser::ast::postfix_expr*>(unary_expr) != nullptr) {
+        return emit_for_postfix_expr(dynamic_cast<parser::ast::postfix_expr*>(unary_expr));
+    }
+
+    utils::log_error("Unexpected unary expression type, not postfix and not prefix.");
+    __builtin_unreachable();
+}
+
+std::unique_ptr<emitter::ir::prefix_expr_ir>
+emitter::emitter::emit_for_prefix_expr(parser::ast::prefix_expr *prefix_expr) {
+    auto inner_expr = emit_for_expr(std::move(prefix_expr->inner_expr));
+    if (!inner_expr->expr_type->is_basic) {
+        utils::log_error("Only basic types are supported with prefix expressions for now(.");
+    }
+
+    switch (prefix_expr->operation) {
+        case parser::ast::unary_operation::logical_not:
+            inner_expr = emit_for_cast(std::move(inner_expr), types_["bool"]);
+        default:
+            break;
+    }
+
+    return std::make_unique<ir::prefix_expr_ir>(
+            std::move(inner_expr),
+            (ir::unary_operation_type)prefix_expr->operation);
+}
+
+std::unique_ptr<emitter::ir::postfix_expr_ir>
+emitter::emitter::emit_for_postfix_expr(parser::ast::postfix_expr *postfix_expr) {
+    auto inner_expr = emit_for_expr(std::move(postfix_expr->inner_expr));
+    if (!inner_expr->expr_type->is_basic) {
+        utils::log_error("Only basic types are supported with postfix expressions for now(.");
+    }
+
+    return std::make_unique<ir::postfix_expr_ir>(
+            std::move(inner_expr),
+            (ir::unary_operation_type)postfix_expr->operation);
 }
 
 std::unique_ptr<emitter::ir::binary_expr_ir>
