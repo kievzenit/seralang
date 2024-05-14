@@ -13,6 +13,8 @@
 #include <llvm/Support/FileSystem.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
+#include <llvm/Passes/PassBuilder.h>
+#include <llvm/Transforms/Scalar/JumpThreading.h>
 
 #include "../parser/parser.h"
 #include "../emitter/emitter.h"

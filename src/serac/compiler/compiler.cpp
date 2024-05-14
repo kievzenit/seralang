@@ -105,9 +105,27 @@ void compiler::compiler::compile_module(std::unique_ptr<llvm::Module> module) {
         return;
     }
 
+    LoopAnalysisManager LAM;
+    FunctionAnalysisManager FAM;
+    CGSCCAnalysisManager CGAM;
+    ModuleAnalysisManager MAM;
+
+    PassBuilder PB;
+
+    PB.registerModuleAnalyses(MAM);
+    PB.registerCGSCCAnalyses(CGAM);
+    PB.registerFunctionAnalyses(FAM);
+    PB.registerLoopAnalyses(LAM);
+    PB.crossRegisterProxies(LAM, FAM, CGAM, MAM);
+
+    ModulePassManager MPM = PB.buildPerModuleDefaultPipeline(OptimizationLevel::O0);
+    MPM.addPass(createModuleToFunctionPassAdaptor(JumpThreadingPass()));
+
+    MPM.run(*module, MAM);
+
     legacy::PassManager pass;
     auto file_type = options_.output_type == emit_type::object_file ?
-            CodeGenFileType::CGFT_ObjectFile : CodeGenFileType::CGFT_AssemblyFile;
+            CodeGenFileType::ObjectFile : CodeGenFileType::AssemblyFile;
 
     if (target_machine->addPassesToEmitFile(pass, dest, nullptr, file_type)) {
         utils::log_error("Target machine cannot emit file of this type.");
