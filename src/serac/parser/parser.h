@@ -28,6 +28,9 @@
 #include "ast/stmts/compound_stmt.h"
 #include "ast/stmts/control_flow_stmt.h"
 #include "ast/stmts/local_stmt.h"
+#include "ast/exprs/unary_expr.h"
+#include "ast/exprs/prefix_expr.h"
+#include "ast/exprs/postfix_expr.h"
 
 namespace parser {
 
@@ -58,6 +61,15 @@ namespace parser {
                 {ast::binary_operation::bitwise_and, 50},
                 {ast::binary_operation::bitwise_or, 50},
                 {ast::binary_operation::bitwise_xor, 50},
+        };
+
+        std::map<lexer::token_type, ast::unary_operation> token_to_unary_operation = {
+                {lexer::token_type::plus, ast::unary_operation::positive},
+                {lexer::token_type::minus, ast::unary_operation::negative},
+                {lexer::token_type::plus_plus, ast::unary_operation::increment},
+                {lexer::token_type::minus_minus, ast::unary_operation::decrement},
+                {lexer::token_type::exclamation_mark, ast::unary_operation::logical_not},
+                {lexer::token_type::bitwise_not, ast::unary_operation::bitwise_not},
         };
 
         bool has_tokens() const;
@@ -104,6 +116,10 @@ namespace parser {
         std::unique_ptr<ast::continue_stmt> parse_continue_stmt();
 
         std::unique_ptr<ast::expr> parse_expr();
+
+        std::unique_ptr<ast::expr> parse_unary_expr();
+        std::unique_ptr<ast::expr> parse_prefix_expr();
+        std::unique_ptr<ast::expr> parse_postfix_expr();
 
         std::unique_ptr<ast::expr> parse_binary_expr(std::unique_ptr<ast::expr> left, int precedence = 0);
 

@@ -597,9 +597,53 @@ std::unique_ptr<parser::ast::continue_stmt> parser::parser::parse_continue_stmt(
 }
 
 std::unique_ptr<parser::ast::expr> parser::parser::parse_expr() {
-    auto left = parse_primary_expr();
+    auto left = parse_unary_expr();
 
     return parse_binary_expr(std::move(left), 0);
+}
+
+std::unique_ptr<parser::ast::expr> parser::parser::parse_unary_expr() {
+    // TODO: rethink this
+    eat();
+    switch (current_token_.type) {
+        case lexer::token_type::plus:
+        case lexer::token_type::minus:
+        case lexer::token_type::bitwise_not:
+        case lexer::token_type::exclamation_mark:
+        case lexer::token_type::plus_plus:
+        case lexer::token_type::minus_minus:
+            return parse_prefix_expr();
+        default:
+            putback_tokens_.push(current_token_);
+            break;
+    }
+
+    return parse_postfix_expr();
+}
+
+std::unique_ptr<parser::ast::expr> parser::parser::parse_prefix_expr() {
+    auto prefix_token_type = current_token_.type;
+    auto primary_expr = parse_primary_expr();
+
+    return std::make_unique<ast::prefix_expr>(
+            std::move(primary_expr), token_to_unary_operation[prefix_token_type]);
+}
+
+std::unique_ptr<parser::ast::expr> parser::parser::parse_postfix_expr() {
+    auto primary_expr = parse_primary_expr();
+
+    eat();
+    switch (current_token_.type) {
+        case lexer::token_type::plus_plus:
+        case lexer::token_type::minus_minus:
+            return std::make_unique<ast::postfix_expr>(
+                    std::move(primary_expr), token_to_unary_operation[current_token_.type]);
+        default:
+            putback_tokens_.push(current_token_);
+            break;
+    }
+
+    return primary_expr;
 }
 
 std::unique_ptr<parser::ast::expr> parser::parser::parse_binary_expr(
@@ -616,7 +660,7 @@ std::unique_ptr<parser::ast::expr> parser::parser::parse_binary_expr(
 
         auto binary_operator = current_token_type_to_binary_operation();
 
-        auto right = parse_primary_expr();
+        auto right = parse_unary_expr();
 
         eat();
         auto next_precedence = get_current_token_precedence();
