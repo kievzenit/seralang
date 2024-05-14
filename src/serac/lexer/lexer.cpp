@@ -78,6 +78,7 @@ bool lexer::lexer::is_current_char_punctuation() {
         || current_character_ == '&'
         || current_character_ == '|'
         || current_character_ == '^'
+        || current_character_ == '~'
         || current_character_ == ':'
         || current_character_ == ';'
         || current_character_ == '.'
@@ -262,6 +263,14 @@ lexer::token lexer::lexer::process_punctuation() {
                 column_,
                 column_
             };
+        case '~':
+            return  {
+                token_type::bitwise_not,
+                "~",
+                line_,
+                column_,
+                column_
+            };
         case '+':
         case '-':
         case '*':
@@ -283,6 +292,17 @@ lexer::token lexer::lexer::process_punctuation() {
     if (current_character_ != '=') {
         switch (first_char) {
             case '+':
+                if (current_character_ == '+') {
+                    eat_current_char();
+                    return  {
+                        token_type::plus_plus,
+                        "++",
+                        line_,
+                        column_started,
+                        column_
+                    };
+                }
+
                 return {
                         token_type::plus,
                         "+",
@@ -291,6 +311,17 @@ lexer::token lexer::lexer::process_punctuation() {
                         column_
                 };
             case '-':
+                if (current_character_ == '-') {
+                    eat_current_char();
+                    return {
+                        token_type::minus_minus,
+                        "--",
+                        line_,
+                        column_started,
+                        column_
+                    };
+                }
+
                 return {
                         token_type::minus,
                         "-",

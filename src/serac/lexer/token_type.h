@@ -46,6 +46,10 @@ namespace lexer {
         dot,
         coma,
         exclamation_mark,
+        bitwise_not,
+
+        plus_plus,
+        minus_minus,
         bitwise_and,
         bitwise_or,
         bitwise_xor,
@@ -64,7 +68,7 @@ namespace lexer {
         less_than,
         greater_than,
         less_or_equal,
-        greater_or_equal
+        greater_or_equal,
     };
 
 }
