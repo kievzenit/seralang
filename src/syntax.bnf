@@ -29,13 +29,10 @@
     | <loop_statement>
     | <for_statement>
 
-<for_statement> ::= "for"
-    "("
-        (<assignment_statements> ("," <assignment_statements>)*)? ";"
-        <expression> ";"
-        (<expression_statement> ("," <expression_statement>)*)?
-    ")"
-    <scope_statement>
+<for_statement> ::= "for" "(" <for_init>? ";"<expression> ";" <for_after_each>? ")" <scope_statement>
+<for_init> ::= <local_statement> ("," <local_statement>)*
+<for_after_each> ::= <expression_statement> ("," <expression_statement>)*
+
 <loop_statement> ::= "loop" <scope_statement>
 <do_while_statement> ::= "do" <scope_statement> "while" <parenthesis_expression> ";"
 <while_statement> ::= "while" <parenthesis_expression> <scope_statement>
@@ -56,16 +53,10 @@
 <return_statement> ::= "return" <expression> ";"
 
 
-<local_statement> ::= <assignment_statements> | <call_statement> | <expression_statement>
+<local_statement> ::= <let_statement> | <expression_statement>
 
 <expression_statement> ::= <expression> ";"
-
-<call_statement> ::= <call_expression>
-
-<assignment_statements> ::= <let_statement> | <assignment_statement>
-
 <let_statement> ::= "static"? "let" <identifier> <type_denotation>? <assignment_operator> <expression> ";"
-<assignment_statement> ::= <assignment_expression> ";"
 
 
 
