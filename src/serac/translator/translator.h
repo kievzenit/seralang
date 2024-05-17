@@ -35,7 +35,7 @@
 #include "../emitter/ir/exprs/unary_expr_ir.h"
 #include "../emitter/ir/exprs/prefix_expr_ir.h"
 #include "../emitter/ir/exprs/postfix_expr_ir.h"
-#include "emitter/ir/stmts/expr_stmt_ir.h"
+#include "../emitter/ir/stmts/expr_stmt_ir.h"
 
 namespace translator {
 
