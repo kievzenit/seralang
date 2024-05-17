@@ -17,6 +17,10 @@ std::unique_ptr<emitter::ir::expr_ir> emitter::emitter::emit_for_expr(std::uniqu
         return emit_for_identifier_expr(dynamic_cast<parser::ast::identifier_expr*>(expr.get()));
     }
 
+    if (dynamic_cast<parser::ast::assignment_expr*>(expr.get()) != nullptr) {
+        return emit_for_assignment_expr(dynamic_cast<parser::ast::assignment_expr*>(expr.get()));
+    }
+
     if (dynamic_cast<parser::ast::binary_expr*>(expr.get()) != nullptr) {
         return emit_for_binary_expr(dynamic_cast<parser::ast::binary_expr*>(expr.get()));
     }
@@ -26,6 +30,39 @@ std::unique_ptr<emitter::ir::expr_ir> emitter::emitter::emit_for_expr(std::uniqu
     }
 
     utils::log_error("Unexpected expression expr_type, this should never happen!");
+    __builtin_unreachable();
+}
+
+std::unique_ptr<emitter::ir::assignment_expr_ir>
+emitter::emitter::emit_for_assignment_expr(parser::ast::assignment_expr *assignment_expr) {
+    auto expr = emit_for_expr(std::move(assignment_expr->inner_expr));
+
+    if (current_scope_->is_var_exists(assignment_expr->name)) {
+        auto identifier_type = current_scope_->get_type_for_variable(assignment_expr->name);
+        return std::make_unique<ir::assignment_expr_ir>(
+                assignment_expr->name,
+                false,
+                emit_for_cast(std::move(expr), identifier_type));
+    }
+
+    if (declared_global_variables_.contains(assignment_expr->name)) {
+        auto global_var_type = global_variables_types_[assignment_expr->name];
+        return std::make_unique<ir::assignment_expr_ir>(
+                assignment_expr->name,
+                true,
+                emit_for_cast(std::move(expr), global_var_type));
+    }
+
+    auto generated_name = generate_func_static_var_name(assignment_expr->name);
+    if (declared_global_variables_.contains(generated_name)) {
+        auto global_var_type = global_variables_types_[generated_name];
+        return std::make_unique<ir::assignment_expr_ir>(
+                generated_name,
+                true,
+                emit_for_cast(std::move(expr), global_var_type));
+    }
+
+    utils::log_error(std::format("Undefined identifier: {}.", assignment_expr->name));
     __builtin_unreachable();
 }
 

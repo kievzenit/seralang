@@ -60,6 +60,9 @@
 #include "ir/exprs/postfix_expr_ir.h"
 #include "../parser/ast/exprs/postfix_expr.h"
 #include "ir/types/unary_operation_type.h"
+#include "../parser/ast/exprs/assignment_expr.h"
+#include "ir/exprs/assignment_expr_ir.h"
+#include "ir/stmts/expr_stmt_ir.h"
 
 namespace emitter {
 
@@ -136,6 +139,9 @@ namespace emitter {
         void emit_for_continue_stmt();
 
         std::unique_ptr<ir::expr_ir> emit_for_expr(std::unique_ptr<parser::ast::expr> expr);
+
+        std::unique_ptr<ir::assignment_expr_ir>
+        emit_for_assignment_expr(parser::ast::assignment_expr* assignment_expr);
 
         std::unique_ptr<ir::unary_expr_ir> emit_for_unary_expr(parser::ast::unary_expr* unary_expr);
         std::unique_ptr<ir::prefix_expr_ir> emit_for_prefix_expr(parser::ast::prefix_expr* prefix_expr);
