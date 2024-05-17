@@ -6,6 +6,7 @@
 #include <utility>
 #include <stack>
 #include "../lexer/lexer.h"
+#include "ast/common/file_metadata.h"
 #include "ast/translation_ast.h"
 #include "ast/stmts/let_stmt.h"
 #include "ast/exprs/integer_expr.h"
@@ -37,13 +38,17 @@ namespace parser {
 
     class parser {
     public:
-        explicit parser(lexer::lexer lexer) : lexer_(lexer) {}
+        explicit parser(lexer::lexer lexer, std::string file_name) :
+        lexer_(lexer), file_name_(std::move(file_name)) {}
 
         std::unique_ptr<ast::translation_ast> parse();
     private:
         lexer::lexer lexer_;
         lexer::token current_token_ = nullptr;
+        lexer::token priv_token_ = nullptr;
         std::stack<lexer::token> putback_tokens_;
+
+        std::string file_name_;
 
         std::map<ast::binary_operation, int> binop_precedence_ = {
                 {ast::binary_operation::logical_and, 10},
@@ -78,6 +83,11 @@ namespace parser {
         void expect(lexer::token_type token_type);
         void unexpected_token_error();
         void eat();
+        void putback();
+        void putback(const lexer::token& token);
+        void store_priv_token();
+
+        ast::file_metadata create_metadata(const lexer::token& first_token, const lexer::token& last_token);
 
         bool is_current_token_assignment_token() const;
 
