@@ -31,9 +31,9 @@
 
 <for_statement> ::= "for"
     "("
-        (<assignment_statements> ("," <assignment_statements>)*) ";"
+        (<assignment_statements> ("," <assignment_statements>)*)? ";"
         <expression> ";"
-        (<assignment_statement> ("," <assignment_statement>)*)
+        (<expression_statement> ("," <expression_statement>)*)?
     ")"
     <scope_statement>
 <loop_statement> ::= "loop" <scope_statement>
@@ -56,20 +56,24 @@
 <return_statement> ::= "return" <expression> ";"
 
 
-<local_statement> ::= <assignment_statements> | <call_statement>
+<local_statement> ::= <assignment_statements> | <call_statement> | <expression_statement>
+
+<expression_statement> ::= <expression> ";"
 
 <call_statement> ::= <call_expression>
 
 <assignment_statements> ::= <let_statement> | <assignment_statement>
 
 <let_statement> ::= "static"? "let" <identifier> <type_denotation>? <assignment_operator> <expression> ";"
-<assignment_statement> ::= <identifier> <assignment_operator> <expression> ";"
+<assignment_statement> ::= <assignment_expression> ";"
 
+
+
+<expression> ::= <primary_expression> | <unary_expression> | <binary_expression> | <assignment_expression>
+
+
+<assignment_expression> ::= <identifier> <assignment_operator> <expression>
 <assignment_operator> ::= <binary_operator>? "="
-
-
-
-<expression> ::= <primary_expression> | <unary_expression> | <binary_expression>
 
 
 <binary_expression> ::= <arithmetic_expression> | <relational_expression> | <logical_expression> | <bitwise_expression>
