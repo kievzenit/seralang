@@ -14,13 +14,11 @@
 #include "../utils/log_error.h"
 #include "../emitter/ir/stmts/return_stmt_ir.h"
 #include "../emitter/ir/exprs/call_expr_ir.h"
-#include "../emitter/ir/stmts/call_stmt_ir.h"
 #include "../emitter/ir/exprs/identifier_expr_ir.h"
 #include "../emitter/ir/exprs/argument_expr_ir.h"
 #include "../emitter/ir/exprs/cast_expr_ir.h"
 #include "../emitter/ir/exprs/upcast_expr_ir.h"
 #include "../emitter/ir/exprs/downcast_expr_ir.h"
-#include "../emitter/ir/stmts/assignment_stmt_ir.h"
 #include "../emitter/ir/exprs/arithmetic_expr_ir.h"
 #include "../emitter/ir/exprs/relational_expr_ir.h"
 #include "../emitter/ir/exprs/logical_expr_ir.h"
@@ -36,6 +34,7 @@
 #include "../emitter/ir/exprs/prefix_expr_ir.h"
 #include "../emitter/ir/exprs/postfix_expr_ir.h"
 #include "../emitter/ir/stmts/expr_stmt_ir.h"
+#include "../emitter/ir/exprs/assignment_expr_ir.h"
 
 namespace translator {
 
@@ -98,8 +97,6 @@ namespace translator {
         void translate_do_while_stmt(emitter::ir::do_while_stmt_ir* do_while_stmt);
         void translate_loop_stmt(emitter::ir::loop_stmt_ir* loop_stmt);
         void translate_var_stmt(emitter::ir::variable_ir* variable_ir);
-        void translate_assignment_stmt(emitter::ir::assignment_stmt_ir* assignment_stmt);
-        void translate_call_stmt(emitter::ir::call_stmt_ir* call_stmt);
         void translate_return_stmt(emitter::ir::return_stmt_ir* return_ir);
         void translate_break_stmt(emitter::ir::break_stmt_ir* break_stmt);
         void translate_breakall_stmt();

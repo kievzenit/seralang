@@ -282,16 +282,6 @@ void translator::translator::translate_stmt(std::unique_ptr<emitter::ir::stmt_ir
         return;
     }
 
-    if (dynamic_cast<emitter::ir::assignment_stmt_ir*>(stmt_ir.get()) != nullptr) {
-        translate_assignment_stmt(dynamic_cast<emitter::ir::assignment_stmt_ir*>(stmt_ir.get()));
-        return;
-    }
-
-    if (dynamic_cast<emitter::ir::call_stmt_ir*>(stmt_ir.get()) != nullptr) {
-        translate_call_stmt(dynamic_cast<emitter::ir::call_stmt_ir*>(stmt_ir.get()));
-        return;
-    }
-
     if (dynamic_cast<emitter::ir::return_stmt_ir*>(stmt_ir.get()) != nullptr) {
         translate_return_stmt(dynamic_cast<emitter::ir::return_stmt_ir*>(stmt_ir.get()));
         return;
@@ -591,20 +581,6 @@ void translator::translator::translate_var_stmt(emitter::ir::variable_ir* variab
     auto expr_result = translate_expr(variable_ir->expr.get());
     builder_->CreateStore(expr_result, allocated_var);
 
-    builder_->ClearInsertionPoint();
-}
-
-void translator::translator::translate_assignment_stmt(emitter::ir::assignment_stmt_ir *assignment_stmt) {
-    builder_->SetInsertPoint(current_block_);
-    translate_assignment_expr(assignment_stmt->assignment_expr.get());
-    builder_->ClearInsertionPoint();
-}
-
-void translator::translator::translate_call_stmt(emitter::ir::call_stmt_ir *call_stmt) {
-    using namespace llvm;
-
-    builder_->SetInsertPoint(current_block_);
-    translate_call_expr(call_stmt->call_expr.get());
     builder_->ClearInsertionPoint();
 }
 
