@@ -38,13 +38,8 @@ void emitter::emitter::emit_for_stmt(std::unique_ptr<parser::ast::stmt> stmt) {
         return;
     }
 
-    if (dynamic_cast<parser::ast::assignment_stmt*>(stmt.get()) != nullptr) {
-        emit_for_assignment_stmt(dynamic_cast<parser::ast::assignment_stmt*>(stmt.get()));
-        return;
-    }
-
-    if (dynamic_cast<parser::ast::call_stmt*>(stmt.get()) != nullptr) {
-        emit_for_call_stmt(dynamic_cast<parser::ast::call_stmt*>(stmt.get()));
+    if (dynamic_cast<parser::ast::expr_stmt*>(stmt.get()) != nullptr) {
+        emit_for_expr_stmt(dynamic_cast<parser::ast::expr_stmt*>(stmt.get()));
         return;
     }
 
@@ -208,12 +203,12 @@ void emitter::emitter::emit_for_for_stmt(parser::ast::for_stmt* for_stmt) {
             continue;
         }
 
-        if (dynamic_cast<parser::ast::assignment_stmt *>(run_once.get()) != nullptr) {
-            emit_for_assignment_stmt(dynamic_cast<parser::ast::assignment_stmt *>(run_once.get()));
+        if (dynamic_cast<parser::ast::expr_stmt *>(run_once.get()) != nullptr) {
+            emit_for_expr_stmt(dynamic_cast<parser::ast::expr_stmt*>(run_once.get()));
             continue;
         }
 
-        utils::log_error("Only let and assignment statements are allowed in init stage of for loop.");
+        utils::log_error("Only let and  expression statements are allowed in init stage of for loop.");
     }
 
     auto condition = emit_for_cast(
@@ -297,18 +292,11 @@ void emitter::emitter::emit_for_let_stmt(parser::ast::let_stmt *let_stmt) {
     current_scope_->inner_stmts.push_back(std::move(variable_ir));
 }
 
-void emitter::emitter::emit_for_assignment_stmt(parser::ast::assignment_stmt *assignment_stmt) {
-    auto assignment_expr_ir = emit_for_assignment_expr(
-            assignment_stmt->assignment_expr.get());
-    auto assignment_stmt_ir = std::make_unique<ir::assignment_stmt_ir>(
-            std::move(assignment_expr_ir));
+void emitter::emitter::emit_for_expr_stmt(parser::ast::expr_stmt *expr_stmt) {
+    auto expr_ir = emit_for_expr(std::move(expr_stmt->inner_expr));
+    auto expr_stmt_ir = std::make_unique<ir::expr_stmt_ir>(std::move(expr_ir));
 
-    current_scope_->inner_stmts.push_back(std::move(assignment_stmt_ir));
-}
-
-void emitter::emitter::emit_for_call_stmt(parser::ast::call_stmt *call_stmt) {
-    auto call_stmt_ir = std::make_unique<ir::call_stmt_ir>(emit_for_call_expr(call_stmt->expression.get()));
-    current_scope_->inner_stmts.push_back(std::move(call_stmt_ir));
+    current_scope_->inner_stmts.push_back(std::move(expr_stmt_ir));
 }
 
 void emitter::emitter::emit_for_return_stmt(parser::ast::return_stmt *return_stmt) {

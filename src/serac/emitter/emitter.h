@@ -9,7 +9,6 @@
 #include "../utils/log_error.h"
 #include "../parser/ast/translation_ast.h"
 #include "../parser/ast/stmts/let_stmt.h"
-#include "../parser/ast/stmts/call_stmt.h"
 #include "../parser/ast/stmts/return_stmt.h"
 #include "../parser/ast/stmts/func_decl_stmt.h"
 #include "../parser/ast/exprs/binary_expr.h"
@@ -17,7 +16,6 @@
 #include "../parser/ast/exprs/identifier_expr.h"
 #include "ir/package_ir.h"
 #include "ir/types/func_type.h"
-#include "ir/stmts/call_stmt_ir.h"
 #include "ir/exprs/binary_expr_ir.h"
 #include "ir/exprs/arithmetic_expr_ir.h"
 #include "ir/exprs/logical_expr_ir.h"
@@ -33,9 +31,6 @@
 #include "ir/exprs/cast_expr_ir.h"
 #include "ir/exprs/upcast_expr_ir.h"
 #include "ir/exprs/downcast_expr_ir.h"
-#include "../parser/ast/stmts/call_stmt.h"
-#include "../parser/ast/stmts/assignment_stmt.h"
-#include "ir/stmts/assignment_stmt_ir.h"
 #include "../parser/ast/stmts/if_stmt.h"
 #include "ir/stmts/else_if_stmt_ir.h"
 #include "ir/stmts/else_stmt_ir.h"
@@ -63,6 +58,7 @@
 #include "../parser/ast/exprs/assignment_expr.h"
 #include "ir/exprs/assignment_expr_ir.h"
 #include "ir/stmts/expr_stmt_ir.h"
+#include "../parser/ast/stmts/expr_stmt.h"
 
 namespace emitter {
 
@@ -131,8 +127,7 @@ namespace emitter {
         void emit_for_loop_stmt(parser::ast::loop_stmt* loop_stmt);
         void emit_for_for_stmt(parser::ast::for_stmt* for_stmt);
         void emit_for_let_stmt(parser::ast::let_stmt* let_stmt);
-        void emit_for_assignment_stmt(parser::ast::assignment_stmt* assignment_stmt);
-        void emit_for_call_stmt(parser::ast::call_stmt* call_stmt);
+        void emit_for_expr_stmt(parser::ast::expr_stmt* expr_stmt);
         void emit_for_return_stmt(parser::ast::return_stmt* return_stmt);
         void emit_for_break_stmt(parser::ast::break_stmt* break_stmt);
         void emit_for_breakall_stmt();
