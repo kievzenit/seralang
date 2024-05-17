@@ -247,6 +247,11 @@ llvm::Function* translator::translator::translate_function(std::unique_ptr<emitt
 }
 
 void translator::translator::translate_stmt(std::unique_ptr<emitter::ir::stmt_ir> stmt_ir) {
+    if (dynamic_cast<emitter::ir::expr_stmt_ir*>(stmt_ir.get()) != nullptr) {
+        translate_expr_stmt(dynamic_cast<emitter::ir::expr_stmt_ir*>(stmt_ir.get()));
+        return;
+    }
+
     if (dynamic_cast<emitter::ir::if_stmt_ir*>(stmt_ir.get()) != nullptr) {
         translate_if_stmt(dynamic_cast<emitter::ir::if_stmt_ir*>(stmt_ir.get()));
         return;
@@ -351,6 +356,12 @@ void translator::translator::translate_scope_stmt(emitter::ir::scope_stmt_ir *sc
         builder_->CreateUnreachable();
     }
 
+    builder_->ClearInsertionPoint();
+}
+
+void translator::translator::translate_expr_stmt(emitter::ir::expr_stmt_ir *expr_stmt) {
+    builder_->SetInsertPoint(current_block_);
+    translate_expr(expr_stmt->expr.get());
     builder_->ClearInsertionPoint();
 }
 
@@ -584,19 +595,8 @@ void translator::translator::translate_var_stmt(emitter::ir::variable_ir* variab
 }
 
 void translator::translator::translate_assignment_stmt(emitter::ir::assignment_stmt_ir *assignment_stmt) {
-    using namespace llvm;
-
     builder_->SetInsertPoint(current_block_);
-
-    auto expr_result = translate_expr(assignment_stmt->assignment_expr.get());
-
-    if (assignment_stmt->is_global) {
-        auto global_var = module_->getNamedGlobal(assignment_stmt->identifier_name);
-        builder_->CreateStore(expr_result, global_var);
-    } else {
-        builder_->CreateStore(expr_result, local_variables_[assignment_stmt->identifier_name]);
-    }
-
+    translate_assignment_expr(assignment_stmt->assignment_expr.get());
     builder_->ClearInsertionPoint();
 }
 
@@ -690,6 +690,10 @@ llvm::Value *translator::translator::translate_expr(emitter::ir::expr_ir* expr) 
         return translate_boolean_expr(dynamic_cast<boolean_expr_ir*>(expr));
     }
 
+    if (dynamic_cast<assignment_expr_ir*>(expr) != nullptr) {
+        return translate_assignment_expr(dynamic_cast<assignment_expr_ir*>(expr));
+    }
+
     if (dynamic_cast<binary_expr_ir*>(expr) != nullptr) {
         return translate_binary_expr(dynamic_cast<binary_expr_ir*>(expr));
     }
@@ -712,6 +716,19 @@ llvm::Value *translator::translator::translate_expr(emitter::ir::expr_ir* expr) 
 
     utils::log_error("Unsupported expression found, exiting.");
     __builtin_unreachable();
+}
+
+llvm::Value *translator::translator::translate_assignment_expr(emitter::ir::assignment_expr_ir *assignment_expr) {
+    auto expr_result = translate_expr(assignment_expr->inner_expr.get());
+
+    if (assignment_expr->is_global) {
+        auto global_var = module_->getNamedGlobal(assignment_expr->identifier_name);
+        builder_->CreateStore(expr_result, global_var);
+    } else {
+        builder_->CreateStore(expr_result, local_variables_[assignment_expr->identifier_name]);
+    }
+
+    return expr_result;
 }
 
 llvm::Constant *translator::translator::translate_int_expr(emitter::ir::integer_expr_ir* integer_expr) {

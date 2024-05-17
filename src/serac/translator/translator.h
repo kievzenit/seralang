@@ -35,6 +35,7 @@
 #include "../emitter/ir/exprs/unary_expr_ir.h"
 #include "../emitter/ir/exprs/prefix_expr_ir.h"
 #include "../emitter/ir/exprs/postfix_expr_ir.h"
+#include "emitter/ir/stmts/expr_stmt_ir.h"
 
 namespace translator {
 
@@ -91,6 +92,7 @@ namespace translator {
 
         void translate_stmt(std::unique_ptr<emitter::ir::stmt_ir> stmt_ir);
         void translate_scope_stmt(emitter::ir::scope_stmt_ir* scope_ir);
+        void translate_expr_stmt(emitter::ir::expr_stmt_ir* expr_stmt);
         void translate_if_stmt(emitter::ir::if_stmt_ir* if_stmt);
         void translate_while_stmt(emitter::ir::while_stmt_ir* while_stmt);
         void translate_do_while_stmt(emitter::ir::do_while_stmt_ir* do_while_stmt);
@@ -104,6 +106,7 @@ namespace translator {
         void translate_continue_stmt();
 
         llvm::Value* translate_expr(emitter::ir::expr_ir* expr);
+        llvm::Value* translate_assignment_expr(emitter::ir::assignment_expr_ir* assignment_expr);
         llvm::Constant* translate_int_expr(emitter::ir::integer_expr_ir* integer_expr);
         llvm::Constant* translate_boolean_expr(emitter::ir::boolean_expr_ir* boolean_expr);
         llvm::Value* translate_unary_expr(emitter::ir::unary_expr_ir* unary_expr);
