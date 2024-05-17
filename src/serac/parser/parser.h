@@ -14,9 +14,7 @@
 #include "ast/common/binary_operation.h"
 #include "ast/stmts/func_decl_stmt.h"
 #include "ast/stmts/return_stmt.h"
-#include "ast/stmts/call_stmt.h"
 #include "ast/exprs/identifier_expr.h"
-#include "ast/stmts/assignment_stmt.h"
 #include "ast/stmts/if_stmt.h"
 #include "ast/stmts/while_stmt.h"
 #include "ast/stmts/do_while_stmt.h"
@@ -32,6 +30,8 @@
 #include "ast/exprs/prefix_expr.h"
 #include "ast/exprs/postfix_expr.h"
 #include "ast/exprs/assignment_expr.h"
+#include "ast/stmts/expr_stmt.h"
+#include "ast/exprs/call_expr.h"
 
 namespace parser {
 
@@ -106,11 +106,9 @@ namespace parser {
         std::unique_ptr<ast::loop_stmt> parse_loop_stmt();
         std::unique_ptr<ast::for_stmt> parse_for_stmt();
 
-        std::unique_ptr<ast::local_stmt> parse_local_stmt();
-        std::unique_ptr<ast::call_stmt> parse_call_stmt();
-        std::unique_ptr<ast::local_stmt> parse_assignment_stmts(bool expect_semicolon = true);
+        std::unique_ptr<ast::local_stmt> parse_local_stmt(bool expect_semicolon = true);
         std::unique_ptr<ast::let_stmt> parse_let_stmt(bool is_static, bool expect_semicolon = true);
-        std::unique_ptr<ast::assignment_stmt> parse_assignment_stmt(bool expect_semicolon = true);
+        std::unique_ptr<ast::expr_stmt> parse_expr_stmt(bool expect_semicolon = true);
 
         std::unique_ptr<ast::control_flow_stmt> parse_control_flow_stmt();
         std::unique_ptr<ast::return_stmt> parse_return_stmt();
