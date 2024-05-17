@@ -3,7 +3,7 @@
 int test_source(const std::string& source) {
         std::istringstream string_stream(source);
         lexer::lexer lexer(string_stream.rdbuf());
-        parser::parser parser(lexer);
+        parser::parser parser(lexer, "test.sr");
 
         auto translation_ast = parser.parse();
         std::vector<std::unique_ptr<parser::ast::translation_ast>> translation_asts;

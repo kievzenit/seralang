@@ -25,7 +25,7 @@ void compiler::compiler::compile() {
         }
 
         lexer::lexer lexer(file.rdbuf());
-        parser::parser parser(lexer);
+        parser::parser parser(lexer, file_name);
 
         translation_asts_.push_back(parser.parse());
     }
