@@ -401,6 +401,12 @@ std::unique_ptr<parser::ast::for_stmt> parser::parser::parse_for_stmt() {
     expect(lexer::token_type::l_parenthesis);
 
     std::vector<std::unique_ptr<ast::stmt>> run_once;
+
+    eat();
+    if (current_token_.type != lexer::token_type::semicolon) {
+        putback_tokens_.push(current_token_);
+    }
+
     while (current_token_.type != lexer::token_type::semicolon) {
         auto stmt = parse_assignment_stmts(false);
         run_once.push_back(std::move(stmt));
@@ -416,6 +422,12 @@ std::unique_ptr<parser::ast::for_stmt> parser::parser::parse_for_stmt() {
     expect(lexer::token_type::semicolon);
 
     std::vector<std::unique_ptr<ast::expr>> run_after_each;
+
+    eat();
+    if (current_token_.type != lexer::token_type::r_parenthesis) {
+        putback_tokens_.push(current_token_);
+    }
+
     while (current_token_.type != lexer::token_type::r_parenthesis) {
         auto stmt = parse_expr();
         run_after_each.push_back(std::move(stmt));
