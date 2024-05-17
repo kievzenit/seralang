@@ -14,7 +14,7 @@ namespace parser::ast {
         for_stmt(
                 std::vector<std::unique_ptr<stmt>> run_once,
                 std::unique_ptr<expr> condition,
-                std::vector<std::unique_ptr<stmt>> run_after_each,
+                std::vector<std::unique_ptr<expr>> run_after_each,
                 std::unique_ptr<scope_stmt> scope) :
                 run_once(std::move(run_once)),
                 condition(std::move(condition)),
@@ -23,7 +23,7 @@ namespace parser::ast {
 
         std::vector<std::unique_ptr<stmt>> run_once;
         std::unique_ptr<expr> condition;
-        std::vector<std::unique_ptr<stmt>> run_after_each;
+        std::vector<std::unique_ptr<expr>> run_after_each;
         std::unique_ptr<scope_stmt> scope;
     };
 
