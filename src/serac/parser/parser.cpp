@@ -51,6 +51,20 @@ void parser::parser::eat() {
     current_token_ = lexer_.get_next_token();
 }
 
+bool parser::parser::is_current_token_assignment_token() const {
+    switch (current_token_.type) {
+        case lexer::token_type::assign:
+        case lexer::token_type::plus_assign:
+        case lexer::token_type::minus_assign:
+        case lexer::token_type::multiply_assign:
+        case lexer::token_type::divide_assign:
+        case lexer::token_type::modulus_assign:
+            return true;
+        default:
+            return false;
+    }
+}
+
 int parser::parser::get_current_token_precedence() {
     auto binary_operation = current_token_type_to_binary_operation();
     return binary_operation == -1 ? -1 : binop_precedence_[binary_operation];
@@ -387,36 +401,31 @@ std::unique_ptr<parser::ast::for_stmt> parser::parser::parse_for_stmt() {
     expect(lexer::token_type::l_parenthesis);
 
     std::vector<std::unique_ptr<ast::stmt>> run_once;
-    auto for_init_parsing_completed = false;
-    do {
+    while (current_token_.type != lexer::token_type::semicolon) {
         auto stmt = parse_assignment_stmts(false);
         run_once.push_back(std::move(stmt));
 
         if (current_token_.type != lexer::token_type::coma
             && current_token_.type != lexer::token_type::semicolon) {
             expect(lexer::token_type::coma);
-        } else if (current_token_.type == lexer::token_type::semicolon) {
-            for_init_parsing_completed = true;
         }
-    } while (!for_init_parsing_completed);
+    }
 
     auto condition = parse_expr();
     eat();
     expect(lexer::token_type::semicolon);
 
-    std::vector<std::unique_ptr<ast::stmt>> run_after_each;
-    auto for_after_each_parsing_completed = false;
-    do {
-        auto stmt = parse_assignment_stmt(false);
+    std::vector<std::unique_ptr<ast::expr>> run_after_each;
+    while (current_token_.type != lexer::token_type::r_parenthesis) {
+        auto stmt = parse_expr();
         run_after_each.push_back(std::move(stmt));
+        eat();
 
         if (current_token_.type != lexer::token_type::coma
             && current_token_.type != lexer::token_type::r_parenthesis) {
             expect(lexer::token_type::coma);
-        } else if (current_token_.type == lexer::token_type::r_parenthesis) {
-            for_after_each_parsing_completed = true;
         }
-    } while (!for_after_each_parsing_completed);
+    }
 
     auto scope = parse_scope_stmt();
 
@@ -441,6 +450,7 @@ std::unique_ptr<parser::ast::local_stmt> parser::parser::parse_local_stmt() {
                 return parse_call_stmt();
             }
 
+            eat();
             return parse_assignment_stmt();
         default:
             utils::log_error("Unexpected local statement got, exiting with error from parser.");
@@ -450,7 +460,6 @@ std::unique_ptr<parser::ast::local_stmt> parser::parser::parse_local_stmt() {
 
 std::unique_ptr<parser::ast::local_stmt> parser::parser::parse_assignment_stmts(bool expect_semicolon) {
     eat();
-    auto priv_token = current_token_;
     switch (current_token_.type) {
         case lexer::token_type::let:
             return parse_let_stmt(false, expect_semicolon);
@@ -458,13 +467,6 @@ std::unique_ptr<parser::ast::local_stmt> parser::parser::parse_assignment_stmts(
             eat();
             return parse_let_stmt(true, expect_semicolon);
         case lexer::token_type::identifier:
-            eat();
-            if (current_token_.type == lexer::token_type::l_parenthesis) {
-                utils::log_error("Assignment expression statement, but got call statement.");
-            }
-
-            putback_tokens_.push(current_token_);
-            putback_tokens_.push(priv_token);
             return parse_assignment_stmt(expect_semicolon);
         default:
             utils::log_error("Unexpected assignment statement got, exiting with error from parser.");
@@ -500,40 +502,15 @@ std::unique_ptr<parser::ast::let_stmt> parser::parser::parse_let_stmt(bool is_st
 }
 
 std::unique_ptr<parser::ast::assignment_stmt> parser::parser::parse_assignment_stmt(bool expect_semicolon) {
-    eat();
-    expect(lexer::token_type::identifier);
-    auto identifier_name = current_token_.value;
-
-    eat();
-    auto assign_token_type = current_token_.type;
-    switch (current_token_.type) {
-        case lexer::token_type::assign:
-        case lexer::token_type::plus_assign:
-        case lexer::token_type::minus_assign:
-        case lexer::token_type::multiply_assign:
-        case lexer::token_type::divide_assign:
-        case lexer::token_type::modulus_assign:
-            break;
-        default:
-            unexpected_token_error();
-            __builtin_unreachable();
-    }
-
-    auto expr = parse_expr();
+    putback_tokens_.push(current_token_);
+    auto expr = parse_assignment_expr();
 
     eat();
     if (expect_semicolon) {
         expect(lexer::token_type::semicolon);
     }
 
-    if (assign_token_type != lexer::token_type::assign) {
-        expr = std::make_unique<ast::binary_expr>(
-                std::make_unique<ast::identifier_expr>(identifier_name),
-                        std::move(expr),
-                        token_type_to_binary_operation(assign_token_type));
-    }
-
-    return std::make_unique<ast::assignment_stmt>(identifier_name, std::move(expr));
+    return std::make_unique<ast::assignment_stmt>(std::move(expr));
 }
 
 std::unique_ptr<parser::ast::control_flow_stmt> parser::parser::parse_control_flow_stmt() {
@@ -600,6 +577,29 @@ std::unique_ptr<parser::ast::expr> parser::parser::parse_expr() {
     auto left = parse_unary_expr();
 
     return parse_binary_expr(std::move(left), 0);
+}
+
+std::unique_ptr<parser::ast::assignment_expr> parser::parser::parse_assignment_expr() {
+    eat();
+    expect(lexer::token_type::identifier);
+    auto identifier_name = current_token_.value;
+
+    eat();
+    auto assign_token_type = current_token_.type;
+    if (!is_current_token_assignment_token()) {
+        unexpected_token_error();
+    }
+
+    auto expr = parse_expr();
+
+    if (assign_token_type != lexer::token_type::assign) {
+        expr = std::make_unique<ast::binary_expr>(
+                std::make_unique<ast::identifier_expr>(identifier_name),
+                std::move(expr),
+                token_type_to_binary_operation(assign_token_type));
+    }
+
+    return std::make_unique<ast::assignment_expr>(identifier_name, std::move(expr));
 }
 
 std::unique_ptr<parser::ast::expr> parser::parser::parse_unary_expr() {
@@ -676,10 +676,21 @@ std::unique_ptr<parser::ast::expr> parser::parser::parse_binary_expr(
 
 std::unique_ptr<parser::ast::expr> parser::parser::parse_primary_expr() {
     eat();
+    auto priv_token = current_token_;
     switch (current_token_.type) {
         case lexer::token_type::number: return parse_integer_expr();
         case lexer::token_type::boolean: return parse_boolean_expr();
-        case lexer::token_type::identifier: return parse_identifier_expr();
+        case lexer::token_type::identifier:
+            eat();
+            if (is_current_token_assignment_token()) {
+                putback_tokens_.push(current_token_);
+                putback_tokens_.push(priv_token);
+                return parse_assignment_expr();
+            }
+
+            putback_tokens_.push(current_token_);
+            current_token_ = priv_token;
+            return parse_identifier_expr();
         case lexer::token_type::l_parenthesis:
             putback_tokens_.push(current_token_);
             return parse_parenthesis_expr();

@@ -31,6 +31,7 @@
 #include "ast/exprs/unary_expr.h"
 #include "ast/exprs/prefix_expr.h"
 #include "ast/exprs/postfix_expr.h"
+#include "ast/exprs/assignment_expr.h"
 
 namespace parser {
 
@@ -78,6 +79,8 @@ namespace parser {
         void unexpected_token_error();
         void eat();
 
+        bool is_current_token_assignment_token() const;
+
         int get_current_token_precedence();
         ast::binary_operation current_token_type_to_binary_operation();
         ast::binary_operation token_type_to_binary_operation(lexer::token_type token_type);
@@ -116,6 +119,8 @@ namespace parser {
         std::unique_ptr<ast::continue_stmt> parse_continue_stmt();
 
         std::unique_ptr<ast::expr> parse_expr();
+
+        std::unique_ptr<ast::assignment_expr> parse_assignment_expr();
 
         std::unique_ptr<ast::expr> parse_unary_expr();
         std::unique_ptr<ast::expr> parse_prefix_expr();
