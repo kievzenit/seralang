@@ -3,8 +3,8 @@
 
 #include <string>
 #include <utility>
-#include "emitter/ir/types/type.h"
-#include "emitter/ir/exprs/expr_ir.h"
+#include "../types/type.h"
+#include "../exprs/expr_ir.h"
 #include "stmt_ir.h"
 
 namespace emitter::ir {
