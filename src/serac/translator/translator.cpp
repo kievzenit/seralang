@@ -1048,9 +1048,9 @@ llvm::Value *translator::translator::translate_identifier_expr(emitter::ir::iden
         return builder_->CreateLoad(type, global_var);
     }
 
-    current_variable_ = translation_scope_->local_variables[identifier_expr->name];
+    current_variable_ = translation_scope_->get_variable(identifier_expr->name);
     variable_encountered_ = true;
-    return builder_->CreateLoad(type, translation_scope_->get_variable(identifier_expr->name));
+    return builder_->CreateLoad(type, current_variable_);
 }
 
 llvm::Value *translator::translator::translate_argument_expr(emitter::ir::argument_exp_ir *argument_expr) {
