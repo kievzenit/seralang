@@ -6,6 +6,8 @@
 #include <llvm/IR/Constants.h>
 #include <map>
 
+#include "scope.h"
+
 #include "../emitter/ir/package_ir.h"
 #include "../emitter/ir/exprs/integer_expr_ir.h"
 #include "../emitter/ir/exprs/boolean_expr_ir.h"
@@ -75,7 +77,7 @@ namespace translator {
         llvm::Value* current_variable_ = nullptr;
 
         emitter::ir::scope_stmt_ir* current_scope_ = nullptr;
-        std::map<std::string, llvm::Value*> local_variables_;
+        scope* translation_scope_ = nullptr;
 
         void create_types();
         void create_basic_types();
@@ -83,21 +85,21 @@ namespace translator {
         void declare_functions();
 
         void translate_global_vars();
-        void translate_global_var(std::unique_ptr<emitter::ir::variable_ir> variable_ir, bool &generate_br);
+        void translate_global_var(std::unique_ptr<emitter::ir::let_stmt_ir> let_stmt, bool &generate_br);
 
         void translate_function_declarations();
         void translate_main_function(std::unique_ptr<emitter::ir::func_decl_ir> main_decl_ir);
         llvm::Function* translate_function(std::unique_ptr<emitter::ir::func_decl_ir> func_decl_ir);
 
         void translate_stmt(std::unique_ptr<emitter::ir::stmt_ir> stmt_ir);
-        void translate_scope_stmt(emitter::ir::scope_stmt_ir* scope_ir);
+        void translate_scope_stmt(emitter::ir::scope_stmt_ir* scope_stmt);
         void translate_expr_stmt(emitter::ir::expr_stmt_ir* expr_stmt);
         void translate_if_stmt(emitter::ir::if_stmt_ir* if_stmt);
         void translate_while_stmt(emitter::ir::while_stmt_ir* while_stmt);
         void translate_do_while_stmt(emitter::ir::do_while_stmt_ir* do_while_stmt);
         void translate_loop_stmt(emitter::ir::loop_stmt_ir* loop_stmt);
-        void translate_var_stmt(emitter::ir::variable_ir* variable_ir);
-        void translate_return_stmt(emitter::ir::return_stmt_ir* return_ir);
+        void translate_let_stmt(emitter::ir::let_stmt_ir* let_stmt);
+        void translate_return_stmt(emitter::ir::return_stmt_ir* return_stmt);
         void translate_break_stmt(emitter::ir::break_stmt_ir* break_stmt);
         void translate_breakall_stmt();
         void translate_continue_stmt();

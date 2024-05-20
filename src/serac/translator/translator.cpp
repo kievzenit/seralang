@@ -118,35 +118,35 @@ void translator::translator::translate_global_vars() {
 }
 
 void translator::translator::translate_global_var(
-        std::unique_ptr<emitter::ir::variable_ir> variable_ir,
+        std::unique_ptr<emitter::ir::let_stmt_ir> let_stmt,
         bool &generate_br) {
     using namespace llvm;
 
-    auto var_type = types_[variable_ir->variable_type->name];
+    auto var_type = types_[let_stmt->variable_type->name];
 
-    auto initializer = variable_ir->expr->is_const_expr ?
-                       (Constant*)translate_expr(variable_ir->expr.get()) :
+    auto initializer = let_stmt->expr->is_const_expr ?
+                       (Constant*)translate_expr(let_stmt->expr.get()) :
                        ConstantInt::get(var_type, 0);
 
     auto variable = new GlobalVariable(
             *module_,
             var_type,
             false,
-            variable_ir->is_private ?
-                GlobalValue::LinkageTypes::InternalLinkage : GlobalValue::LinkageTypes::ExternalLinkage,
+            let_stmt->is_private ?
+            GlobalValue::LinkageTypes::InternalLinkage : GlobalValue::LinkageTypes::ExternalLinkage,
             initializer,
-            variable_ir->name);
+            let_stmt->name);
 
-    variable->setAlignment(Align(variable_ir->variable_type->size)); // TODO: redo this
+    variable->setAlignment(Align(let_stmt->variable_type->size)); // TODO: redo this
 
-    if (variable_ir->expr->is_const_expr) {
+    if (let_stmt->expr->is_const_expr) {
         return;
     }
 
     auto init_globals_func = module_->getFunction("init_globals");
     auto init_block = BasicBlock::Create(
             *context_,
-            variable_ir->name + "_init",
+            let_stmt->name + "_init",
             init_globals_func);
 
     if (generate_br) {
@@ -156,7 +156,7 @@ void translator::translator::translate_global_var(
     builder_->SetInsertPoint(init_block);
 
     generate_br = true;
-    auto result = translate_expr(variable_ir->expr.get());
+    auto result = translate_expr(let_stmt->expr.get());
     builder_->CreateStore(result, variable);
 }
 
@@ -230,9 +230,8 @@ llvm::Function* translator::translator::translate_function(std::unique_ptr<emitt
     auto entry_block = BasicBlock::Create(*context_, "entry", func);
     current_block_ = entry_block;
 
-    translate_scope_stmt(func_decl_ir->root_scope_stmt.get());
+    translate_scope_stmt(func_decl_ir->scope.get());
 
-    local_variables_.clear();
     current_function_ = nullptr;
 
     builder_->SetInsertPoint(current_allocation_block_);
@@ -277,8 +276,8 @@ void translator::translator::translate_stmt(std::unique_ptr<emitter::ir::stmt_ir
         return;
     }
 
-    if (dynamic_cast<emitter::ir::variable_ir*>(stmt_ir.get()) != nullptr) {
-        translate_var_stmt(dynamic_cast<emitter::ir::variable_ir*>(stmt_ir.get()));
+    if (dynamic_cast<emitter::ir::let_stmt_ir*>(stmt_ir.get()) != nullptr) {
+        translate_let_stmt(dynamic_cast<emitter::ir::let_stmt_ir *>(stmt_ir.get()));
         return;
     }
 
@@ -305,8 +304,8 @@ void translator::translator::translate_stmt(std::unique_ptr<emitter::ir::stmt_ir
     utils::log_error("Unsupported statement type encountered, this should never happen!");
 }
 
-void translator::translator::translate_scope_stmt(emitter::ir::scope_stmt_ir *scope_ir) {
-    if (scope_ir->parent_scope == nullptr) {
+void translator::translator::translate_scope_stmt(emitter::ir::scope_stmt_ir *scope_stmt) {
+    if (scope_stmt->parent_scope == nullptr) {
         insert_before_block_ = nullptr;
         break_to_blocks_.clear();
         breakall_to_block_ = nullptr;
@@ -324,13 +323,17 @@ void translator::translator::translate_scope_stmt(emitter::ir::scope_stmt_ir *sc
     builder_->ClearInsertionPoint();
     current_block_ = scope_block;
 
-    current_scope_ = scope_ir;
-    for (auto &stmt : scope_ir->inner_stmts) {
+    current_scope_ = scope_stmt;
+    auto new_translation_scope = new scope(translation_scope_);
+    translation_scope_ = new_translation_scope;
+    for (auto &stmt : scope_stmt->inner_stmts) {
         auto priv_insert_before_block = insert_before_block_;
         translate_stmt(std::move(stmt));
         insert_before_block_ = priv_insert_before_block;
     }
     current_scope_ = nullptr;
+    translation_scope_ = translation_scope_->parent_scope;
+    delete new_translation_scope;
 
     if (!br_generated_) {
         builder_->SetInsertPoint(current_block_);
@@ -341,7 +344,7 @@ void translator::translator::translate_scope_stmt(emitter::ir::scope_stmt_ir *sc
 
     current_block_ = after_scope_block;
 
-    if (scope_ir->parent_scope == nullptr) {
+    if (scope_stmt->parent_scope == nullptr) {
         builder_->SetInsertPoint(after_scope_block);
         builder_->CreateUnreachable();
     }
@@ -569,25 +572,25 @@ void translator::translator::translate_loop_stmt(emitter::ir::loop_stmt_ir *loop
     builder_->ClearInsertionPoint();
 }
 
-void translator::translator::translate_var_stmt(emitter::ir::variable_ir* variable_ir) {
+void translator::translator::translate_let_stmt(emitter::ir::let_stmt_ir* let_stmt) {
     builder_->SetInsertPoint(current_allocation_block_);
     auto allocated_var = builder_->CreateAlloca(
-            types_[variable_ir->variable_type->name], nullptr, variable_ir->name);
-    local_variables_[variable_ir->name] = allocated_var;
+            types_[let_stmt->variable_type->name], nullptr, let_stmt->name);
+    translation_scope_->local_variables[let_stmt->name] = allocated_var;
     builder_->ClearInsertionPoint();
 
     builder_->SetInsertPoint(current_block_);
 
-    auto expr_result = translate_expr(variable_ir->expr.get());
+    auto expr_result = translate_expr(let_stmt->expr.get());
     builder_->CreateStore(expr_result, allocated_var);
 
     builder_->ClearInsertionPoint();
 }
 
-void translator::translator::translate_return_stmt(emitter::ir::return_stmt_ir* return_ir) {
+void translator::translator::translate_return_stmt(emitter::ir::return_stmt_ir* return_stmt) {
     builder_->SetInsertPoint(current_block_);
 
-    auto expr_result = translate_expr(return_ir->expr.get());
+    auto expr_result = translate_expr(return_stmt->expr.get());
     builder_->CreateRet(expr_result);
 
     br_generated_ = true;
@@ -701,7 +704,7 @@ llvm::Value *translator::translator::translate_assignment_expr(emitter::ir::assi
         auto global_var = module_->getNamedGlobal(assignment_expr->identifier_name);
         builder_->CreateStore(expr_result, global_var);
     } else {
-        builder_->CreateStore(expr_result, local_variables_[assignment_expr->identifier_name]);
+        builder_->CreateStore(expr_result, translation_scope_->get_variable(assignment_expr->identifier_name));
     }
 
     return expr_result;
@@ -1045,9 +1048,9 @@ llvm::Value *translator::translator::translate_identifier_expr(emitter::ir::iden
         return builder_->CreateLoad(type, global_var);
     }
 
-    current_variable_ = local_variables_[identifier_expr->name];
+    current_variable_ = translation_scope_->local_variables[identifier_expr->name];
     variable_encountered_ = true;
-    return builder_->CreateLoad(type, local_variables_[identifier_expr->name]);
+    return builder_->CreateLoad(type, translation_scope_->get_variable(identifier_expr->name));
 }
 
 llvm::Value *translator::translator::translate_argument_expr(emitter::ir::argument_exp_ir *argument_expr) {
