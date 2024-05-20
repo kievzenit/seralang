@@ -18,7 +18,7 @@ namespace emitter::ir {
         std::map<std::string, type *> variables_types;
         std::map<std::string, type*> static_variables_types;
 
-        std::vector<ir::variable_ir> static_variables;
+        std::vector<ir::let_stmt_ir> static_variables;
 
         type* get_type_for_variable(const std::string& name) {
             if (variables_types.contains(name)) {

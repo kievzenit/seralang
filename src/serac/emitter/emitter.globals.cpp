@@ -18,7 +18,7 @@ void emitter::emitter::emit_all_global_variables() {
 
         auto expr_ir = emit_for_expr(std::move(let_stmt->expression));
         global_variables_types_[let_stmt->name] = expr_ir->expr_type;
-        auto variable_ir = std::make_unique<ir::variable_ir>(
+        auto variable_ir = std::make_unique<ir::let_stmt_ir>(
                 let_stmt->name, std::move(expr_ir), expr_ir->expr_type, true, false);
 
         global_variables_.push_back(std::move(variable_ir));

@@ -1,17 +1,17 @@
-#ifndef SERALANG_VARIABLE_IR_H
-#define SERALANG_VARIABLE_IR_H
+#ifndef SERALANG_LET_STMT_IR_H
+#define SERALANG_LET_STMT_IR_H
 
 #include <string>
 #include <utility>
-#include "types/type.h"
-#include "exprs/expr_ir.h"
-#include "stmts/stmt_ir.h"
+#include "emitter/ir/types/type.h"
+#include "emitter/ir/exprs/expr_ir.h"
+#include "stmt_ir.h"
 
 namespace emitter::ir {
 
-    class variable_ir : public stmt_ir {
+    class let_stmt_ir : public stmt_ir {
     public:
-        variable_ir(std::string name, std::unique_ptr<expr_ir> expr, type* type, bool is_static, bool is_private) :
+        let_stmt_ir(std::string name, std::unique_ptr<expr_ir> expr, type* type, bool is_static, bool is_private) :
                 name(std::move(name)),
                 expr(std::move(expr)),
                 variable_type(type),
@@ -27,4 +27,4 @@ namespace emitter::ir {
 
 }
 
-#endif //SERALANG_VARIABLE_IR_H
+#endif //SERALANG_LET_STMT_IR_H

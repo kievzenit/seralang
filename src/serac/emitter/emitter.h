@@ -21,7 +21,7 @@
 #include "ir/exprs/logical_expr_ir.h"
 #include "ir/exprs/relational_expr_ir.h"
 #include "ir/exprs/bitwise_expr_ir.h"
-#include "ir/variable_ir.h"
+#include "ir/stmts/let_stmt_ir.h"
 #include "ir/stmts/return_stmt_ir.h"
 #include "ir/exprs/identifier_expr_ir.h"
 #include "ir/exprs/argument_expr_ir.h"
@@ -72,7 +72,7 @@ namespace emitter {
     private:
         std::vector<std::unique_ptr<parser::ast::translation_ast>> translation_asts_;
 
-        std::vector<std::unique_ptr<ir::variable_ir>> global_variables_;
+        std::vector<std::unique_ptr<ir::let_stmt_ir>> global_variables_;
         std::vector<std::unique_ptr<ir::func_decl_ir>> functions_;
 
         std::unordered_set<std::string> declared_functions_;

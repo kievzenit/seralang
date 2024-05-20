@@ -265,7 +265,7 @@ void emitter::emitter::emit_for_let_stmt(parser::ast::let_stmt *let_stmt) {
         global_variables_types_.insert(std::make_pair(generated_name, expr_ir->expr_type));
         current_scope_->static_variables_types.insert(std::make_pair(let_stmt->name, expr_ir->expr_type));
 
-        auto variable_ir = std::make_unique<ir::variable_ir>(
+        auto variable_ir = std::make_unique<ir::let_stmt_ir>(
                 generated_name,
                 std::move(expr_ir),
                 expr_ir->expr_type,
@@ -283,7 +283,7 @@ void emitter::emitter::emit_for_let_stmt(parser::ast::let_stmt *let_stmt) {
     }
 
     current_scope_->variables_types.insert(std::make_pair(let_stmt->name, expr_ir->expr_type));
-    auto variable_ir = std::make_unique<ir::variable_ir>(
+    auto variable_ir = std::make_unique<ir::let_stmt_ir>(
             let_stmt->name,
             std::move(expr_ir),
             expr_ir->expr_type,
