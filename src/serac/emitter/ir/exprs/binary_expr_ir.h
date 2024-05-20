@@ -14,9 +14,9 @@ namespace emitter::ir {
                 std::unique_ptr<expr_ir> right,
                 binary_operation_type operation_type,
                 type* type) :
+            expr_ir(type, left->is_const_expr && right->is_const_expr),
             left(std::move(left)), right(std::move(right)),
-            operation_type(operation_type),
-            expr_ir(type, false) {}
+            operation_type(operation_type) {}
 
         std::unique_ptr<expr_ir> left, right;
         binary_operation_type operation_type;
