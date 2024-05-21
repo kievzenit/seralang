@@ -9,11 +9,27 @@ void emitter::emitter::emit_all_global_variables() {
         auto let_stmt = dynamic_cast<parser::ast::let_stmt *>(top_stmt.get());
 
         if (!let_stmt->is_static) {
-            utils::log_error("Top let statement must be static.");
+            auto error = std::make_unique<errors::error>(
+                    "Top let statement must be static.",
+                    "add static keyword before let.",
+                    top_stmt->metadata.file_name,
+                    top_stmt->metadata.line_start,
+                    top_stmt->metadata.column_start,
+                    top_stmt->metadata.column_end);
+            errors.push_back(std::move(error));
+            continue;
         }
 
         if (!let_stmt->expression->is_const) {
-            utils::log_error("Static global variables can only be instantiated with const expressions.");
+            auto error = std::make_unique<errors::error>(
+                    "Static global variables can only be instantiated with const expressions.",
+                    "use constant expression (can be calculated in compile time) as assignment to variable.",
+                    top_stmt->metadata.file_name,
+                    let_stmt->expression->metadata.line_start,
+                    let_stmt->expression->metadata.column_start,
+                    let_stmt->expression->metadata.column_end);
+            errors.push_back(std::move(error));
+            continue;
         }
 
         auto expr_ir = emit_for_expr(std::move(let_stmt->expression));

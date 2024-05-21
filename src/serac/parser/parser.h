@@ -34,7 +34,7 @@
 #include "ast/exprs/assignment_expr.h"
 #include "ast/stmts/expr_stmt.h"
 #include "ast/exprs/call_expr.h"
-#include "shared/error.h"
+#include "../shared/error.h"
 
 namespace parser {
 

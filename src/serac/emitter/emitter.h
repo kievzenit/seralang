@@ -6,6 +6,7 @@
 #include <map>
 #include <unordered_set>
 
+#include "../parser/ast/common/file_metadata.h"
 #include "../utils/log_error.h"
 #include "../parser/ast/translation_ast.h"
 #include "../parser/ast/stmts/let_stmt.h"
@@ -59,6 +60,7 @@
 #include "ir/exprs/assignment_expr_ir.h"
 #include "ir/stmts/expr_stmt_ir.h"
 #include "../parser/ast/stmts/expr_stmt.h"
+#include "../shared/error.h"
 
 namespace emitter {
 
@@ -67,7 +69,9 @@ namespace emitter {
         explicit emitter(std::vector<std::unique_ptr<parser::ast::translation_ast>> translation_asts) :
             translation_asts_(std::move(translation_asts)) {}
 
-            std::unique_ptr<ir::package_ir> emit();
+        std::unique_ptr<ir::package_ir> emit();
+
+        std::vector<std::unique_ptr<errors::error>> errors;
 
     private:
         std::vector<std::unique_ptr<parser::ast::translation_ast>> translation_asts_;
@@ -154,9 +158,9 @@ namespace emitter {
 
         std::unique_ptr<ir::identifier_expr_ir> emit_for_identifier_expr(parser::ast::identifier_expr* identifier_expr);
         std::unique_ptr<ir::call_expr_ir> emit_for_call_expr(parser::ast::call_expr* call_expr);
-        static std::unique_ptr<ir::boolean_expr_ir> emit_for_boolean_expr(parser::ast::boolean_expr* boolean_expr);
-        static std::unique_ptr<ir::integer_expr_ir> emit_for_integer_expr(parser::ast::integer_expr* integer_expr);
-        static std::unique_ptr<ir::integer_expr_ir>
+        std::unique_ptr<ir::boolean_expr_ir> emit_for_boolean_expr(parser::ast::boolean_expr* boolean_expr);
+        std::unique_ptr<ir::integer_expr_ir> emit_for_integer_expr(parser::ast::integer_expr* integer_expr);
+        std::unique_ptr<ir::integer_expr_ir>
         emit_for_explicitly_typed_integer(parser::ast::integer_expr* integer_expr, const std::string& explicit_int_type);
     };
 

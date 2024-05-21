@@ -19,8 +19,16 @@ void emitter::emitter::find_globals() {
 
             auto insertion_result = declared_global_variables_.insert(let_stmt->name);
             if (!insertion_result.second) {
-                utils::log_error(
-                        std::format("Global variable with name: {} is already defined.", let_stmt->name));
+                auto error = std::make_unique<errors::error>(
+                        std::format(
+                                "Global variable with name: \"{}\" is already defined.",
+                                let_stmt->name),
+                        "try rename variable.",
+                        top_stmt->metadata.file_name,
+                        top_stmt->metadata.line_start,
+                        top_stmt->metadata.column_start,
+                        top_stmt->metadata.column_end);
+                errors.push_back(std::move(error));
             }
 
             continue;
@@ -31,15 +39,35 @@ void emitter::emitter::find_globals() {
 
             auto insertion_result = declared_functions_.insert(func_stmt->name);
             if (!insertion_result.second) {
-                utils::log_error(
-                        std::format("Function with name: {} is already defined.", func_stmt->name));
+                auto error = std::make_unique<errors::error>(
+                        std::format(
+                                "Function with name: \"{}\" is already defined.",
+                                func_stmt->name),
+                        "try rename function.",
+                        top_stmt->metadata.file_name,
+                        top_stmt->metadata.line_start,
+                        top_stmt->metadata.column_start,
+                        top_stmt->metadata.column_end);
+                errors.push_back(std::move(error));
+
+                continue;
             }
 
             auto params = emit_func_params(func_stmt);
 
             auto return_type = types_[func_stmt->return_type];
             if (return_type == nullptr) {
-                utils::log_error(std::format("Undefined type: {}.", func_stmt->return_type));
+                auto error = std::make_unique<errors::error>(
+                        std::format(
+                                "Undefined type: \"{}\".",
+                                func_stmt->return_type),
+                        "use type that is defined.",
+                        top_stmt->metadata.file_name,
+                        top_stmt->metadata.line_start,
+                        top_stmt->metadata.column_start,
+                        top_stmt->metadata.column_end);
+                errors.push_back(std::move(error));
+                continue;
             }
             functions_types_[func_stmt->name] = new ir::func_type(func_stmt->name, params, return_type);
 

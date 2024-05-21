@@ -196,7 +196,15 @@ void emitter::emitter::emit_for_for_stmt(parser::ast::for_stmt* for_stmt) {
         if (dynamic_cast<parser::ast::let_stmt *>(run_once.get()) != nullptr) {
             auto let_stmt = dynamic_cast<parser::ast::let_stmt *>(run_once.get());
             if (let_stmt->is_static) {
-                utils::log_error("Static let variables cannot be use inside for init stage.");
+                auto error = std::make_unique<errors::error>(
+                        "Static let variables cannot be use inside for init stage.",
+                        "remove static keyword.",
+                        static_cast<parser::ast::local_stmt*>(let_stmt)->metadata.file_name,
+                        static_cast<parser::ast::local_stmt*>(let_stmt)->metadata.line_start,
+                        static_cast<parser::ast::local_stmt*>(let_stmt)->metadata.column_start,
+                        static_cast<parser::ast::local_stmt*>(let_stmt)->metadata.column_end);
+                errors.push_back(std::move(error));
+                continue;
             }
 
             emit_for_let_stmt(let_stmt);
@@ -208,7 +216,14 @@ void emitter::emitter::emit_for_for_stmt(parser::ast::for_stmt* for_stmt) {
             continue;
         }
 
-        utils::log_error("Only let and  expression statements are allowed in init stage of for loop.");
+        auto error = std::make_unique<errors::error>(
+                "Only let and expression statements are allowed in init stage of for loop.",
+                "use let statement or expression statement here.",
+                run_once->metadata.file_name,
+                run_once->metadata.line_start,
+                run_once->metadata.column_start,
+                run_once->metadata.column_end);
+        errors.push_back(std::move(error));
     }
 
     auto condition = emit_for_cast(
@@ -240,21 +255,43 @@ void emitter::emitter::emit_for_for_stmt(parser::ast::for_stmt* for_stmt) {
 
 void emitter::emitter::emit_for_let_stmt(parser::ast::let_stmt *let_stmt) {
     if (is_identifier_is_func_argument(let_stmt->name)) {
-        utils::log_error(
+        auto error = std::make_unique<errors::error>(
                 std::format(
                         "Variable with name: {}, is already defined as function parameter.",
-                        let_stmt->name));
+                        let_stmt->name),
+                "use another name to this variable.",
+                static_cast<parser::ast::local_stmt*>(let_stmt)->metadata.file_name,
+                static_cast<parser::ast::local_stmt*>(let_stmt)->metadata.line_start,
+                static_cast<parser::ast::local_stmt*>(let_stmt)->metadata.column_start,
+                static_cast<parser::ast::local_stmt*>(let_stmt)->metadata.column_end);
+        errors.push_back(std::move(error));
+        return;
     }
 
     if (current_scope_->static_variables_types.contains(let_stmt->name)) {
-        utils::log_error(
+        auto error = std::make_unique<errors::error>(
                 std::format(
                         "Variable with name: {}, is already defined in current scope as a static variable.",
-                        let_stmt->name));
+                        let_stmt->name),
+                "use another name to this variable.",
+                static_cast<parser::ast::local_stmt*>(let_stmt)->metadata.file_name,
+                static_cast<parser::ast::local_stmt*>(let_stmt)->metadata.line_start,
+                static_cast<parser::ast::local_stmt*>(let_stmt)->metadata.column_start,
+                static_cast<parser::ast::local_stmt*>(let_stmt)->metadata.column_end);
+        errors.push_back(std::move(error));
+        return;
     }
 
     if (let_stmt->is_static && !let_stmt->expression->is_const) {
-        utils::log_error("Static variables could only be instantiated with const expressions.");
+        auto error = std::make_unique<errors::error>(
+                "Static variables could only be instantiated with const expressions.",
+                "use constant expression (which can be computed in compile time) as assignment expression.",
+                static_cast<parser::ast::local_stmt*>(let_stmt)->metadata.file_name,
+                static_cast<parser::ast::local_stmt*>(let_stmt)->metadata.line_start,
+                static_cast<parser::ast::local_stmt*>(let_stmt)->metadata.column_start,
+                static_cast<parser::ast::local_stmt*>(let_stmt)->metadata.column_end);
+        errors.push_back(std::move(error));
+        return;
     }
 
     auto expr_ir = emit_for_expr(std::move(let_stmt->expression));
@@ -276,10 +313,17 @@ void emitter::emitter::emit_for_let_stmt(parser::ast::let_stmt *let_stmt) {
     }
 
     if (current_scope_->variables_types.contains(let_stmt->name)) {
-        utils::log_error(
+        auto error = std::make_unique<errors::error>(
                 std::format(
                         "Variable with name: {}, is already defined in current scope.",
-                        let_stmt->name));
+                        let_stmt->name),
+                "use another name to this variable.",
+                static_cast<parser::ast::local_stmt*>(let_stmt)->metadata.file_name,
+                static_cast<parser::ast::local_stmt*>(let_stmt)->metadata.line_start,
+                static_cast<parser::ast::local_stmt*>(let_stmt)->metadata.column_start,
+                static_cast<parser::ast::local_stmt*>(let_stmt)->metadata.column_end);
+        errors.push_back(std::move(error));
+        return;
     }
 
     current_scope_->variables_types.insert(std::make_pair(let_stmt->name, expr_ir->expr_type));
@@ -317,14 +361,31 @@ void emitter::emitter::emit_for_break_stmt(parser::ast::break_stmt* break_stmt) 
 
     std::unique_ptr<ir::expr_ir> break_expr;
     if (break_stmt->break_expr) {
+        auto break_expr_metadata = break_stmt->break_expr->metadata;
         break_expr = emit_for_expr(std::move(break_stmt->break_expr));
         if (dynamic_cast<ir::integer_type *>(break_expr->expr_type) == nullptr) {
-            utils::log_error("Only expressions that returns integer are allowed to be after break statement.");
+            auto error = std::make_unique<errors::error>(
+                    "Only expressions that returns integer are allowed to be after break statement.",
+                    "use expression that returns integer.",
+                    break_expr_metadata.file_name,
+                    break_expr_metadata.line_start,
+                    break_expr_metadata.column_start,
+                    break_expr_metadata.column_end);
+            errors.push_back(std::move(error));
+            return;
         }
 
         auto integer_type = dynamic_cast<ir::integer_type *>(break_expr->expr_type);
         if (!integer_type->is_unsigned) {
-            utils::log_error("Only unsigned integers are allowed after break statement.");
+            auto error = std::make_unique<errors::error>(
+                    "Only unsigned integers are allowed after break statement.",
+                    "use this construction to create unsigned integer: 98:uint.",
+                    break_expr_metadata.file_name,
+                    break_expr_metadata.line_start,
+                    break_expr_metadata.column_start,
+                    break_expr_metadata.column_end);
+            errors.push_back(std::move(error));
+            return;
         }
     }
 

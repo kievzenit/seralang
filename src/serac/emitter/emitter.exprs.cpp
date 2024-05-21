@@ -62,8 +62,15 @@ emitter::emitter::emit_for_assignment_expr(parser::ast::assignment_expr *assignm
                 emit_for_cast(std::move(expr), global_var_type));
     }
 
-    utils::log_error(std::format("Undefined identifier: {}.", assignment_expr->name));
-    __builtin_unreachable();
+    auto error = std::make_unique<errors::error>(
+            std::format("Undefined identifier: \"{}\".", assignment_expr->name),
+            "define variable with this name.",
+            assignment_expr->metadata.file_name,
+            assignment_expr->metadata.line_start,
+            assignment_expr->metadata.column_start,
+            assignment_expr->metadata.column_end);
+    errors.push_back(std::move(error));
+    return nullptr;
 }
 
 std::unique_ptr<emitter::ir::unary_expr_ir>
@@ -84,7 +91,15 @@ std::unique_ptr<emitter::ir::prefix_expr_ir>
 emitter::emitter::emit_for_prefix_expr(parser::ast::prefix_expr *prefix_expr) {
     auto inner_expr = emit_for_expr(std::move(prefix_expr->inner_expr));
     if (!inner_expr->expr_type->is_basic) {
-        utils::log_error("Only basic types are supported with prefix expressions for now(.");
+        auto error = std::make_unique<errors::error>(
+                "Only basic types are supported with prefix expressions for now(.",
+                "wait for new version.",
+                prefix_expr->metadata.file_name,
+                prefix_expr->metadata.line_start,
+                prefix_expr->metadata.column_start,
+                prefix_expr->metadata.column_end);
+        errors.push_back(std::move(error));
+        return nullptr;
     }
 
     switch (prefix_expr->operation) {
@@ -103,7 +118,15 @@ std::unique_ptr<emitter::ir::postfix_expr_ir>
 emitter::emitter::emit_for_postfix_expr(parser::ast::postfix_expr *postfix_expr) {
     auto inner_expr = emit_for_expr(std::move(postfix_expr->inner_expr));
     if (!inner_expr->expr_type->is_basic) {
-        utils::log_error("Only basic types are supported with postfix expressions for now(.");
+        auto error = std::make_unique<errors::error>(
+                "Only basic types are supported with postfix expressions for now(.",
+                "wait for new version.",
+                postfix_expr->metadata.file_name,
+                postfix_expr->metadata.line_start,
+                postfix_expr->metadata.column_start,
+                postfix_expr->metadata.column_end);
+        errors.push_back(std::move(error));
+        return nullptr;
     }
 
     return std::make_unique<ir::postfix_expr_ir>(
@@ -254,21 +277,44 @@ emitter::emitter::emit_for_identifier_expr(parser::ast::identifier_expr *identif
                 global_variables_types_[generated_name]);
     }
 
-    utils::log_error(std::format("Undefined identifier: {}.", identifier_expr->name));
-    __builtin_unreachable();
+    auto error = std::make_unique<errors::error>(
+            std::format("Undefined identifier: \"{}\".", identifier_expr->name),
+            "use integer type here.",
+            identifier_expr->metadata.file_name,
+            identifier_expr->metadata.line_start,
+            identifier_expr->metadata.column_start,
+            identifier_expr->metadata.column_end);
+    errors.push_back(std::move(error));
+    return nullptr;
 }
 
 std::unique_ptr<emitter::ir::call_expr_ir> emitter::emitter::emit_for_call_expr(parser::ast::call_expr *call_expr) {
     if (!declared_functions_.contains(call_expr->name)) {
-        utils::log_error(std::format("Attempted to call undefined function: {}.", call_expr->name));
+        auto error = std::make_unique<errors::error>(
+                std::format("Attempted to call undefined function: \"{}\".", call_expr->name),
+                "define function.",
+                call_expr->metadata.file_name,
+                call_expr->metadata.line_start,
+                call_expr->metadata.column_start,
+                call_expr->metadata.column_end);
+        errors.push_back(std::move(error));
+        return nullptr;
     }
 
     auto func_type = functions_types_[call_expr->name];
     if (call_expr->arguments.size() != func_type->params.size()) {
-        utils::log_error(std::format(
-                "{} arguments was given, but function declaration has: {}.",
-                call_expr->arguments.size(),
-                func_type->params.size()));
+        auto error = std::make_unique<errors::error>(
+                std::format(
+                        "{} arguments was given, but function declaration has: {}.",
+                        call_expr->arguments.size(),
+                        func_type->params.size()),
+                "use integer type here.",
+                call_expr->metadata.file_name,
+                call_expr->metadata.line_start,
+                call_expr->metadata.column_start,
+                call_expr->metadata.column_end);
+        errors.push_back(std::move(error));
+        return nullptr;
     }
 
     std::vector<std::unique_ptr<ir::expr_ir>> arguments;
@@ -342,6 +388,13 @@ std::unique_ptr<emitter::ir::integer_expr_ir> emitter::emitter::emit_for_explici
         return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::integer_type::uint64());
     }
 
-    utils::log_error(std::format("Expected int type, but got: {} instead.", explicit_int_type));
-    __builtin_unreachable();
+    auto error = std::make_unique<errors::error>(
+            std::format("Expected int type, but got: \"{}\" instead.", explicit_int_type),
+            "use integer type here.",
+            integer_expr->metadata.file_name,
+            integer_expr->metadata.line_start,
+            integer_expr->metadata.column_start,
+            integer_expr->metadata.column_end);
+    errors.push_back(std::move(error));
+    return nullptr;
 }
