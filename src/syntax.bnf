@@ -60,7 +60,16 @@
 
 
 
-<expression> ::= <primary_expression> | <unary_expression> | <binary_expression> | <assignment_expression>
+<expression> ::= <primary_expression>
+    | <unary_expression>
+    | <binary_expression>
+    | <assignment_expression>
+    | <cast_expression>
+    | <complex_cast_expression>
+
+
+<cast_expression> ::= <unary_expression> ">-" <identifier>
+<complex_cast_expression> ::= <unary_expression> ">-" "{" <identifier> <type_denotation> "}"
 
 
 <assignment_expression> ::= <identifier> <assignment_operator> <expression>
