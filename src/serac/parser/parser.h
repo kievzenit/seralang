@@ -35,6 +35,8 @@
 #include "ast/stmts/expr_stmt.h"
 #include "ast/exprs/call_expr.h"
 #include "../shared/error.h"
+#include "ast/exprs/cast_expr.h"
+#include "ast/exprs/complex_cast_expr.h"
 
 namespace parser {
 
@@ -129,6 +131,9 @@ namespace parser {
         std::unique_ptr<ast::continue_stmt> parse_continue_stmt();
 
         std::unique_ptr<ast::expr> parse_expr();
+
+        std::unique_ptr<ast::expr> parse_cast_expr(std::unique_ptr<ast::expr> expr);
+        std::unique_ptr<ast::expr> parse_complex_cast_expr(std::unique_ptr<ast::expr> expr);
 
         std::unique_ptr<ast::assignment_expr> parse_assignment_expr();
 

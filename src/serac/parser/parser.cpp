@@ -838,6 +838,15 @@ std::unique_ptr<parser::ast::expr> parser::parser::parse_expr() {
         return nullptr;
     }
 
+    eat();
+    if (current_token_.type == lexer::token_type::cast) {
+        left = parse_cast_expr(std::move(left));
+        if (!left) {
+            return nullptr;
+        }
+    }
+    putback();
+
     auto expr = parse_binary_expr(std::move(left), 0);
     if (!expr) {
         return nullptr;
@@ -845,6 +854,53 @@ std::unique_ptr<parser::ast::expr> parser::parser::parse_expr() {
     
     expr->metadata = create_metadata(first_token, priv_token_);
     return expr;
+}
+
+std::unique_ptr<parser::ast::expr> parser::parser::parse_cast_expr(std::unique_ptr<ast::expr> expr) {
+    if (!expect(lexer::token_type::cast)) {
+        return nullptr;
+    }
+
+    eat();
+    if (current_token_.type != lexer::token_type::identifier) {
+        return parse_complex_cast_expr(std::move(expr));
+    }
+
+    auto cast_expr = std::make_unique<ast::cast_expr>(
+            std::move(expr), current_token_.value);
+    cast_expr->metadata = create_metadata(priv_token_, current_token_);
+
+    return cast_expr;
+}
+
+std::unique_ptr<parser::ast::expr> parser::parser::parse_complex_cast_expr(std::unique_ptr<ast::expr> expr) {
+    if (!expect(lexer::token_type::l_curly_brace)) {
+        return nullptr;
+    }
+
+    eat();
+    if (!expect(lexer::token_type::identifier)) {
+        return nullptr;
+    }
+    auto new_identifier = current_token_.value;
+
+    eat();
+    if (!expect(lexer::token_type::colon)) {
+        return nullptr;
+    }
+
+    eat();
+    if (!expect(lexer::token_type::identifier)) {
+        return nullptr;
+    }
+    auto cast_type = current_token_.value;
+
+    eat();
+    if (!expect(lexer::token_type::r_curly_brace)) {
+        return nullptr;
+    }
+
+    return std::make_unique<ast::complex_cast_expr>(std::move(expr), cast_type, new_identifier);
 }
 
 std::unique_ptr<parser::ast::assignment_expr> parser::parser::parse_assignment_expr() {
