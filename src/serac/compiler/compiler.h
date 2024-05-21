@@ -16,6 +16,8 @@
 #include <llvm/Passes/PassBuilder.h>
 #include <llvm/Transforms/Scalar/JumpThreading.h>
 
+#include "../utils/repeat_string.h"
+
 #include "../parser/parser.h"
 #include "../emitter/emitter.h"
 #include "../translator/translator.h"
@@ -37,6 +39,8 @@ namespace compiler {
         std::map<std::string, std::vector<std::unique_ptr<parser::ast::translation_ast>>> split_asts_by_package();
     private:
         compile_options options_;
+
+        void display_errors(std::vector<std::unique_ptr<errors::error>> errors, std::ifstream& file);
 
         std::vector<std::string> files_;
         std::vector<std::unique_ptr<parser::ast::translation_ast>> translation_asts_;

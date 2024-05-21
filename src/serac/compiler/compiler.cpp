@@ -27,7 +27,14 @@ void compiler::compiler::compile() {
         lexer::lexer lexer(file.rdbuf());
         parser::parser parser(lexer, file_name);
 
-        translation_asts_.push_back(parser.parse());
+        auto translation_ast = parser.parse();
+        if (!translation_ast) {
+            std::vector<std::unique_ptr<errors::error>> errors;
+            errors.push_back(std::move(parser.error));
+            display_errors(std::move(errors), file);
+        }
+
+        translation_asts_.push_back(std::move(translation_ast));
     }
 
     for (auto& package : split_asts_by_package()) {
@@ -55,6 +62,41 @@ compiler::compiler::split_asts_by_package() {
     }
 
     return packages;
+}
+
+void compiler::compiler::display_errors(std::vector<std::unique_ptr<errors::error>> errors, std::ifstream& file) {
+    file.seekg(0);
+
+    std::vector<std::string> lines;
+    while (file) {
+        std::string line;
+        std::getline(file, line);
+        lines.push_back(line);
+    }
+
+    std::stringstream stream;
+
+    for (auto& error : errors) {
+        auto line = lines[error->line - 1];
+
+        auto line_number = std::to_string(error->line);
+        auto indentation = utils::repeat_string(" ", line_number.size() + 1);
+
+        stream << "error[]: " << error->error_message << std::endl;
+        stream << "  --> " << error->file_name << ":" << error->line << ":" << error->column_start << std::endl;
+        stream << indentation << "|" << std::endl;
+        stream << line_number << " |" << line << std::endl;
+        stream
+            << indentation
+            << "|"
+            << utils::repeat_string(" ", error->column_start - indentation.size() + 1)
+            << utils::repeat_string("^", error->column_end - error->column_start + 1)
+            << std::endl;
+        stream << "Hint: " << error->hint_message << std::endl;
+        stream << std::endl;
+    }
+
+    std::cout << stream.str();
 }
 
 void compiler::compiler::compile_module(std::unique_ptr<llvm::Module> module) {
