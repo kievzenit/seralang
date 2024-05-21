@@ -50,6 +50,7 @@ namespace lexer {
         coma,
         exclamation_mark,
         bitwise_not,
+        cast,
 
         plus_plus,
         minus_minus,

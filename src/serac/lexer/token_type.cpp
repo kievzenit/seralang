@@ -41,6 +41,7 @@ static std::map<lexer::token_type, std::string> token_type_map = {
         {coma, ","},
         {exclamation_mark, "!"},
         {bitwise_not, "~"},
+        {cast, ">-"},
         {plus_plus, "++"},
         {minus_minus, "--"},
         {bitwise_and, "&"},

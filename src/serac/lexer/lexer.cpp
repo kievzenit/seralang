@@ -362,6 +362,17 @@ lexer::token lexer::lexer::process_punctuation() {
                   column_
                 };
             case '>':
+                if (current_character_ == '-') {
+                    eat_current_char();
+                    return {
+                        token_type::cast,
+                        ">-",
+                        line_,
+                        column_started,
+                        column_
+                    };
+                }
+
                 return {
                         token_type::greater_than,
                         ">",
