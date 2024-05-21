@@ -518,7 +518,7 @@ lexer::token lexer::lexer::process_number() {
             eat_current_char();
             number = process_complex_number();
             return {
-                    token_type::number,
+                    token_type::integer,
                     number,
                     line_,
                     column_started,
@@ -546,7 +546,7 @@ lexer::token lexer::lexer::process_number() {
     }
 
     return {
-        token_type::number,
+        token_type::integer,
         number,
         line_,
         column_started,

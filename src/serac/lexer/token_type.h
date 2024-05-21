@@ -1,12 +1,15 @@
 #ifndef SERALANG_TOKEN_TYPE_H
 #define SERALANG_TOKEN_TYPE_H
 
+#include <map>
+#include <string>
+
 namespace lexer {
 
     enum token_type {
         eof = 1,
 
-        number,
+        integer,
         boolean,
 
         identifier,
