@@ -74,6 +74,8 @@ namespace lexer {
         greater_or_equal,
     };
 
+    std::string convert_token_type_to_string(const lexer::token_type& type);
+
 }
 
 #endif //SERALANG_TOKEN_TYPE_H
