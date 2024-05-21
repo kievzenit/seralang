@@ -5,6 +5,7 @@
 #include <memory>
 #include <utility>
 #include <stack>
+#include <sstream>
 #include "../lexer/lexer.h"
 #include "ast/common/file_metadata.h"
 #include "ast/translation_ast.h"
@@ -33,6 +34,7 @@
 #include "ast/exprs/assignment_expr.h"
 #include "ast/stmts/expr_stmt.h"
 #include "ast/exprs/call_expr.h"
+#include "shared/error.h"
 
 namespace parser {
 
@@ -42,6 +44,8 @@ namespace parser {
         lexer_(lexer), file_name_(std::move(file_name)) {}
 
         std::unique_ptr<ast::translation_ast> parse();
+
+        std::unique_ptr<errors::error> error;
     private:
         lexer::lexer lexer_;
         lexer::token current_token_ = nullptr;
@@ -80,16 +84,15 @@ namespace parser {
 
         bool has_tokens() const;
 
-        void expect(lexer::token_type token_type);
-        void unexpected_token_error();
+        bool expect(lexer::token_type token_type);
+        bool expect(std::vector<lexer::token_type> token_types);
+        void unexpected();
         void eat();
         void putback();
         void putback(const lexer::token& token);
         void store_priv_token();
 
         ast::file_metadata create_metadata(const lexer::token& first_token, const lexer::token& last_token);
-
-        bool is_current_token_assignment_token() const;
 
         int get_current_token_precedence();
         ast::binary_operation current_token_type_to_binary_operation();
@@ -100,7 +103,6 @@ namespace parser {
         std::unique_ptr<ast::top_stmt> parse_top_stmt();
         std::unique_ptr<ast::func_decl_stmt> parse_func_decl_stmt();
         std::vector<ast::func_param> parse_func_params();
-        ast::func_param parse_func_param();
 
         std::unique_ptr<ast::stmt> parse_stmt();
 

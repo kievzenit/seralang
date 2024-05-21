@@ -4,10 +4,17 @@ std::unique_ptr<parser::ast::translation_ast> parser::parser::parse() {
     std::vector<std::unique_ptr<ast::top_stmt>> stmts;
 
     auto package_stmt = parse_package_stmt();
+    if (!package_stmt) {
+        return nullptr;
+    }
 
     eat();
     while (has_tokens()) {
         auto top_stmt = parse_top_stmt();
+        if (!top_stmt) {
+            return nullptr;
+        }
+
         stmts.push_back(std::move(top_stmt));
         eat();
     }
@@ -19,26 +26,78 @@ bool parser::parser::has_tokens() const {
     return current_token_.type != lexer::token_type::eof;
 }
 
-void parser::parser::expect(lexer::token_type token_type) {
+bool parser::parser::expect(lexer::token_type token_type) {
     if (current_token_.type != token_type) {
-        unexpected_token_error();
+        auto expected_token_type = lexer::convert_token_type_to_string(token_type);
+        auto got_token_type = lexer::convert_token_type_to_string(current_token_.type);
+
+        error = std::make_unique<errors::error>(
+                std::format(
+                        R"(Expected: "{}", but got: "{}".)",
+                        expected_token_type,
+                        got_token_type),
+                std::format(
+                        R"(try add/replace "{}" to "{}".)",
+                        got_token_type,
+                        expected_token_type
+                        ),
+                file_name_,
+                current_token_.line,
+                current_token_.column_start,
+                current_token_.column_end);
+
+        return false;
     }
+
+    return true;
 }
 
-void parser::parser::unexpected_token_error() {
-    std::string characters_format;
-    if (current_token_.column_start != current_token_.column_end) {
-        characters_format = std::format("{}-{}", current_token_.column_start, current_token_.column_end);
-    } else {
-        characters_format = std::to_string(current_token_.column_start);
+bool parser::parser::expect(std::vector<lexer::token_type> token_types) {
+    std::stringstream expected_tokens;
+    for (auto token_type : token_types) {
+        if (current_token_.type == token_type) {
+            return true;
+        }
+
+        auto place_coma = *token_types.end().base() != token_type;
+
+        expected_tokens
+            << '"'
+            << lexer::convert_token_type_to_string(token_type)
+            << '"'
+            << (place_coma ? ", " : "");
     }
 
-    auto format = std::format(
-            "Unexpected token: {} on line:character {}:{}",
-            current_token_.value,
+    auto got_token_type = lexer::convert_token_type_to_string(current_token_.type);
+
+    error = std::make_unique<errors::error>(
+            std::format(
+                    "Unexpected token: \"{}\", expected one of these tokens: ({}).",
+                    got_token_type,
+                    expected_tokens.str()),
+            std::format(
+                    "try add/replace \"{}\" to one of these: ({}).",
+                    got_token_type,
+                    expected_tokens.str()
+            ),
+            file_name_,
             current_token_.line,
-            characters_format);
-    utils::log_error(format);
+            current_token_.column_start,
+            current_token_.column_end);
+
+    return false;
+}
+
+void parser::parser::unexpected() {
+    error = std::make_unique<errors::error>(
+            std::format(
+                    "Unexpected token: \"{}\" found.",
+                    lexer::convert_token_type_to_string(current_token_.type)),
+            "try to remove this token.",
+            file_name_,
+            current_token_.line,
+            current_token_.column_start,
+            current_token_.column_end);
 }
 
 void parser::parser::eat() {
@@ -71,20 +130,6 @@ parser::parser::create_metadata(const lexer::token &first_token, const lexer::to
             last_token.line,
             first_token.column_start,
             last_token.column_end);
-}
-
-bool parser::parser::is_current_token_assignment_token() const {
-    switch (current_token_.type) {
-        case lexer::token_type::assign:
-        case lexer::token_type::plus_assign:
-        case lexer::token_type::minus_assign:
-        case lexer::token_type::multiply_assign:
-        case lexer::token_type::divide_assign:
-        case lexer::token_type::modulus_assign:
-            return true;
-        default:
-            return false;
-    }
 }
 
 int parser::parser::get_current_token_precedence() {
@@ -127,13 +172,17 @@ parser::ast::binary_operation parser::parser::token_type_to_binary_operation(lex
 
 std::unique_ptr<parser::ast::package_stmt> parser::parser::parse_package_stmt() {
     eat();
-    expect(lexer::token_type::package);
+    if (!expect(lexer::token_type::package)) {
+        return nullptr;
+    }
     auto first_token = current_token_;
 
     std::string package_name;
 
     eat();
-    expect(lexer::token_type::identifier);
+    if (!expect(lexer::token_type::identifier)) {
+        return nullptr;
+    }
     package_name += current_token_.value;
 
     eat();
@@ -144,11 +193,15 @@ std::unique_ptr<parser::ast::package_stmt> parser::parser::parse_package_stmt() 
     }
 
     while (has_tokens()) {
-        expect(lexer::token_type::dot);
+        if (!expect(lexer::token_type::dot)) {
+            return nullptr;
+        }
         package_name += current_token_.value;
 
         eat();
-        expect(lexer::token_type::identifier);
+        if (!expect(lexer::token_type::identifier)) {
+            return nullptr;
+        }
         package_name += current_token_.value;
 
         eat();
@@ -178,7 +231,12 @@ std::unique_ptr<parser::ast::top_stmt> parser::parser::parse_top_stmt() {
             top_stmt = parse_func_decl_stmt();
             break;
         default:
-            unexpected_token_error();
+            unexpected();
+            return nullptr;
+    }
+
+    if (!top_stmt) {
+        return nullptr;
     }
 
     top_stmt->metadata = create_metadata(first_token, current_token_);
@@ -186,23 +244,34 @@ std::unique_ptr<parser::ast::top_stmt> parser::parser::parse_top_stmt() {
 }
 
 std::unique_ptr<parser::ast::func_decl_stmt> parser::parser::parse_func_decl_stmt() {
-    expect(lexer::token_type::func);
+    if (!expect(lexer::token_type::func)) {
+        return nullptr;
+    }
 
     eat();
-    expect(lexer::token_type::identifier);
+    if (!expect(lexer::token_type::identifier)) {
+        return nullptr;
+    }
 
     auto function_name = current_token_.value;
 
     auto params = parse_func_params();
 
     eat();
-    expect(lexer::token_type::identifier);
+    if (!expect(lexer::token_type::identifier)) {
+        return nullptr;
+    }
     auto return_type = current_token_.value;
 
     eat();
     auto first_scope_token = current_token_;
     putback(first_scope_token);
+
     auto scope_stmt = parse_scope_stmt();
+    if (!scope_stmt) {
+        return nullptr;
+    }
+
     scope_stmt->metadata = create_metadata(first_scope_token, current_token_);
 
     return std::make_unique<ast::func_decl_stmt>(
@@ -221,8 +290,24 @@ std::vector<parser::ast::func_param> parser::parser::parse_func_params() {
             break;
         }
 
-        putback();
-        params.push_back(parse_func_param());
+
+        if (!expect(lexer::token_type::identifier)) {
+            return params;
+        }
+        auto param_name = current_token_.value;
+
+        eat();
+        if (!expect(lexer::token_type::colon)) {
+            return params;
+        }
+
+        eat();
+        if (!expect(lexer::token_type::identifier)) {
+            return params;
+        }
+        auto param_type = current_token_.value;
+
+        params.emplace_back(param_name, param_type);
 
         eat();
         if (current_token_.type == lexer::token_type::coma) {
@@ -231,21 +316,6 @@ std::vector<parser::ast::func_param> parser::parser::parse_func_params() {
     } while (has_tokens());
 
     return params;
-}
-
-parser::ast::func_param parser::parser::parse_func_param() {
-    eat();
-    expect(lexer::token_type::identifier);
-    auto param_name = current_token_.value;
-
-    eat();
-    expect(lexer::token_type::colon);
-
-    eat();
-    expect(lexer::token_type::identifier);
-    auto param_type = current_token_.value;
-
-    return {param_name, param_type};
 }
 
 std::unique_ptr<parser::ast::stmt> parser::parser::parse_stmt() {
@@ -276,24 +346,38 @@ std::unique_ptr<parser::ast::stmt> parser::parser::parse_stmt() {
             stmt = parse_local_stmt();
     }
 
+    if (!stmt) {
+        return nullptr;
+    }
+
     stmt->metadata = create_metadata(first_token, current_token_);
     return stmt;
 }
 
 std::unique_ptr<parser::ast::scope_stmt> parser::parser::parse_scope_stmt() {
     eat();
-    expect(lexer::token_type::l_curly_brace);
+    if (!expect(lexer::token_type::l_curly_brace)) {
+        return nullptr;
+    }
 
     std::vector<std::unique_ptr<ast::stmt>> inner_stmts;
 
     eat();
     while (has_tokens() && current_token_.type != lexer::token_type::r_curly_brace) {
         putback();
-        inner_stmts.push_back(parse_stmt());
+
+        auto stmt = parse_stmt();
+        if (!stmt) {
+            return nullptr;
+        }
+
+        inner_stmts.push_back(std::move(stmt));
         eat();
     }
 
-    expect(lexer::token_type::r_curly_brace);
+    if (!expect(lexer::token_type::r_curly_brace)) {
+        return nullptr;
+    }
 
     return std::make_unique<ast::scope_stmt>(std::move(inner_stmts));
 }
@@ -311,16 +395,24 @@ std::unique_ptr<parser::ast::compound_stmt> parser::parser::parse_compound_stmt(
         case lexer::token_type::for_:
             return parse_for_stmt();
         default:
-            utils::log_error("Unexpected compound statement got, exiting with error from parser.");
-            __builtin_unreachable();
+            return nullptr;
     }
 }
 
 std::unique_ptr<parser::ast::if_stmt> parser::parser::parse_if_stmt() {
-    expect(lexer::token_type::if_);
+    if (!expect(lexer::token_type::if_)) {
+        return nullptr;
+    }
 
     auto if_expr = parse_parenthesis_expr();
+    if (!if_expr) {
+        return nullptr;
+    }
+
     auto if_scope = parse_scope_stmt();
+    if (!if_scope) {
+        return nullptr;
+    }
 
     std::vector<std::unique_ptr<ast::else_if_stmt>> else_if_branches;
     std::unique_ptr<ast::else_stmt> else_branch;
@@ -361,6 +453,9 @@ std::unique_ptr<parser::ast::if_stmt> parser::parser::parse_if_stmt() {
 
     putback();
     else_branch = parse_else_stmt();
+    if (!else_branch) {
+        return nullptr;
+    }
 
     return std::make_unique<ast::if_stmt>(
             std::move(if_expr),
@@ -383,6 +478,10 @@ std::vector<std::unique_ptr<parser::ast::else_if_stmt>> parser::parser::parse_el
         }
 
         auto else_if_stmt = parse_else_if_stmt();
+        if (!else_if_stmt) {
+            return else_if_branches;
+        }
+
         else_if_branches.push_back(std::move(else_if_stmt));
         eat();
     }
@@ -393,61 +492,105 @@ std::vector<std::unique_ptr<parser::ast::else_if_stmt>> parser::parser::parse_el
 }
 
 std::unique_ptr<parser::ast::else_if_stmt> parser::parser::parse_else_if_stmt() {
-    expect(lexer::token_type::if_);
+    if (!expect(lexer::token_type::if_)) {
+        return nullptr;
+    }
 
     auto else_if_expr = parse_parenthesis_expr();
+    if (!else_if_expr) {
+        return nullptr;
+    }
+
     auto else_if_scope = parse_scope_stmt();
+    if (!else_if_scope) {
+        return nullptr;
+    }
 
     return std::make_unique<ast::else_if_stmt>(std::move(else_if_expr), std::move(else_if_scope));
 }
 
 std::unique_ptr<parser::ast::else_stmt> parser::parser::parse_else_stmt() {
     eat();
-    expect(lexer::token_type::else_);
+    if (!expect(lexer::token_type::else_)) {
+        return nullptr;
+    }
 
     auto else_scope = parse_scope_stmt();
+    if (!else_scope) {
+        return nullptr;
+    }
 
     return std::make_unique<ast::else_stmt>(std::move(else_scope));
 }
 
 std::unique_ptr<parser::ast::while_stmt> parser::parser::parse_while_stmt() {
-    expect(lexer::token_type::while_);
+    if (!expect(lexer::token_type::while_)) {
+        return nullptr;
+    }
 
     auto condition_expr = parse_parenthesis_expr();
+    if (!condition_expr) {
+        return nullptr;
+    }
+
     auto while_scope = parse_scope_stmt();
+    if (!while_scope) {
+        return nullptr;
+    }
 
     return std::make_unique<ast::while_stmt>(std::move(condition_expr), std::move(while_scope));
 }
 
 std::unique_ptr<parser::ast::do_while_stmt> parser::parser::parse_do_while_stmt() {
-    expect(lexer::token_type::do_);
+    if (!expect(lexer::token_type::do_)) {
+        return nullptr;
+    }
 
     auto do_while_scope = parse_scope_stmt();
+    if (!do_while_scope) {
+        return nullptr;
+    }
 
     eat();
-    expect(lexer::token_type::while_);
+    if (!expect(lexer::token_type::while_)) {
+        return nullptr;
+    }
 
     auto condition_expr = parse_parenthesis_expr();
+    if (!condition_expr) {
+        return nullptr;
+    }
 
     eat();
-    expect(lexer::token_type::semicolon);
+    if (!expect(lexer::token_type::semicolon)) {
+        return nullptr;
+    }
 
     return std::make_unique<ast::do_while_stmt>(std::move(condition_expr), std::move(do_while_scope));
 }
 
 std::unique_ptr<parser::ast::loop_stmt> parser::parser::parse_loop_stmt() {
-    expect(lexer::token_type::loop);
+    if (!expect(lexer::token_type::loop)) {
+        return nullptr;
+    }
 
     auto scope = parse_scope_stmt();
+    if (!scope) {
+        return nullptr;
+    }
 
     return std::make_unique<ast::loop_stmt>(std::move(scope));
 }
 
 std::unique_ptr<parser::ast::for_stmt> parser::parser::parse_for_stmt() {
-    expect(lexer::token_type::for_);
+    if (!expect(lexer::token_type::for_)) {
+        return nullptr;
+    }
 
     eat();
-    expect(lexer::token_type::l_parenthesis);
+    if (!expect(lexer::token_type::l_parenthesis)) {
+        return nullptr;
+    }
 
     std::vector<std::unique_ptr<ast::stmt>> run_once;
 
@@ -462,17 +605,28 @@ std::unique_ptr<parser::ast::for_stmt> parser::parser::parse_for_stmt() {
         putback();
 
         auto stmt = parse_local_stmt(false);
+        if (!stmt) {
+            return nullptr;
+        }
         run_once.push_back(std::move(stmt));
 
         if (current_token_.type != lexer::token_type::coma
             && current_token_.type != lexer::token_type::semicolon) {
-            expect(lexer::token_type::coma);
+            if (!expect(lexer::token_type::coma)) {
+                return nullptr;
+            }
         }
     }
 
     auto condition = parse_expr();
+    if (!condition) {
+        return nullptr;
+    }
+
     eat();
-    expect(lexer::token_type::semicolon);
+    if (!expect(lexer::token_type::semicolon)) {
+        return nullptr;
+    }
 
     std::vector<std::unique_ptr<ast::expr>> run_after_each;
 
@@ -483,16 +637,24 @@ std::unique_ptr<parser::ast::for_stmt> parser::parser::parse_for_stmt() {
 
     while (current_token_.type != lexer::token_type::r_parenthesis) {
         auto stmt = parse_expr();
+        if (!stmt) {
+            return nullptr;
+        }
         run_after_each.push_back(std::move(stmt));
         eat();
 
         if (current_token_.type != lexer::token_type::coma
             && current_token_.type != lexer::token_type::r_parenthesis) {
-            expect(lexer::token_type::coma);
+            if (!expect(lexer::token_type::coma)) {
+                return nullptr;
+            }
         }
     }
 
     auto scope = parse_scope_stmt();
+    if (!scope) {
+        return nullptr;
+    }
 
     return std::make_unique<ast::for_stmt>(
             std::move(run_once), std::move(condition), std::move(run_after_each), std::move(scope));
@@ -515,25 +677,38 @@ std::unique_ptr<parser::ast::local_stmt> parser::parser::parse_local_stmt(bool e
             local_stmt = parse_expr_stmt(expect_semicolon);
     }
 
+    if (!local_stmt) {
+        return nullptr;
+    }
+
     local_stmt->metadata = create_metadata(first_token, current_token_);
     return local_stmt;
 }
 
 std::unique_ptr<parser::ast::let_stmt> parser::parser::parse_let_stmt(bool is_static, bool expect_semicolon) {
-    expect(lexer::token_type::let);
+    if (!expect(lexer::token_type::let)) {
+        return nullptr;
+    }
 
     eat();
-    expect(lexer::token_type::identifier);
+    if (!expect(lexer::token_type::identifier)) {
+        return nullptr;
+    }
     auto identifier_name = current_token_.value;
 
     eat();
-    expect(lexer::token_type::assign);
+    if (!expect(lexer::token_type::assign)) {
+        return nullptr;
+    }
 
     auto expression = parse_expr();
+    if (!expression) {
+        return nullptr;
+    }
 
     eat();
-    if (expect_semicolon) {
-        expect(lexer::token_type::semicolon);
+    if (expect_semicolon && !expect(lexer::token_type::semicolon)) {
+        return nullptr;
     }
 
     return std::make_unique<ast::let_stmt>(identifier_name, std::move(expression), is_static);
@@ -542,10 +717,13 @@ std::unique_ptr<parser::ast::let_stmt> parser::parser::parse_let_stmt(bool is_st
 std::unique_ptr<parser::ast::expr_stmt> parser::parser::parse_expr_stmt(bool expect_semicolon) {
     putback();
     auto expr = parse_expr();
+    if (!expr) {
+        return nullptr;
+    }
 
     eat();
-    if (expect_semicolon) {
-        expect(lexer::token_type::semicolon);
+    if (expect_semicolon && !expect(lexer::token_type::semicolon)) {
+        return nullptr;
     }
 
     return std::make_unique<ast::expr_stmt>(std::move(expr));
@@ -569,8 +747,11 @@ std::unique_ptr<parser::ast::control_flow_stmt> parser::parser::parse_control_fl
             control_flow_stmt = parse_return_stmt();
             break;
         default:
-            utils::log_error("Unexpected statement got, exiting with error.");
-            __builtin_unreachable();
+            return nullptr;
+    }
+
+    if (!control_flow_stmt) {
+        return nullptr;
     }
 
     control_flow_stmt->metadata = create_metadata(first_token, current_token_);
@@ -578,16 +759,29 @@ std::unique_ptr<parser::ast::control_flow_stmt> parser::parser::parse_control_fl
 }
 
 std::unique_ptr<parser::ast::return_stmt> parser::parser::parse_return_stmt() {
-    auto return_stmt = std::make_unique<ast::return_stmt>(parse_expr());
+    if (!expect(lexer::token_type::ret)) {
+        return nullptr;
+    }
+    
+    auto expr = parse_expr();
+    if (!expr) {
+        return nullptr;
+    }
+    
+    auto return_stmt = std::make_unique<ast::return_stmt>(std::move(expr));
 
     eat();
-    expect(lexer::token_type::semicolon);
+    if (!expect(lexer::token_type::semicolon)) {
+        return nullptr;
+    }
 
     return std::move(return_stmt);
 }
 
 std::unique_ptr<parser::ast::break_stmt> parser::parser::parse_break_stmt() {
-    expect(lexer::token_type::break_);
+    if (!expect(lexer::token_type::break_)) {
+        return nullptr;
+    }
 
     eat();
     if (current_token_.type == lexer::token_type::semicolon) {
@@ -596,27 +790,40 @@ std::unique_ptr<parser::ast::break_stmt> parser::parser::parse_break_stmt() {
 
     putback();
     auto break_expr = parse_expr();
+    if (!break_expr) {
+        return nullptr;
+    }
 
     eat();
-    expect(lexer::token_type::semicolon);
+    if (!expect(lexer::token_type::semicolon)) {
+        return nullptr;
+    }
 
     return std::make_unique<ast::break_stmt>(std::move(break_expr));
 }
 
 std::unique_ptr<parser::ast::breakall_stmt> parser::parser::parse_breakall_stmt() {
-    expect(lexer::token_type::breakall);
+    if (!expect(lexer::token_type::breakall)) {
+        return nullptr;
+    }
 
     eat();
-    expect(lexer::token_type::semicolon);
+    if (!expect(lexer::token_type::semicolon)) {
+        return nullptr;
+    }
 
     return std::make_unique<ast::breakall_stmt>();
 }
 
 std::unique_ptr<parser::ast::continue_stmt> parser::parser::parse_continue_stmt() {
-    expect(lexer::token_type::continue_);
+    if (!expect(lexer::token_type::continue_)) {
+        return nullptr;
+    }
 
     eat();
-    expect(lexer::token_type::semicolon);
+    if (!expect(lexer::token_type::semicolon)) {
+        return nullptr;
+    }
 
     return std::make_unique<ast::continue_stmt>();
 }
@@ -627,24 +834,42 @@ std::unique_ptr<parser::ast::expr> parser::parser::parse_expr() {
     putback();
     store_priv_token();
     auto left = parse_unary_expr();
+    if (!left) {
+        return nullptr;
+    }
 
     auto expr = parse_binary_expr(std::move(left), 0);
+    if (!expr) {
+        return nullptr;
+    }
+    
     expr->metadata = create_metadata(first_token, priv_token_);
     return expr;
 }
 
 std::unique_ptr<parser::ast::assignment_expr> parser::parser::parse_assignment_expr() {
     eat();
-    expect(lexer::token_type::identifier);
+    if (!expect(lexer::token_type::identifier)) {
+        return nullptr;
+    }
     auto identifier_name = current_token_.value;
 
     eat();
     auto assign_token_type = current_token_.type;
-    if (!is_current_token_assignment_token()) {
-        unexpected_token_error();
+    if (!expect({
+        lexer::token_type::assign,
+        lexer::token_type::plus_assign,
+        lexer::token_type::minus_assign,
+        lexer::token_type::multiply_assign,
+        lexer::token_type::divide_assign,
+        lexer::token_type::modulus_assign})) {
+        return nullptr;
     }
 
     auto expr = parse_expr();
+    if (!expr) {
+        return nullptr;
+    }
 
     if (assign_token_type != lexer::token_type::assign) {
         expr = std::make_unique<ast::binary_expr>(
@@ -678,6 +903,9 @@ std::unique_ptr<parser::ast::expr> parser::parser::parse_unary_expr() {
 std::unique_ptr<parser::ast::expr> parser::parser::parse_prefix_expr() {
     auto prefix_token_type = current_token_.type;
     auto primary_expr = parse_primary_expr();
+    if (!primary_expr) {
+        return nullptr;
+    }
 
     return std::make_unique<ast::prefix_expr>(
             std::move(primary_expr), token_to_unary_operation[prefix_token_type]);
@@ -685,6 +913,9 @@ std::unique_ptr<parser::ast::expr> parser::parser::parse_prefix_expr() {
 
 std::unique_ptr<parser::ast::expr> parser::parser::parse_postfix_expr() {
     auto primary_expr = parse_primary_expr();
+    if (!primary_expr) {
+        return nullptr;
+    }
 
     store_priv_token();
     eat();
@@ -717,6 +948,9 @@ std::unique_ptr<parser::ast::expr> parser::parser::parse_binary_expr(
         auto binary_operator = current_token_type_to_binary_operation();
 
         auto right = parse_unary_expr();
+        if (!right) {
+            return nullptr;
+        }
 
         eat();
         auto next_precedence = get_current_token_precedence();
@@ -724,6 +958,9 @@ std::unique_ptr<parser::ast::expr> parser::parser::parse_binary_expr(
             putback();
             right = parse_binary_expr(std::move(right), current_precedence + 1);
             eat();
+            if (!right) {
+                return nullptr;
+            }
         }
 
         left = std::make_unique<ast::binary_expr>(std::move(left), std::move(right), binary_operator);
@@ -734,14 +971,22 @@ std::unique_ptr<parser::ast::expr> parser::parser::parse_primary_expr() {
     eat();
     auto priv_token = current_token_;
     switch (current_token_.type) {
-        case lexer::token_type::number: return parse_integer_expr();
+        case lexer::token_type::integer: return parse_integer_expr();
         case lexer::token_type::boolean: return parse_boolean_expr();
         case lexer::token_type::identifier:
             eat();
-            if (is_current_token_assignment_token()) {
-                putback();
-                putback(priv_token);
-                return parse_assignment_expr();
+            switch (current_token_.type) {
+                case lexer::token_type::assign:
+                case lexer::token_type::plus_assign:
+                case lexer::token_type::minus_assign:
+                case lexer::token_type::multiply_assign:
+                case lexer::token_type::divide_assign:
+                case lexer::token_type::modulus_assign:
+                    putback();
+                    putback(priv_token);
+                    return parse_assignment_expr();
+                default:
+                    break;
             }
 
             putback();
@@ -751,19 +996,26 @@ std::unique_ptr<parser::ast::expr> parser::parser::parse_primary_expr() {
             putback();
             return parse_parenthesis_expr();
         default:
-            unexpected_token_error();
-            __builtin_unreachable();
+            unexpected();
+            return nullptr;
     }
 }
 
 std::unique_ptr<parser::ast::expr> parser::parser::parse_parenthesis_expr() {
     eat();
-    expect(lexer::token_type::l_parenthesis);
+    if (!expect(lexer::token_type::l_parenthesis)) {
+        return nullptr;
+    }
 
     auto expr = parse_expr();
+    if (!expr) {
+        return nullptr;
+    }
 
     eat();
-    expect(lexer::token_type::r_parenthesis);
+    if (!expect(lexer::token_type::r_parenthesis)) {
+        return nullptr;
+    }
     store_priv_token();
 
     return std::move(expr);
@@ -771,7 +1023,9 @@ std::unique_ptr<parser::ast::expr> parser::parser::parse_parenthesis_expr() {
 
 std::unique_ptr<parser::ast::call_expr> parser::parser::parse_call_expr() {
     eat();
-    expect(lexer::token_type::identifier);
+    if (!expect(lexer::token_type::identifier)) {
+        return nullptr;
+    }
     auto identifier = current_token_.value;
 
     auto arguments = parse_call_arguments();
@@ -784,7 +1038,9 @@ std::vector<std::unique_ptr<parser::ast::expr>> parser::parser::parse_call_argum
     std::vector<std::unique_ptr<ast::expr>> arguments;
 
     eat();
-    expect(lexer::token_type::l_parenthesis);
+    if (!expect(lexer::token_type::l_parenthesis)) {
+        return arguments;
+    }
 
     eat();
     do {
@@ -793,7 +1049,12 @@ std::vector<std::unique_ptr<parser::ast::expr>> parser::parser::parse_call_argum
         }
 
         putback();
-        arguments.push_back(parse_expr());
+        auto expr = parse_expr();
+        if (!expr) {
+            return arguments;
+        }
+
+        arguments.push_back(std::move(expr));
 
         eat();
         if (current_token_.type == lexer::token_type::coma) {
@@ -805,6 +1066,10 @@ std::vector<std::unique_ptr<parser::ast::expr>> parser::parser::parse_call_argum
 }
 
 std::unique_ptr<parser::ast::expr> parser::parser::parse_identifier_expr() {
+    if (!expect(lexer::token_type::identifier)) {
+        return nullptr;
+    }
+
     auto identifier_token = current_token_;
     auto identifier = identifier_token.value;
 
@@ -821,13 +1086,19 @@ std::unique_ptr<parser::ast::expr> parser::parser::parse_identifier_expr() {
 }
 
 std::unique_ptr<parser::ast::integer_expr> parser::parser::parse_integer_expr() {
+    if (!expect(lexer::token_type::integer)) {
+        return nullptr;
+    }
+
     auto number = std::stoi(current_token_.value);
 
     store_priv_token();
     eat();
     if (current_token_.type == lexer::token_type::colon) {
         eat();
-        expect(lexer::token_type::identifier);
+        if (!expect(lexer::token_type::identifier)) {
+            return nullptr;
+        }
         store_priv_token();
 
         return std::make_unique<ast::integer_expr>(number, current_token_.value);
@@ -838,6 +1109,10 @@ std::unique_ptr<parser::ast::integer_expr> parser::parser::parse_integer_expr() 
 }
 
 std::unique_ptr<parser::ast::boolean_expr> parser::parser::parse_boolean_expr() {
+    if (!expect(lexer::token_type::boolean)) {
+        return nullptr;
+    }
+
     store_priv_token();
     return std::make_unique<ast::boolean_expr>(current_token_.value == "true");
 }
