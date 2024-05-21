@@ -32,6 +32,7 @@ void compiler::compiler::compile() {
             std::vector<std::unique_ptr<errors::error>> errors;
             errors.push_back(std::move(parser.error));
             display_errors(std::move(errors), file);
+            return;
         }
 
         translation_asts_.push_back(std::move(translation_ast));
@@ -40,6 +41,19 @@ void compiler::compiler::compile() {
     for (auto& package : split_asts_by_package()) {
         emitter::emitter emitter(std::move(package.second));
         auto package_ir = emitter.emit();
+
+        if (!emitter.errors.empty()) {
+            std::ifstream file(files_[0]);
+            if (!file.is_open()) {
+                auto error_message = std::format(
+                        "Unable to open file: {}, exiting with error.\n",
+                        files_[0]);
+                utils::log_error(error_message);
+            }
+
+            display_errors(std::move(emitter.errors), file);
+            return;
+        }
 
         translator::translator translator(std::move(package_ir));
         auto module = translator.translate();
