@@ -29,6 +29,14 @@ std::unique_ptr<emitter::ir::expr_ir> emitter::emitter::emit_for_expr(std::uniqu
         return emit_for_unary_expr(dynamic_cast<parser::ast::unary_expr*>(expr.get()));
     }
 
+    if (auto complex_cast_expr = dynamic_cast<parser::ast::complex_cast_expr*>(expr.get())) {
+        return emit_for_complex_cast_expr(complex_cast_expr);
+    }
+
+    if (auto cast_expr = dynamic_cast<parser::ast::cast_expr*>(expr.get())) {
+        return emit_for_cast_expr(cast_expr);
+    }
+
     utils::log_error("Unexpected expression expr_type, this should never happen!");
     __builtin_unreachable();
 }
@@ -187,6 +195,66 @@ emitter::emitter::emit_for_binary_expr(parser::ast::binary_expr *binary_expr) {
     }
 }
 
+std::unique_ptr<emitter::ir::expr_ir> emitter::emitter::emit_for_cast_expr(parser::ast::cast_expr *cast_expr) {
+    auto type = types_[cast_expr->cast_type];
+    if (!type) {
+        auto error = std::make_unique<errors::error>(
+                std::format("Undefined type: \"{}\".", cast_expr->cast_type),
+                "use defined type here.",
+                cast_expr->metadata.file_name,
+                cast_expr->metadata.line_start,
+                cast_expr->metadata.column_start,
+                cast_expr->metadata.column_end);
+        errors.push_back(std::move(error));
+        return nullptr;
+    }
+
+    auto expr = emit_for_expr(std::move(cast_expr->left_expr));
+
+    if (!expr->expr_type->is_basic) {
+        utils::log_error("Only basic type casting is supported now.");
+    }
+
+    if (expr->expr_type == type) {
+        return expr;
+    }
+
+    if (expr->expr_type->can_be_implicitly_casted_to(type)) {
+        return emit_for_upcast(std::move(expr), type);
+    }
+
+    if (expr->expr_type->can_be_explicitly_casted_to(type)) {
+        return emit_for_downcast(std::move(expr), type);
+    }
+
+    auto error = std::make_unique<errors::error>(
+            std::format(
+                    "Cannot cast left hand expression to this type: \"{}\"",
+                    cast_expr->cast_type),
+            "use defined type here.",
+            cast_expr->metadata.file_name,
+            cast_expr->metadata.line_start,
+            cast_expr->metadata.column_start,
+            cast_expr->metadata.column_end);
+    errors.push_back(std::move(error));
+    return nullptr;
+}
+
+std::unique_ptr<emitter::ir::expr_ir>
+emitter::emitter::emit_for_complex_cast_expr(parser::ast::complex_cast_expr *complex_cast_expr) {
+    auto cast_expr = std::make_unique<parser::ast::cast_expr>(
+            std::move(complex_cast_expr->left_expr), complex_cast_expr->cast_type);
+    auto let_stmt = std::make_unique<parser::ast::let_stmt>(
+            complex_cast_expr->new_identifier, std::move(cast_expr), false);
+
+    emit_for_let_stmt(let_stmt.get());
+
+    auto boolean_expr = std::make_unique<parser::ast::boolean_expr>(true);
+    auto boolean_expr_ir = std::make_unique<ir::boolean_expr_ir>(boolean_expr.get());
+
+    return boolean_expr_ir;
+}
+
 std::unique_ptr<emitter::ir::expr_ir>
 emitter::emitter::emit_for_cast(std::unique_ptr<ir::expr_ir> expr, ir::type *cast_to) {
     if (expr->expr_type == cast_to) {
@@ -201,7 +269,7 @@ emitter::emitter::emit_for_cast(std::unique_ptr<ir::expr_ir> expr, ir::type *cas
         return emit_for_upcast(std::move(expr), cast_to);
     }
 
-    utils::log_error(std::format("Expression cannot be explicitly casted to type: {}.", cast_to->name));
+    utils::log_error(std::format("Expression cannot be implicitly casted to type: {}.", cast_to->name));
     __builtin_unreachable();
 }
 
@@ -361,6 +429,10 @@ std::unique_ptr<emitter::ir::integer_expr_ir> emitter::emitter::emit_for_explici
     }
 
     if (explicit_int_type == "int32") {
+        return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::integer_type::int32());
+    }
+
+    if (explicit_int_type == "int") {
         return std::make_unique<ir::integer_expr_ir>(integer_expr, ir::integer_type::int32());
     }
 

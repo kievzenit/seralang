@@ -61,6 +61,8 @@
 #include "ir/stmts/expr_stmt_ir.h"
 #include "../parser/ast/stmts/expr_stmt.h"
 #include "../shared/error.h"
+#include "../parser/ast/exprs/cast_expr.h"
+#include "../parser/ast/exprs/complex_cast_expr.h"
 
 namespace emitter {
 
@@ -147,6 +149,9 @@ namespace emitter {
         std::unique_ptr<ir::postfix_expr_ir> emit_for_postfix_expr(parser::ast::postfix_expr* postfix_expr);
 
         std::unique_ptr<ir::binary_expr_ir> emit_for_binary_expr(parser::ast::binary_expr* binary_expr);
+
+        std::unique_ptr<ir::expr_ir> emit_for_cast_expr(parser::ast::cast_expr* cast_expr);
+        std::unique_ptr<ir::expr_ir> emit_for_complex_cast_expr(parser::ast::complex_cast_expr* complex_cast_expr);
 
         static std::unique_ptr<ir::expr_ir> emit_for_cast(std::unique_ptr<ir::expr_ir> expr, ir::type* cast_to);
         static std::tuple<std::unique_ptr<ir::expr_ir>, std::unique_ptr<ir::expr_ir>, ir::type*>
