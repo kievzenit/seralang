@@ -1146,7 +1146,7 @@ std::unique_ptr<parser::ast::integer_expr> parser::parser::parse_integer_expr() 
         return nullptr;
     }
 
-    auto number = std::stoi(current_token_.value);
+    auto number = std::stol(current_token_.value);
 
     store_priv_token();
     eat();
