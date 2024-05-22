@@ -3,22 +3,19 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
-#include "expr.h"
+#include "cast_expr.h"
 
 namespace parser::ast {
 
-    class complex_cast_expr : public expr {
+    class complex_cast_expr : public cast_expr {
     public:
         complex_cast_expr(std::unique_ptr<expr> left_expr, std::string cast_type, std::string new_identifier) :
-            expr(left_expr->is_const),
-            left_expr(std::move(left_expr)),
-            cast_type(std::move(cast_type)),
+            cast_expr(std::move(left_expr), std::move(cast_type)),
             new_identifier(std::move(new_identifier)) {}
 
-        std::string cast_type;
         std::string new_identifier;
-        std::unique_ptr<expr> left_expr;
     };
 
 }
