@@ -14,7 +14,8 @@ namespace emitter::ir {
         std::string name;
         int size;
 
-        [[nodiscard]] virtual bool can_be_implicitly_casted_to(type* other) const;
+        virtual bool can_be_implicitly_casted_to(type* other) const;
+        virtual bool can_be_explicitly_casted_to(type* other) const;
 
         static type* boolean();
 
