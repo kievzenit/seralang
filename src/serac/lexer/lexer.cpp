@@ -589,7 +589,7 @@ std::string lexer::lexer::process_binary_number() {
         eat_current_char();
     }
 
-    return std::to_string(std::stoi(number, nullptr, 2));
+    return std::to_string(std::stol(number, nullptr, 2));
 }
 
 std::string lexer::lexer::process_octal_number() {
@@ -604,7 +604,7 @@ std::string lexer::lexer::process_octal_number() {
         eat_current_char();
     }
 
-    return std::to_string(std::stoi(number, nullptr, 8));
+    return std::to_string(std::stol(number, nullptr, 8));
 }
 
 std::string lexer::lexer::process_decimal_number() {
@@ -619,7 +619,7 @@ std::string lexer::lexer::process_decimal_number() {
         eat_current_char();
     }
 
-    return std::to_string(std::stoi(number));
+    return std::to_string(std::stol(number));
 }
 
 std::string lexer::lexer::process_hexadecimal_number() {
@@ -634,7 +634,7 @@ std::string lexer::lexer::process_hexadecimal_number() {
         eat_current_char();
     }
 
-    return std::to_string(std::stoi(number, nullptr, 16));
+    return std::to_string(std::stol(number, nullptr, 16));
 }
 
 lexer::token lexer::lexer::process_identifier() {
