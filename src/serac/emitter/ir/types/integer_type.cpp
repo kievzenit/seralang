@@ -13,21 +13,71 @@ bool emitter::ir::integer_type::can_be_implicitly_casted_to(type* other) const {
     }
 
     if (this == int8()) {
-        return other == int16()
+        return other == uint8()
+               || other == int16()
+               || other == uint16()
                || other == int32()
-               || other == int64();
+               || other == int64()
+               || other == uint32()
+               || other == uint64();
+    }
+
+    if (this == uint8()) {
+        return other == int8()
+               || other == uint16()
+               || other == int16()
+               || other == int64()
+               || other == int32()
+               || other == uint64()
+               || other == uint32();
     }
 
     if (this == int16()) {
         return other == int32()
+               || other == uint32()
+               || other == int64()
+               || other == uint64();
+    }
+
+    if (this == uint16()) {
+        return other == int16()
+               || other == uint32()
+               || other == int32()
+               || other == uint64()
                || other == int64();
     }
 
     if (this == int32()) {
+        return other == int64() || other == uint64();
+    }
+
+    if (this == uint32()) {
+        return other == int32()
+               || other == uint64()
+               || other == int64();
+    }
+
+    if (this == int64()) {
+        return other == uint64();
+    }
+
+    if (this == uint64()) {
         return other == int64();
     }
 
     return false;
+}
+
+bool emitter::ir::integer_type::can_be_explicitly_casted_to(emitter::ir::type *other) const {
+    return this == int1()
+           || this == int8()
+           || this == int16()
+           || this == int32()
+           || this == int64()
+           || this == uint8()
+           || this == uint16()
+           || this == uint32()
+           || this == uint64();
 }
 
 emitter::ir::integer_type* emitter::ir::integer_type::int1_ = nullptr;

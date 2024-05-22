@@ -9,7 +9,8 @@ namespace emitter::ir {
     public:
         bool is_unsigned;
 
-        [[nodiscard]] bool can_be_implicitly_casted_to(type* other) const override;
+        bool can_be_implicitly_casted_to(type* other) const override;
+        bool can_be_explicitly_casted_to(emitter::ir::type *other) const override;
 
         static integer_type* int1();
         static integer_type* int8();
