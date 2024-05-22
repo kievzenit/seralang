@@ -870,6 +870,8 @@ std::unique_ptr<parser::ast::expr> parser::parser::parse_cast_expr(std::unique_p
             std::move(expr), current_token_.value);
     cast_expr->metadata = create_metadata(priv_token_, current_token_);
 
+    eat();
+
     return cast_expr;
 }
 
@@ -899,6 +901,8 @@ std::unique_ptr<parser::ast::expr> parser::parser::parse_complex_cast_expr(std::
     if (!expect(lexer::token_type::r_curly_brace)) {
         return nullptr;
     }
+
+    eat();
 
     return std::make_unique<ast::complex_cast_expr>(std::move(expr), cast_type, new_identifier);
 }
