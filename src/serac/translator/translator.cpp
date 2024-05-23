@@ -169,6 +169,10 @@ void translator::translator::translate_function_declarations() {
             continue;
         }
 
+        if (func_decl->is_extern) {
+            continue;
+        }
+
         translate_function(std::move(func_decl));
     }
 
