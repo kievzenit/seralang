@@ -103,7 +103,7 @@ namespace parser {
         std::unique_ptr<ast::package_stmt> parse_package_stmt();
 
         std::unique_ptr<ast::top_stmt> parse_top_stmt();
-        std::unique_ptr<ast::func_decl_stmt> parse_func_decl_stmt();
+        std::unique_ptr<ast::func_decl_stmt> parse_func_decl_stmt(bool is_extern = false);
         std::vector<ast::func_param> parse_func_params();
 
         std::unique_ptr<ast::stmt> parse_stmt();

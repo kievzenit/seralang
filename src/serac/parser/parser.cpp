@@ -230,6 +230,10 @@ std::unique_ptr<parser::ast::top_stmt> parser::parser::parse_top_stmt() {
         case lexer::token_type::func:
             top_stmt = parse_func_decl_stmt();
             break;
+        case lexer::token_type::extern_:
+            eat();
+            top_stmt = parse_func_decl_stmt(true);
+            break;
         default:
             unexpected();
             return nullptr;
@@ -243,7 +247,7 @@ std::unique_ptr<parser::ast::top_stmt> parser::parser::parse_top_stmt() {
     return top_stmt;
 }
 
-std::unique_ptr<parser::ast::func_decl_stmt> parser::parser::parse_func_decl_stmt() {
+std::unique_ptr<parser::ast::func_decl_stmt> parser::parser::parse_func_decl_stmt(bool is_extern) {
     if (!expect(lexer::token_type::func)) {
         return nullptr;
     }
@@ -263,19 +267,29 @@ std::unique_ptr<parser::ast::func_decl_stmt> parser::parser::parse_func_decl_stm
     }
     auto return_type = current_token_.value;
 
-    eat();
-    auto first_scope_token = current_token_;
-    putback(first_scope_token);
+    if (!is_extern) {
+        eat();
+        auto first_scope_token = current_token_;
+        putback(first_scope_token);
 
-    auto scope_stmt = parse_scope_stmt();
-    if (!scope_stmt) {
+        auto scope_stmt = parse_scope_stmt();
+        if (!scope_stmt) {
+            return nullptr;
+        }
+
+        scope_stmt->metadata = create_metadata(first_scope_token, current_token_);
+
+        return std::make_unique<ast::func_decl_stmt>(
+                function_name, params, return_type, is_extern, std::move(scope_stmt));
+    }
+
+    eat();
+    if (!expect(lexer::token_type::semicolon)) {
         return nullptr;
     }
 
-    scope_stmt->metadata = create_metadata(first_scope_token, current_token_);
-
     return std::make_unique<ast::func_decl_stmt>(
-            function_name, params, return_type, std::move(scope_stmt));
+            function_name, params, return_type, is_extern, nullptr);
 }
 
 std::vector<parser::ast::func_param> parser::parser::parse_func_params() {
