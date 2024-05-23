@@ -12,6 +12,7 @@ static std::map<lexer::token_type, std::string> token_type_map = {
         {ret, "return"},
         {package, "package"},
         {static_, "static"},
+        {extern_, "extern"},
         {if_, "if"},
         {else_, "else"},
         {while_, "while"},

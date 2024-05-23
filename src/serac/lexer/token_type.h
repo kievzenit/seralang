@@ -19,6 +19,7 @@ namespace lexer {
         ret,
         package,
         static_,
+        extern_,
         if_,
         else_,
         while_,
