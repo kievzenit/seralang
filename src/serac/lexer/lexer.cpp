@@ -702,6 +702,16 @@ lexer::token lexer::lexer::process_identifier() {
         };
     }
 
+    if (identifier == "extern") {
+        return {
+            token_type::extern_,
+            identifier,
+            line_,
+            column_started,
+            column_
+        };
+    }
+
     if (identifier == "if") {
         return {
                 token_type::if_,
