@@ -39,6 +39,15 @@ void emitter::emitter::emit_all_func_declarations() {
 }
 
 std::unique_ptr<emitter::ir::func_decl_ir> emitter::emitter::emit_for_func(parser::ast::func_decl_stmt *func_stmt) {
+    if (func_stmt->is_extern) {
+        return std::make_unique<ir::func_decl_ir>(
+                func_stmt->name,
+                current_function_->params,
+                current_function_->return_type,
+                func_stmt->is_extern,
+                nullptr);
+    }
+
     auto root_scope_stmt_ir = emit_for_scope_stmt(func_stmt->func_scope.get());
     auto last_stmt_ir = root_scope_stmt_ir->inner_stmts.back().get();
     if (dynamic_cast<ir::return_stmt_ir*>(last_stmt_ir) == nullptr) {
@@ -50,6 +59,7 @@ std::unique_ptr<emitter::ir::func_decl_ir> emitter::emitter::emit_for_func(parse
             func_stmt->name,
             current_function_->params,
             current_function_->return_type,
+            func_stmt->is_extern,
             std::move(root_scope_stmt_ir));
 }
 
