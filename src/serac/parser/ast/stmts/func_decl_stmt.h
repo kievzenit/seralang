@@ -16,15 +16,18 @@ namespace parser::ast {
                 std::string name,
                 std::vector<func_param> params,
                 std::string return_type,
+                bool is_extern,
                 std::unique_ptr<scope_stmt> func_scope) :
                 name(std::move(name)),
                 params(std::move(params)),
                 return_type(std::move(return_type)),
+                is_extern(is_extern),
                 func_scope(std::move(func_scope)) {}
 
         std::string name;
         std::vector<func_param> params;
         std::string return_type;
+        bool is_extern;
         std::unique_ptr<scope_stmt> func_scope;
     };
 
