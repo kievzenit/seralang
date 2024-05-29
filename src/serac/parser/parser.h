@@ -37,6 +37,9 @@
 #include "../shared/error.h"
 #include "ast/exprs/cast_expr.h"
 #include "ast/exprs/complex_cast_expr.h"
+#include "ast/exprs/array_expr.h"
+#include "ast/exprs/array_subscription_expr.h"
+#include "ast/exprs/member_expr.h"
 
 namespace parser {
 
@@ -132,14 +135,18 @@ namespace parser {
 
         std::unique_ptr<ast::expr> parse_expr();
 
-        std::unique_ptr<ast::expr> parse_cast_expr(std::unique_ptr<ast::expr> expr);
-        std::unique_ptr<ast::expr> parse_complex_cast_expr(std::unique_ptr<ast::expr> expr);
-
         std::unique_ptr<ast::assignment_expr> parse_assignment_expr();
 
+        std::unique_ptr<ast::expr> parse_initialization_expr();
+        std::unique_ptr<ast::array_expr> parse_array_expr();
+
+        std::unique_ptr<ast::expr> parse_compound_expr(std::unique_ptr<ast::expr> expr = nullptr);
+        std::unique_ptr<ast::expr> parse_cast_expr(std::unique_ptr<ast::expr> expr);
+        std::unique_ptr<ast::expr> parse_complex_cast_expr(std::unique_ptr<ast::expr> expr);
+        std::unique_ptr<ast::array_subscription_expr> parse_array_subscription_expr(std::unique_ptr<ast::expr> expr);
+        std::unique_ptr<ast::member_expr> parse_member_expr(std::unique_ptr<ast::expr> expr);
+
         std::unique_ptr<ast::expr> parse_unary_expr();
-        std::unique_ptr<ast::expr> parse_prefix_expr();
-        std::unique_ptr<ast::expr> parse_postfix_expr();
 
         std::unique_ptr<ast::expr> parse_binary_expr(std::unique_ptr<ast::expr> left, int precedence = 0);
 
