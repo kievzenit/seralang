@@ -62,14 +62,10 @@
 
 <expression> ::= <primary_expression>
     | <unary_expression>
+    | <initialization_expression>
+    | <compound_expression>
     | <binary_expression>
     | <assignment_expression>
-    | <cast_expression>
-    | <complex_cast_expression>
-
-
-<cast_expression> ::= <unary_expression> ">-" <identifier>
-<complex_cast_expression> ::= <unary_expression> ">-" "{" <identifier> <type_denotation> "}"
 
 
 <assignment_expression> ::= <identifier> <assignment_operator> <expression>
@@ -101,12 +97,24 @@
     | "=="
 
 
-<unary_expression> ::= <prefix_expression> | <postfix_expression>
+<initialization_expression> ::= <array_expression>
+<array_expression> ::= "[" (<expression> ("," <expression>)*)? "]"
 
-<prefix_expression> ::= <prefix_operator> <primary_expression>
+
+<compound_expression> ::= <array_subscript_expression>
+    | <member_expression>
+    | <cast_expression>
+    | <complex_cast_expression>
+    | <unary_expression>
+
+<array_subscript_expression> ::= <compound_expression> "[" <expression> "]"
+<member_expression> ::= <compound_expression> "." <unary_expression>
+<cast_expression> ::= <compound_expression> ">-" <identifier>
+<complex_cast_expression> ::= <compound_expression> ">-" "{" <identifier> <type_denotation> "}"
+
+
+<unary_expression> ::= <prefix_operator>? <primary_expression> <postfix_operator>?
 <prefix_operator> ::= "+" | "-" | "!" | "~" | "++" | "--"
-
-<postfix_expression> ::= <primary_expression> <postfix_operator>
 <postfix_operator> ::= "++" | "--"
 
 
@@ -128,6 +136,7 @@
 <basic_type> ::= "void"
     | "bool"
     | <integer_type>
+    | <basic_type> "[" <integer_expression> "]"
 
 <int_type_denotation> ::= ":" <integer_type>
 <integer_type> ::= "int1"
